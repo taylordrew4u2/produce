@@ -112,25 +112,49 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Staff Assignments</h2>
             <div class="space-y-3">
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">DJ</label>
-                    <input type="text" id="staff-dj" placeholder="Enter DJ name" class="w-full border rounded px-2 py-1"
-                        onblur="saveStaff()">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">DJ</label>
+                        <input type="text" id="staff-dj" placeholder="Enter DJ name"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Door</label>
-                    <input type="text" id="staff-door" placeholder="Enter door person"
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff()">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">Door</label>
+                        <input type="text" id="staff-door" placeholder="Enter door person"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
-                    <input type="text" id="staff-av" placeholder="Enter AV tech" class="w-full border rounded px-2 py-1"
-                        onblur="saveStaff()">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
+                        <input type="text" id="staff-av" placeholder="Enter AV tech"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Photographer</label>
-                    <input type="text" id="staff-photo" placeholder="Enter photographer"
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff()">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">Photographer</label>
+                        <input type="text" id="staff-photo" placeholder="Enter photographer"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
             </div>
         </div>
@@ -139,7 +163,8 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold">Social Media Calendar</h2>
-                <button onclick="loadScheduleHelper()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                <button onclick="loadScheduleHelper()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
                     📅 Load Instagram Schedule
                 </button>
             </div>
@@ -152,118 +177,119 @@
                         <button onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
                             Prev</button>
                         <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
-                        <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next →</button>
+                        <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
+                            →</button>
                     </div>
 
-            <!-- Calendar Grid -->
-            <div class="grid grid-cols-7 gap-1 mb-4">
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Sun</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Mon</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Tue</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Wed</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Thu</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Fri</div>
-                <div class="text-center text-sm font-semibold text-gray-600 py-2">Sat</div>
-                <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
-            </div>
-
-            <!-- Selected Day Details (hidden until day is clicked) -->
-            <div id="dayDetails" class="hidden border-t pt-4">
-                <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
-
-                <!-- Add Post Form -->
-                <div class="mb-4 bg-gray-50 p-4 rounded">
-                    <h4 class="font-medium mb-2">Add Post</h4>
-                    <textarea id="socialCaption" placeholder="Post caption..."
-                        class="w-full border rounded px-3 py-2 mb-2" rows="2"></textarea>
-                    <input type="file" id="socialFile" accept="image/*,video/*"
-                        class="border rounded px-2 py-1 w-full mb-2">
-                    <div id="filePreview" class="mb-2"></div>
-                    <button onclick="addSocialPost()"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Add Post
-                    </button>
-                </div>
-
-                <!-- Posts for Selected Day -->
-                <div id="socialPosts" class="space-y-3"></div>
-            </div>
-        </div>
-
-        <!-- Operations Notes Sidebar (Right) -->
-        <div class="lg:col-span-1">
-            <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
-                <h3 class="font-semibold text-gray-800 mb-3">📋 Daily Operations</h3>
-                
-                <div class="text-sm space-y-3">
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">⏰ Posting Schedule</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>• 12:00 PM ET - Main feed post</li>
-                            <li>• 8:00 PM ET - Evening post</li>
-                            <li>• Stories throughout day</li>
-                        </ul>
+                    <!-- Calendar Grid -->
+                    <div class="grid grid-cols-7 gap-1 mb-4">
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sun</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Mon</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Tue</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Wed</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Thu</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Fri</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sat</div>
+                        <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
                     </div>
 
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">📸 Content Rules</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>• Grid: 1080x1350px (4:5)</li>
-                            <li>• Stories: 1080x1920px (9:16)</li>
-                            <li>• Reels: 1080x1920px, 15-90s</li>
-                            <li>• Carousel: 2-10 slides</li>
-                        </ul>
-                    </div>
+                    <!-- Selected Day Details (hidden until day is clicked) -->
+                    <div id="dayDetails" class="hidden border-t pt-4">
+                        <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
 
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">✍️ Caption Guidelines</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>• Max 2,200 characters</li>
-                            <li>• Hook in first 125 chars</li>
-                            <li>• 3-5 emojis max</li>
-                            <li>• 5-10 hashtags</li>
-                        </ul>
-                    </div>
+                        <!-- Add Post Form -->
+                        <div class="mb-4 bg-gray-50 p-4 rounded">
+                            <h4 class="font-medium mb-2">Add Post</h4>
+                            <textarea id="socialCaption" placeholder="Post caption..."
+                                class="w-full border rounded px-3 py-2 mb-2" rows="2"></textarea>
+                            <input type="file" id="socialFile" accept="image/*,video/*"
+                                class="border rounded px-2 py-1 w-full mb-2">
+                            <div id="filePreview" class="mb-2"></div>
+                            <button onclick="addSocialPost()"
+                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                Add Post
+                            </button>
+                        </div>
 
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">🎯 Story Tactics</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>• Reshare all feed posts</li>
-                            <li>• Countdown stickers daily</li>
-                            <li>• Poll/quiz engagement</li>
-                            <li>• Link in bio reminders</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">💰 Boost Settings</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>• Announce post: $50</li>
-                            <li>• Lineup reveal: $75</li>
-                            <li>• Final push: $100</li>
-                            <li>• Target: Local 25mi, 21-45</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <p class="font-medium text-gray-700 mb-1">📌 Pinned Order</p>
-                        <ul class="text-gray-600 space-y-1 ml-4">
-                            <li>1. Full lineup poster</li>
-                            <li>2. Ticket link post</li>
-                            <li>3. Show details/venue</li>
-                        </ul>
-                    </div>
-
-                    <div class="pt-2 border-t">
-                        <p class="text-xs text-gray-500 italic">
-                            💡 Track engagement rates, save top performers, A/B test captions
-                        </p>
+                        <!-- Posts for Selected Day -->
+                        <div id="socialPosts" class="space-y-3"></div>
                     </div>
                 </div>
+
+                <!-- Operations Notes Sidebar (Right) -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">📋 Daily Operations</h3>
+
+                        <div class="text-sm space-y-3">
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">⏰ Posting Schedule</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• 12:00 PM ET - Main feed post</li>
+                                    <li>• 8:00 PM ET - Evening post</li>
+                                    <li>• Stories throughout day</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">📸 Content Rules</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Grid: 1080x1350px (4:5)</li>
+                                    <li>• Stories: 1080x1920px (9:16)</li>
+                                    <li>• Reels: 1080x1920px, 15-90s</li>
+                                    <li>• Carousel: 2-10 slides</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">✍️ Caption Guidelines</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Max 2,200 characters</li>
+                                    <li>• Hook in first 125 chars</li>
+                                    <li>• 3-5 emojis max</li>
+                                    <li>• 5-10 hashtags</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">🎯 Story Tactics</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Reshare all feed posts</li>
+                                    <li>• Countdown stickers daily</li>
+                                    <li>• Poll/quiz engagement</li>
+                                    <li>• Link in bio reminders</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">💰 Boost Settings</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Announce post: $50</li>
+                                    <li>• Lineup reveal: $75</li>
+                                    <li>• Final push: $100</li>
+                                    <li>• Target: Local 25mi, 21-45</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">📌 Pinned Order</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>1. Full lineup poster</li>
+                                    <li>2. Ticket link post</li>
+                                    <li>3. Show details/venue</li>
+                                </ul>
+                            </div>
+
+                            <div class="pt-2 border-t">
+                                <p class="text-xs text-gray-500 italic">
+                                    💡 Track engagement rates, save top performers, A/B test captions
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
         <!-- Lineup -->
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -272,27 +298,43 @@
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Headliner</span>
                     <input type="text" id="lineup1" placeholder="Enter headliner"
-                        class="flex-1 border rounded px-2 py-1" onblur="saveLineup()">
+                        class="flex-1 border rounded px-2 py-1">
+                    <button onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 2</span>
-                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1"
-                        onblur="saveLineup()">
+                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
+                    <button onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 3</span>
-                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1"
-                        onblur="saveLineup()">
+                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
+                    <button onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 4</span>
-                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1"
-                        onblur="saveLineup()">
+                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
+                    <button onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 5</span>
-                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1"
-                        onblur="saveLineup()">
+                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
+                    <button onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
             </div>
         </div>
@@ -534,12 +576,24 @@
             }
         }
 
-        window.saveLineup = () => {
+        window.saveLineup = (event) => {
             for (let i = 1; i <= 5; i++) {
                 data.lineup[i] = document.getElementById(`lineup${i}`).value;
             }
             saveLocal();
             broadcast();
+
+            // Show brief confirmation
+            if (event && event.target) {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Saved!';
+                btn.classList.add('bg-gray-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-gray-600');
+                }, 1500);
+            }
         };
 
         // Staff Assignments
@@ -552,12 +606,24 @@
             });
         }
 
-        window.saveStaff = () => {
+        window.saveStaff = (event) => {
             ['dj', 'door', 'av', 'photo'].forEach(role => {
                 data.staff[role] = document.getElementById(`staff-${role}`).value;
             });
             saveLocal();
             broadcast();
+
+            // Show brief confirmation
+            if (event && event.target) {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Saved!';
+                btn.classList.add('bg-gray-600');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-gray-600');
+                }, 1500);
+            }
         };
 
         // Social Media Calendar
@@ -650,17 +716,34 @@
             }
 
             container.innerHTML = posts.map(post => `
-                <div class="border rounded p-3 flex gap-3 bg-white">
-                    ${post.url ? `
-                        ${post.type === 'video'
+                <div class="border rounded p-3 bg-white" id="post-${post.id}">
+                    <div class="flex gap-3">
+                        ${post.url ? `
+                            ${post.type === 'video'
                         ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
                         : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
                     }
-                    ` : ''}
-                    <div class="flex-1">
-                        <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
-                        <button onclick="deleteSocialPost('${post.id}')" 
-                            class="text-sm text-red-600 hover:text-red-800">Delete</button>
+                        ` : ''}
+                        <div class="flex-1">
+                            <div id="view-${post.id}">
+                                <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
+                                <div class="flex gap-2">
+                                    <button onclick="editSocialPost('${post.id}')" 
+                                        class="text-sm text-blue-600 hover:text-blue-800">✏️ Edit</button>
+                                    <button onclick="deleteSocialPost('${post.id}')" 
+                                        class="text-sm text-red-600 hover:text-red-800">🗑️ Delete</button>
+                                </div>
+                            </div>
+                            <div id="edit-${post.id}" class="hidden">
+                                <textarea id="caption-${post.id}" class="w-full border rounded px-2 py-1 text-sm mb-2" rows="3">${post.caption || ''}</textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="saveSocialPost('${post.id}')" 
+                                        class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">💾 Save</button>
+                                    <button onclick="cancelEditSocialPost('${post.id}')" 
+                                        class="text-sm bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -723,6 +806,28 @@
             broadcast();
             renderCalendar(); // Update calendar to show new post count
             loadSocialPosts();
+        };
+
+        window.editSocialPost = (id) => {
+            document.getElementById(`view-${id}`).classList.add('hidden');
+            document.getElementById(`edit-${id}`).classList.remove('hidden');
+        };
+
+        window.cancelEditSocialPost = (id) => {
+            document.getElementById(`edit-${id}`).classList.add('hidden');
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+        };
+
+        window.saveSocialPost = (id) => {
+            const newCaption = document.getElementById(`caption-${id}`).value.trim();
+            const post = data.socialPosts.find(p => p.id === id);
+            if (post) {
+                post.caption = newCaption;
+                saveLocal();
+                broadcast();
+                loadSocialPosts();
+                renderCalendar();
+            }
         };
 
         // File preview
