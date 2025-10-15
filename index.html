@@ -10,14 +10,53 @@
         body {
             font-family: system-ui, -apple-system, sans-serif;
         }
+
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #appContent {
+            display: none;
+        }
+
+        #appContent.unlocked {
+            display: block;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen py-8 px-4">
-    <div class="max-w-4xl mx-auto">
+    <!-- Password Protection Screen -->
+    <div id="loginScreen" class="max-w-md mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-8 w-full">
+            <h1 class="text-3xl font-bold text-center mb-2">🎤 Producer Tasks</h1>
+            <p class="text-gray-600 text-center mb-6">Enter password to access</p>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <input type="password" id="passwordInput" placeholder="Enter password"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        autofocus>
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
+                    Unlock
+                </button>
+                <p id="errorMsg" class="text-red-600 text-sm text-center hidden">Incorrect password</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Content -->
+    <div id="appContent" class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">🎤 Producer Tasks</h1>
             <p class="text-gray-600">Real-time task management for event producers</p>
+            <button onclick="logout()" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
+                🔒 Lock App
+            </button>
         </header>
 
         <!-- Add Task Form -->
@@ -170,6 +209,45 @@
     </div>
 
     <script>
+        // Password Protection
+        const PASSWORD = 'showtime'; // Change this to your desired password
+
+        function checkAuth() {
+            const isUnlocked = sessionStorage.getItem('unlocked') === 'true';
+            if (isUnlocked) {
+                showApp();
+            }
+        }
+
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContent').classList.add('unlocked');
+            initializeApp();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('unlocked');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appContent').classList.remove('unlocked');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('passwordInput');
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (input.value === PASSWORD) {
+                sessionStorage.setItem('unlocked', 'true');
+                errorMsg.classList.add('hidden');
+                input.value = '';
+                showApp();
+            } else {
+                errorMsg.classList.remove('hidden');
+                input.value = '';
+                input.focus();
+            }
+        });
+
         // LocalStorage helpers
         function getLS(key, fallback) {
             try {
@@ -357,19 +435,19 @@
             const selectedDate = dateInput.value || getTodayDate();
             const posts = socialPosts.filter(p => p.date === selectedDate);
             const container = document.getElementById('socialPosts');
-            
+
             if (posts.length === 0) {
                 container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this date.</p>';
                 return;
             }
-            
+
             container.innerHTML = posts.map(post => `
                 <div class="border rounded p-3 flex gap-3">
                     ${post.url ? `
-                        ${post.type === 'video' 
-                            ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
-                            : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
-                        }
+                        ${post.type === 'video'
+                        ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
+                        : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
+                    }
                     ` : ''}
                     <div class="flex-1">
                         <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
@@ -384,19 +462,19 @@
             const dateInput = document.getElementById('socialDate');
             const captionInput = document.getElementById('socialCaption');
             const fileInput = document.getElementById('socialFile');
-            
+
             const date = dateInput.value || getTodayDate();
             const caption = captionInput.value.trim();
             const file = fileInput.files[0];
-            
+
             if (!caption && !file) {
                 alert('Please add a caption or file');
                 return;
             }
-            
+
             let url = '';
             let type = 'text';
-            
+
             if (file) {
                 // Convert to base64 data URL for localStorage
                 const reader = new FileReader();
@@ -406,7 +484,7 @@
                 });
                 type = file.type.startsWith('video') ? 'video' : 'image';
             }
-            
+
             const post = {
                 id: genId(),
                 date,
@@ -415,10 +493,10 @@
                 type,
                 createdAt: Date.now()
             };
-            
+
             socialPosts.push(post);
             setLS('socialMediaPosts', socialPosts);
-            
+
             captionInput.value = '';
             fileInput.value = '';
             loadSocialPosts();
@@ -436,16 +514,16 @@
         document.getElementById('socialFile')?.addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('filePreview');
-            
+
             if (!file) {
                 preview.innerHTML = '';
                 return;
             }
-            
+
             const url = URL.createObjectURL(file);
             const isVideo = file.type.startsWith('video');
-            
-            preview.innerHTML = isVideo 
+
+            preview.innerHTML = isVideo
                 ? `<video src="${url}" class="max-h-40 rounded border" controls></video>`
                 : `<img src="${url}" class="max-h-40 rounded border">`;
         });
@@ -466,15 +544,20 @@
             setLS('lineup', lineup);
         }
 
-        // Initialize
-        renderTasks();
-        renderPersonalTasks();
-        loadStaff();
-        loadLineup();
-        
-        // Set today's date for social media
-        document.getElementById('socialDate').value = getTodayDate();
-        loadSocialPosts();
+        // Initialize app after authentication
+        function initializeApp() {
+            renderTasks();
+            renderPersonalTasks();
+            loadStaff();
+            loadLineup();
+
+            // Set today's date for social media
+            document.getElementById('socialDate').value = getTodayDate();
+            loadSocialPosts();
+        }
+
+        // Check auth on page load
+        checkAuth();
     </script>
 </body>
 
