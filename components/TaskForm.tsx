@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { collection, addDoc, Timestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { db, isFirebaseReady } from '@/lib/firebase'
+import { lsGet, lsSet, genId } from '@/lib/localStore'
 
 export default function TaskForm() {
   const [title, setTitle] = useState('')
@@ -10,19 +11,28 @@ export default function TaskForm() {
 
   const handleAdd = async () => {
     if (!title || !assignedTo) return
-    await addDoc(collection(db, 'tasks'), {
-      title,
-      assignedTo,
-      category,
-      isCompleted: false,
-      createdAt: Timestamp.now(),
-    })
+    if (!isFirebaseReady) {
+      const task = { id: genId('t'), title, assignedTo, category, isCompleted: false, createdAt: Date.now() }
+      const list = [...lsGet<any[]>('tasks', []), task]
+      lsSet('tasks', list)
+    } else {
+      await addDoc(collection(db, 'tasks'), {
+        title,
+        assignedTo,
+        category,
+        isCompleted: false,
+        createdAt: Timestamp.now(),
+      })
+    }
     setTitle('')
     setAssignedTo('')
   }
 
   return (
     <div className="mb-6">
+      {!isFirebaseReady && (
+        <p className="text-sm text-gray-600 mb-2">Add Firebase keys to .env.local to enable saving tasks.</p>
+      )}
       <input
         placeholder="Task title"
         value={title}

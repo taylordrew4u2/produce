@@ -31,7 +31,7 @@ try {
   storage = getStorage(app)
   isFirebaseReady = hasConfig()
 } catch (e) {
-  // noop
+  // noop; will expose isFirebaseReady=false
 }
 
 export { db, storage, isFirebaseReady }

@@ -4,14 +4,15 @@ import { collection, onSnapshot, doc, updateDoc, QueryDocumentSnapshot } from 'f
 import { db, isFirebaseReady } from '@/lib/firebase'
 import { lsGet, lsSet } from '@/lib/localStore'
 
-interface Task {
+type Task = {
   id: string
   title: string
-  assignedTo: string
-  category: string
-  isCompleted: boolean
+  assignedTo?: string
+  assignee?: string
+  category?: string
+  isCompleted?: boolean
+  completed?: boolean
 }
-
 export default function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([])
 
@@ -30,30 +31,43 @@ export default function TaskList() {
     return () => unsub()
   }, [])
 
-  const toggleDone = async (id: string, current: boolean) => {
+  const toggleDone = async (task: Task) => {
+    const id = task.id
+    const current = Boolean(task.isCompleted ?? task.completed)
     if (!isFirebaseReady) {
-      const list = lsGet<Task[]>('tasks', []).map(t => t.id === id ? { ...t, isCompleted: !current } : t)
+      const list = lsGet<Task[]>('tasks', []).map(t => {
+        if (t.id !== id) return t
+        const done = !(t.isCompleted ?? t.completed)
+        // prefer maintaining whichever key exists
+        if (typeof t.isCompleted === 'boolean') return { ...t, isCompleted: done }
+        if (typeof t.completed === 'boolean') return { ...t, completed: done }
+        return { ...t, isCompleted: done }
+      })
       lsSet('tasks', list)
       setTasks(list)
       return
     }
-    await updateDoc(doc(db, 'tasks', id), { isCompleted: !current })
+    const doneKey = 'isCompleted' in task ? 'isCompleted' : ('completed' in task ? 'completed' : 'isCompleted')
+    await updateDoc(doc(db, 'tasks', id), { [doneKey]: !current } as any)
   }
 
   return (
     <div>
-      {tasks.map((task: Task) => (
+      {!isFirebaseReady && (
+        <p className="text-sm text-gray-600">Add Firebase keys to .env.local to load tasks.</p>
+      )}
+      {tasks.map(task => (
         <div key={task.id} className="border-b py-2 flex justify-between items-center">
           <div>
-            <p className={task.isCompleted ? 'line-through text-gray-500' : ''}>{task.title}</p>
+            <p className={(task.isCompleted ?? task.completed) ? 'line-through text-gray-500' : ''}>{task.title}</p>
             <small className="text-gray-600">
-              {task.assignedTo} • {task.category}
+              {(task.assignedTo ?? task.assignee) || 'Unassigned'}{task.category ? ` • ${task.category}` : ''}
             </small>
           </div>
           <input
             type="checkbox"
-            checked={task.isCompleted}
-            onChange={() => toggleDone(task.id, task.isCompleted)}
+            checked={Boolean(task.isCompleted ?? task.completed)}
+            onChange={() => toggleDone(task)}
             className="w-5 h-5 cursor-pointer"
           />
         </div>
