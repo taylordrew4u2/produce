@@ -114,22 +114,22 @@
             <div class="space-y-3">
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">DJ</label>
-                    <input type="text" id="staff-dj" placeholder="Enter DJ name" 
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff()">
+                    <input type="text" id="staff-dj" placeholder="Enter DJ name" class="w-full border rounded px-2 py-1"
+                        onblur="saveStaff()">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Door</label>
-                    <input type="text" id="staff-door" placeholder="Enter door person" 
+                    <input type="text" id="staff-door" placeholder="Enter door person"
                         class="w-full border rounded px-2 py-1" onblur="saveStaff()">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
-                    <input type="text" id="staff-av" placeholder="Enter AV tech" 
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff()">
+                    <input type="text" id="staff-av" placeholder="Enter AV tech" class="w-full border rounded px-2 py-1"
+                        onblur="saveStaff()">
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Photographer</label>
-                    <input type="text" id="staff-photo" placeholder="Enter photographer" 
+                    <input type="text" id="staff-photo" placeholder="Enter photographer"
                         class="w-full border rounded px-2 py-1" onblur="saveStaff()">
                 </div>
             </div>
@@ -138,27 +138,48 @@
         <!-- Social Media Calendar -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Social Media Calendar</h2>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Select Date</label>
-                <input type="date" id="socialDate" 
-                    class="border rounded px-2 py-1" onchange="loadSocialPosts()">
+
+            <!-- Month Navigation -->
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                    Prev</button>
+                <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
+                <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next →</button>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Post Caption</label>
-                <textarea id="socialCaption" placeholder="Enter post caption" 
-                    class="w-full border rounded px-2 py-1" rows="3"></textarea>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-7 gap-1 mb-4">
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Sun</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Mon</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Tue</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Wed</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Thu</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Fri</div>
+                <div class="text-center text-sm font-semibold text-gray-600 py-2">Sat</div>
+                <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Image/Video</label>
-                <input type="file" id="socialFile" accept="image/*,video/*" 
-                    class="border rounded px-2 py-1 w-full">
-                <div id="filePreview" class="mt-2"></div>
+
+            <!-- Selected Day Details (hidden until day is clicked) -->
+            <div id="dayDetails" class="hidden border-t pt-4">
+                <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
+
+                <!-- Add Post Form -->
+                <div class="mb-4 bg-gray-50 p-4 rounded">
+                    <h4 class="font-medium mb-2">Add Post</h4>
+                    <textarea id="socialCaption" placeholder="Post caption..."
+                        class="w-full border rounded px-3 py-2 mb-2" rows="2"></textarea>
+                    <input type="file" id="socialFile" accept="image/*,video/*"
+                        class="border rounded px-2 py-1 w-full mb-2">
+                    <div id="filePreview" class="mb-2"></div>
+                    <button onclick="addSocialPost()"
+                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        Add Post
+                    </button>
+                </div>
+
+                <!-- Posts for Selected Day -->
+                <div id="socialPosts" class="space-y-3"></div>
             </div>
-            <button onclick="addSocialPost()" 
-                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Add Post
-            </button>
-            <div id="socialPosts" class="mt-4 space-y-3"></div>
         </div>
 
         <!-- Lineup -->
@@ -457,28 +478,101 @@
         };
 
         // Social Media Calendar
+        let currentMonth = new Date();
+        let selectedDate = null;
+
         function getTodayDate() {
             return new Date().toISOString().split('T')[0];
         }
 
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            // Update month title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Count posts per day
+            const postCounts = {};
+            data.socialPosts.forEach(post => {
+                postCounts[post.date] = (postCounts[post.date] || 0) + 1;
+            });
+
+            // Build calendar grid
+            const calendarDays = document.getElementById('calendarDays');
+            let html = '';
+
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="h-16"></div>';
+            }
+
+            // Days of the month
+            const today = getTodayDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = dateStr === today;
+                const isSelected = dateStr === selectedDate;
+                const postCount = postCounts[dateStr] || 0;
+
+                html += `
+                    <div onclick="selectDay('${dateStr}')" 
+                        class="h-16 border rounded p-1 cursor-pointer hover:bg-blue-50 ${isSelected ? 'bg-blue-100 border-blue-500' : 'border-gray-200'} ${isToday ? 'border-blue-300 font-bold' : ''} flex flex-col">
+                        <div class="text-sm ${isToday ? 'text-blue-600' : ''}">${day}</div>
+                        ${postCount > 0 ? `<div class="text-xs text-blue-600 mt-auto">📝 ${postCount}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            calendarDays.innerHTML = html;
+        }
+
+        window.changeMonth = (delta) => {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderCalendar();
+        };
+
+        window.selectDay = (dateStr) => {
+            selectedDate = dateStr;
+            renderCalendar();
+
+            // Show day details
+            const dayDetails = document.getElementById('dayDetails');
+            dayDetails.classList.remove('hidden');
+
+            // Format date nicely
+            const date = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selectedDayTitle').textContent = date.toLocaleDateString('en-US', options);
+
+            // Load posts for this day
+            loadSocialPosts();
+        };
+
         function loadSocialPosts() {
-            const dateInput = document.getElementById('socialDate');
-            const selectedDate = dateInput.value || getTodayDate();
+            if (!selectedDate) return;
+
             const posts = data.socialPosts.filter(p => p.date === selectedDate);
             const container = document.getElementById('socialPosts');
-            
+
             if (posts.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this date.</p>';
+                container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this day yet.</p>';
                 return;
             }
-            
+
             container.innerHTML = posts.map(post => `
-                <div class="border rounded p-3 flex gap-3">
+                <div class="border rounded p-3 flex gap-3 bg-white">
                     ${post.url ? `
-                        ${post.type === 'video' 
-                            ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
-                            : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
-                        }
+                        ${post.type === 'video'
+                        ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
+                        : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
+                    }
                     ` : ''}
                     <div class="flex-1">
                         <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
@@ -490,22 +584,26 @@
         }
 
         window.addSocialPost = async () => {
-            const dateInput = document.getElementById('socialDate');
+            if (!selectedDate) {
+                alert('Please select a day on the calendar first');
+                return;
+            }
+
             const captionInput = document.getElementById('socialCaption');
             const fileInput = document.getElementById('socialFile');
-            
-            const date = dateInput.value || getTodayDate();
+
+            const date = selectedDate;
             const caption = captionInput.value.trim();
             const file = fileInput.files[0];
-            
+
             if (!caption && !file) {
                 alert('Please add a caption or file');
                 return;
             }
-            
+
             let url = '';
             let type = 'text';
-            
+
             if (file) {
                 const reader = new FileReader();
                 url = await new Promise((resolve) => {
@@ -514,7 +612,7 @@
                 });
                 type = file.type.startsWith('video') ? 'video' : 'image';
             }
-            
+
             const post = {
                 id: Date.now().toString(36) + Math.random().toString(36).slice(2),
                 date,
@@ -523,14 +621,15 @@
                 type,
                 createdAt: Date.now()
             };
-            
+
             data.socialPosts.push(post);
             saveLocal();
             broadcast();
-            
+
             captionInput.value = '';
             fileInput.value = '';
             document.getElementById('filePreview').innerHTML = '';
+            renderCalendar(); // Update calendar to show new post count
             loadSocialPosts();
         };
 
@@ -539,6 +638,7 @@
             data.socialPosts = data.socialPosts.filter(p => p.id !== id);
             saveLocal();
             broadcast();
+            renderCalendar(); // Update calendar to show new post count
             loadSocialPosts();
         };
 
@@ -546,16 +646,16 @@
         document.getElementById('socialFile')?.addEventListener('change', (e) => {
             const file = e.target.files[0];
             const preview = document.getElementById('filePreview');
-            
+
             if (!file) {
                 preview.innerHTML = '';
                 return;
             }
-            
+
             const url = URL.createObjectURL(file);
             const isVideo = file.type.startsWith('video');
-            
-            preview.innerHTML = isVideo 
+
+            preview.innerHTML = isVideo
                 ? `<video src="${url}" class="max-h-40 rounded border" controls></video>`
                 : `<img src="${url}" class="max-h-40 rounded border">`;
         });
@@ -574,10 +674,7 @@
             renderPersonalTasks();
             loadLineup();
             loadStaff();
-            
-            // Set today's date for social media
-            document.getElementById('socialDate').value = getTodayDate();
-            loadSocialPosts();
+            renderCalendar();
         }
 
         // Initialize
