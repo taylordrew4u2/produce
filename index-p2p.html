@@ -47,7 +47,7 @@
             <h1 class="text-4xl font-bold text-gray-900 mb-2">🎤 Producer Tasks</h1>
             <p class="text-gray-600">Instant Real-Time Collaboration</p>
             <p class="text-sm text-gray-500 mt-2">Share this URL with your team - changes sync instantly!</p>
-            <button onclick="copyShareLink()"
+            <button type="button" onclick="copyShareLink()"
                 class="mt-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
                 📋 Copy Share Link
             </button>
@@ -85,7 +85,7 @@
                     <div class="flex gap-2 mb-3">
                         <input type="text" id="taylorInput" placeholder="Add task"
                             class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Taylor')"
+                        <button type="button" onclick="addPersonalTask('Taylor')"
                             class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
                     </div>
                     <div id="taylorTasks" class="space-y-2"></div>
@@ -94,7 +94,7 @@
                     <h3 class="font-medium mb-3">Jay</h3>
                     <div class="flex gap-2 mb-3">
                         <input type="text" id="jayInput" placeholder="Add task" class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Jay')"
+                        <button type="button" onclick="addPersonalTask('Jay')"
                             class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
                     </div>
                     <div id="jayTasks" class="space-y-2"></div>
@@ -118,7 +118,7 @@
                         <input type="text" id="staff-dj" placeholder="Enter DJ name"
                             class="w-full border rounded px-2 py-1">
                     </div>
-                    <button onclick="saveStaff(event)"
+                    <button type="button" onclick="saveStaff(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
                         💾 Save
                     </button>
@@ -129,7 +129,7 @@
                         <input type="text" id="staff-door" placeholder="Enter door person"
                             class="w-full border rounded px-2 py-1">
                     </div>
-                    <button onclick="saveStaff(event)"
+                    <button type="button" onclick="saveStaff(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
                         💾 Save
                     </button>
@@ -140,7 +140,7 @@
                         <input type="text" id="staff-av" placeholder="Enter AV tech"
                             class="w-full border rounded px-2 py-1">
                     </div>
-                    <button onclick="saveStaff(event)"
+                    <button type="button" onclick="saveStaff(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
                         💾 Save
                     </button>
@@ -151,7 +151,7 @@
                         <input type="text" id="staff-photo" placeholder="Enter photographer"
                             class="w-full border rounded px-2 py-1">
                     </div>
-                    <button onclick="saveStaff(event)"
+                    <button type="button" onclick="saveStaff(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
                         💾 Save
                     </button>
@@ -174,10 +174,10 @@
                 <div class="lg:col-span-2">
                     <!-- Month Navigation -->
                     <div class="flex items-center justify-between mb-4">
-                        <button onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                        <button type="button" onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
                             Prev</button>
                         <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
-                        <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
+                        <button type="button" onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
                             →</button>
                     </div>
 
@@ -205,7 +205,7 @@
                             <input type="file" id="socialFile" accept="image/*,video/*"
                                 class="border rounded px-2 py-1 w-full mb-2">
                             <div id="filePreview" class="mb-2"></div>
-                            <button onclick="addSocialPost()"
+                            <button type="button" onclick="addSocialPost()"
                                 class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                                 Add Post
                             </button>
@@ -299,7 +299,7 @@
                     <span class="w-28 text-sm text-gray-600">Headliner</span>
                     <input type="text" id="lineup1" placeholder="Enter headliner"
                         class="flex-1 border rounded px-2 py-1">
-                    <button onclick="saveLineup(event)"
+                    <button type="button" onclick="saveLineup(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
                         💾 Save
                     </button>
@@ -307,7 +307,7 @@
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 2</span>
                     <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
-                    <button onclick="saveLineup(event)"
+                    <button type="button" onclick="saveLineup(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
                         💾 Save
                     </button>
@@ -315,7 +315,7 @@
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 3</span>
                     <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
-                    <button onclick="saveLineup(event)"
+                    <button type="button" onclick="saveLineup(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
                         💾 Save
                     </button>
@@ -323,7 +323,7 @@
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 4</span>
                     <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
-                    <button onclick="saveLineup(event)"
+                    <button type="button" onclick="saveLineup(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
                         💾 Save
                     </button>
@@ -331,7 +331,7 @@
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 5</span>
                     <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
-                    <button onclick="saveLineup(event)"
+                    <button type="button" onclick="saveLineup(event)"
                         class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
                         💾 Save
                     </button>
