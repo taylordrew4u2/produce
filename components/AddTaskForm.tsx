@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, isFirebaseReady } from '@/lib/firebase';
+import { lsGet, lsSet, genId } from '@/lib/localStore';
 import { NewTask } from '@/types/task';
 
 export default function AddTaskForm() {
@@ -13,13 +14,13 @@ export default function AddTaskForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !assignee.trim() || !category.trim()) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       const newTask: NewTask = {
         title: title.trim(),
@@ -28,10 +29,22 @@ export default function AddTaskForm() {
         completed: false,
       };
 
-      await addDoc(collection(db, 'tasks'), {
-        ...newTask,
-        createdAt: Date.now(),
-      });
+      if (!isFirebaseReady || !db) {
+        // Offline mode: save to localStorage
+        const task = {
+          id: genId('task'),
+          ...newTask,
+          createdAt: Date.now(),
+        };
+        const tasks = lsGet<any[]>('tasks', []);
+        lsSet('tasks', [...tasks, task]);
+      } else {
+        // Online mode: save to Firebase
+        await addDoc(collection(db, 'tasks'), {
+          ...newTask,
+          createdAt: Date.now(),
+        });
+      }
 
       setTitle('');
       setAssignee('');
@@ -46,7 +59,7 @@ export default function AddTaskForm() {
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
       <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Add New Task</h2>
-      
+
       <div className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

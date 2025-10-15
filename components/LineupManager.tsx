@@ -15,7 +15,7 @@ export default function LineupManager() {
 	const [input, setInput] = useState('')
 
 		useEffect(() => {
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const data = lsGet<Slot[]>('lineup', [])
 				setItems(data.sort((a,b)=>a.position-b.position))
 				return
@@ -30,7 +30,7 @@ export default function LineupManager() {
 		const addOrUpdate = async (position: number) => {
 			const id = `slot-${position}`
 			const payload = { id, name: input || `Comic ${position}`, position }
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const data = lsGet<Slot[]>('lineup', [])
 				const next = data.filter(d => d.id !== id).concat(payload).sort((a,b)=>a.position-b.position)
 				lsSet('lineup', next)
@@ -44,7 +44,7 @@ export default function LineupManager() {
 
 		const clear = async (position: number) => {
 			const id = `slot-${position}`
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const data = lsGet<Slot[]>('lineup', [])
 				const next = data.filter(d => d.id !== id)
 				lsSet('lineup', next)

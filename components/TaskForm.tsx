@@ -11,7 +11,7 @@ export default function TaskForm() {
 
   const handleAdd = async () => {
     if (!title || !assignedTo) return
-    if (!isFirebaseReady) {
+    if (!isFirebaseReady || !db) {
       const task = { id: genId('t'), title, assignedTo, category, isCompleted: false, createdAt: Date.now() }
       const list = [...lsGet<any[]>('tasks', []), task]
       lsSet('tasks', list)

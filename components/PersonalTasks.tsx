@@ -42,7 +42,7 @@ export default function PersonalTasks() {
 	const [tasks, setTasks] = useState<PTask[]>([])
 
 	useEffect(() => {
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				setTasks(lsGet<PTask[]>('personalTasks', []))
 				return
 			}
@@ -55,7 +55,7 @@ export default function PersonalTasks() {
 	}, [])
 
 	const add = async (owner: 'Taylor'|'Jay', title: string) => {
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const next: PTask = { id: genId('pt'), owner, title, done: false, createdAt: Date.now() }
 				const list = [...lsGet<PTask[]>('personalTasks', []), next]
 				lsSet('personalTasks', list)
@@ -65,7 +65,7 @@ export default function PersonalTasks() {
 			await addDoc(collection(db, 'personalTasks'), { owner, title, done: false, createdAt: Timestamp.now() })
 	}
 	const toggle = async (id: string, current: boolean) => {
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const list = lsGet<PTask[]>('personalTasks', []).map(t => t.id === id ? { ...t, done: !current } : t)
 				lsSet('personalTasks', list)
 				setTasks(list)
@@ -74,7 +74,7 @@ export default function PersonalTasks() {
 			await updateDoc(doc(db, 'personalTasks', id), { done: !current })
 	}
 	const remove = async (id: string) => {
-			if (!isFirebaseReady) {
+			if (!isFirebaseReady || !db) {
 				const list = lsGet<PTask[]>('personalTasks', []).filter(t => t.id !== id)
 				lsSet('personalTasks', list)
 				setTasks(list)

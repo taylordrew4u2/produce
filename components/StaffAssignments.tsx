@@ -15,10 +15,10 @@ export default function StaffAssignments() {
 	const [roles, setRoles] = useState<StaffRoles>({})
 
 	useEffect(() => {
-			if (!isFirebaseReady) {
-				setRoles(lsGet<StaffRoles>('staffAssignments', {}))
-				return
-			}
+		if (!isFirebaseReady || !db) {
+			setRoles(lsGet<StaffRoles>('staffAssignments', {}))
+			return
+		}
 		const unsub = onSnapshot(collection(db, 'staffAssignments'), (snap) => {
 			// single doc pattern: use id = 'current'
 			const d = snap.docs.find((x: QueryDocumentSnapshot) => x.id === 'current')
@@ -28,19 +28,19 @@ export default function StaffAssignments() {
 	}, [])
 
 	const save = async (patch: Partial<StaffRoles>) => {
-			if (!isFirebaseReady) {
-				const merged = { ...roles, ...patch }
-				lsSet('staffAssignments', merged)
-				setRoles(merged)
-				return
-			}
-			await setDoc(doc(db, 'staffAssignments', 'current'), { ...roles, ...patch }, { merge: true })
+		if (!isFirebaseReady || !db) {
+			const merged = { ...roles, ...patch }
+			lsSet('staffAssignments', merged)
+			setRoles(merged)
+			return
+		}
+		await setDoc(doc(db, 'staffAssignments', 'current'), { ...roles, ...patch }, { merge: true })
 	}
 
 	const Field = ({ label, keyName }: { label: string; keyName: keyof StaffRoles }) => (
 		<div className="mb-2">
 			<label className="text-sm text-gray-600 block mb-1">{label}</label>
-			<input className="border rounded px-2 py-1 w-full" value={roles[keyName] || ''} onChange={(e)=>setRoles({ ...roles, [keyName]: e.target.value })} onBlur={() => save({ [keyName]: roles[keyName] } as Partial<StaffRoles>)} />
+			<input className="border rounded px-2 py-1 w-full" value={roles[keyName] || ''} onChange={(e) => setRoles({ ...roles, [keyName]: e.target.value })} onBlur={() => save({ [keyName]: roles[keyName] } as Partial<StaffRoles>)} />
 		</div>
 	)
 

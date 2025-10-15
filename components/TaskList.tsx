@@ -17,7 +17,7 @@ export default function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([])
 
   useEffect(() => {
-    if (!isFirebaseReady) {
+    if (!isFirebaseReady || !db) {
       setTasks(lsGet<Task[]>('tasks', []))
       return
     }
@@ -34,7 +34,7 @@ export default function TaskList() {
   const toggleDone = async (task: Task) => {
     const id = task.id
     const current = Boolean(task.isCompleted ?? task.completed)
-    if (!isFirebaseReady) {
+    if (!isFirebaseReady || !db) {
       const list = lsGet<Task[]>('tasks', []).map(t => {
         if (t.id !== id) return t
         const done = !(t.isCompleted ?? t.completed)
