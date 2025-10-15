@@ -1,6 +1,14 @@
 {
     "configurations": [
         {
+            "name": "auto",
+            "type": "auto-debug",
+            "request": "launch",
+            "map": {
+                "*.py": "Python: Current File"
+            }
+        },
+        {
             "type": "chrome",
             "name": "http://NEXT_PUBLIC_FIREBASE_API_KEY",
             "request": "launch",

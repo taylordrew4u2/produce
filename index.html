@@ -6,57 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Producer Tasks</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        #loginScreen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+        .status-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
         }
 
-        #appContent {
-            display: none;
+        .status-online {
+            background: #10b981;
+            color: white;
         }
 
-        #appContent.unlocked {
-            display: block;
+        .status-offline {
+            background: #ef4444;
+            color: white;
         }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen py-8 px-4">
-    <!-- Password Protection Screen -->
-    <div id="loginScreen" class="max-w-md mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-8 w-full">
-            <h1 class="text-3xl font-bold text-center mb-2">🎤 Producer Tasks</h1>
-            <p class="text-gray-600 text-center mb-6">Enter password to access</p>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <input type="password" id="passwordInput" placeholder="Enter password"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        autofocus>
-                </div>
-                <button type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition-colors">
-                    Unlock
-                </button>
-                <p id="errorMsg" class="text-red-600 text-sm text-center hidden">Incorrect password</p>
-            </form>
-        </div>
-    </div>
+    <!-- Status Indicator -->
+    <div id="statusIndicator" class="status-indicator status-offline">⚠️ Offline Mode</div>
 
     <!-- Main App Content -->
     <div id="appContent" class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">🎤 Producer Tasks</h1>
-            <p class="text-gray-600">Real-time task management for event producers</p>
-            <button onclick="logout()" class="mt-2 text-sm text-gray-500 hover:text-gray-700">
-                🔒 Lock App
-            </button>
+            <p class="text-gray-600">Real-time collaborative task management</p>
+            <p class="text-sm text-gray-500 mt-1">Share this URL with your team - changes sync in real-time!</p>
         </header>
 
         <!-- Add Task Form -->
@@ -209,44 +202,45 @@
     </div>
 
     <script>
-        // Password Protection
-        const PASSWORD = 'showtime'; // Change this to your desired password
+        // Firebase Configuration - ADD YOUR FIREBASE CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-        function checkAuth() {
-            const isUnlocked = sessionStorage.getItem('unlocked') === 'true';
-            if (isUnlocked) {
-                showApp();
-            }
-        }
+        // Initialize Firebase
+        let db, storage, isFirebaseReady = false;
 
-        function showApp() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('appContent').classList.add('unlocked');
-            initializeApp();
-        }
-
-        function logout() {
-            sessionStorage.removeItem('unlocked');
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('appContent').classList.remove('unlocked');
-        }
-
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const input = document.getElementById('passwordInput');
-            const errorMsg = document.getElementById('errorMsg');
-
-            if (input.value === PASSWORD) {
-                sessionStorage.setItem('unlocked', 'true');
-                errorMsg.classList.add('hidden');
-                input.value = '';
-                showApp();
+        try {
+            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                storage = firebase.storage();
+                isFirebaseReady = true;
+                updateStatus(true);
             } else {
-                errorMsg.classList.remove('hidden');
-                input.value = '';
-                input.focus();
+                console.warn('Firebase not configured - using localStorage only');
+                updateStatus(false);
             }
-        });
+        } catch (e) {
+            console.error('Firebase initialization failed:', e);
+            updateStatus(false);
+        }
+
+        function updateStatus(online) {
+            const indicator = document.getElementById('statusIndicator');
+            if (online) {
+                indicator.textContent = '🟢 Real-Time Sync Active';
+                indicator.className = 'status-indicator status-online';
+            } else {
+                indicator.textContent = '⚠️ Offline Mode (Local Only)';
+                indicator.className = 'status-indicator status-offline';
+            }
+        }
 
         // LocalStorage helpers
         function getLS(key, fallback) {

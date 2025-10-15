@@ -354,8 +354,20 @@
         function loadLocal() {
             try {
                 const saved = localStorage.getItem('producerTasks');
-                if (saved) data = JSON.parse(saved);
-            } catch (e) { }
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    // Merge with defaults to ensure all properties exist
+                    data = {
+                        tasks: loaded.tasks || [],
+                        personalTasks: loaded.personalTasks || [],
+                        lineup: loaded.lineup || {},
+                        staff: loaded.staff || {},
+                        socialPosts: loaded.socialPosts || []
+                    };
+                }
+            } catch (e) {
+                console.error('Error loading data:', e);
+            }
         }
 
         // Save to localStorage
@@ -577,9 +589,11 @@
         }
 
         window.saveLineup = (event) => {
+            console.log('saveLineup called');
             for (let i = 1; i <= 5; i++) {
                 data.lineup[i] = document.getElementById(`lineup${i}`).value;
             }
+            console.log('Lineup data saved:', data.lineup);
             saveLocal();
             broadcast();
 
@@ -588,10 +602,12 @@
                 const btn = event.target;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '✓ Saved!';
-                btn.classList.add('bg-gray-600');
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
                 setTimeout(() => {
                     btn.innerHTML = originalText;
-                    btn.classList.remove('bg-gray-600');
+                    btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
                 }, 1500);
             }
         };
@@ -607,9 +623,11 @@
         }
 
         window.saveStaff = (event) => {
+            console.log('saveStaff called');
             ['dj', 'door', 'av', 'photo'].forEach(role => {
                 data.staff[role] = document.getElementById(`staff-${role}`).value;
             });
+            console.log('Staff data saved:', data.staff);
             saveLocal();
             broadcast();
 
@@ -618,10 +636,12 @@
                 const btn = event.target;
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '✓ Saved!';
-                btn.classList.add('bg-gray-600');
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
                 setTimeout(() => {
                     btn.innerHTML = originalText;
-                    btn.classList.remove('bg-gray-600');
+                    btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
                 }, 1500);
             }
         };

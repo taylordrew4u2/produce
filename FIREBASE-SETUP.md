@@ -6,7 +6,7 @@ This app now supports **real-time collaboration** where anyone with the URL can 
 
 ### Step 1: Create a Firebase Project
 
-1. Go to https://console.firebase.google.com
+1. Go to <https://console.firebase.google.com>
 2. Click "Add project"
 3. Name it "producer-tasks" (or anything you want)
 4. Disable Google Analytics (optional)
@@ -75,9 +75,10 @@ git commit -m "Add Firebase config for real-time sync"
 git push
 ```
 
-### Step 6: Share the URL!
+### Step 6: Share the URL
 
 Your app will be live at:
+
 ```
 https://taylordrew4u2.github.io/produce/index-simple.html
 ```

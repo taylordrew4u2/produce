@@ -3,5 +3,10 @@
     "inlineChat.enableV2": true,
     "inlineChat.finishOnType": true,
     "inlineChat.lineEmptyHint": true,
-    "inlineChat.notebookAgent": true
+    "inlineChat.notebookAgent": true,
+    "github.copilot.enable": {
+        "scminput": true,
+        "plaintext": true,
+        "markdown": true
+    }
 }
