@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "http://NEXT_PUBLIC_FIREBASE_API_KEY",
+            "request": "launch",
+            "url": "http://NEXT_PUBLIC_FIREBASE_API_KEY"
+        }
+    ]
+}
