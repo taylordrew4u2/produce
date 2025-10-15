@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Producer Tasks</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: system-ui, -apple-system, sans-serif; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen py-8 px-4">
     <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
@@ -22,15 +26,20 @@
             <form id="taskForm" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                    <input type="text" id="title" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter task title">
+                    <input type="text" id="title" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter task title">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
-                    <input type="text" id="assignee" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter assignee name">
+                    <input type="text" id="assignee" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter assignee name">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select id="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="category"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="Venue">Venue</option>
                         <option value="Comedians">Comedians</option>
                         <option value="Marketing">Marketing</option>
@@ -38,7 +47,8 @@
                         <option value="Misc">Misc</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
                     Add Task
                 </button>
             </form>
@@ -59,8 +69,10 @@
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Taylor</h3>
                     <div class="flex gap-2 mb-3">
-                        <input type="text" id="taylorInput" placeholder="Add task for Taylor" class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Taylor')" class="bg-black text-white px-3 py-1 rounded">Add</button>
+                        <input type="text" id="taylorInput" placeholder="Add task for Taylor"
+                            class="flex-1 border rounded px-2 py-1">
+                        <button onclick="addPersonalTask('Taylor')"
+                            class="bg-black text-white px-3 py-1 rounded">Add</button>
                     </div>
                     <div id="taylorTasks" class="space-y-2"></div>
                 </div>
@@ -68,12 +80,64 @@
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Jay</h3>
                     <div class="flex gap-2 mb-3">
-                        <input type="text" id="jayInput" placeholder="Add task for Jay" class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Jay')" class="bg-black text-white px-3 py-1 rounded">Add</button>
+                        <input type="text" id="jayInput" placeholder="Add task for Jay"
+                            class="flex-1 border rounded px-2 py-1">
+                        <button onclick="addPersonalTask('Jay')"
+                            class="bg-black text-white px-3 py-1 rounded">Add</button>
                     </div>
                     <div id="jayTasks" class="space-y-2"></div>
                 </div>
             </div>
+        </div>
+
+        <!-- Staff Assignments -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Staff Assignments</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">DJ</label>
+                    <input type="text" id="staff-dj" placeholder="Enter DJ name" class="w-full border rounded px-2 py-1"
+                        onblur="saveStaff('dj', this.value)">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Door</label>
+                    <input type="text" id="staff-door" placeholder="Enter door person"
+                        class="w-full border rounded px-2 py-1" onblur="saveStaff('door', this.value)">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
+                    <input type="text" id="staff-av" placeholder="Enter AV tech" class="w-full border rounded px-2 py-1"
+                        onblur="saveStaff('av', this.value)">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Photographer</label>
+                    <input type="text" id="staff-photo" placeholder="Enter photographer"
+                        class="w-full border rounded px-2 py-1" onblur="saveStaff('photo', this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media Calendar -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Social Media Calendar</h2>
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Select Date</label>
+                <input type="date" id="socialDate" class="border rounded px-2 py-1" onchange="loadSocialPosts()">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Post Caption</label>
+                <textarea id="socialCaption" placeholder="Enter post caption" class="w-full border rounded px-2 py-1"
+                    rows="3"></textarea>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm text-gray-600 mb-1">Image/Video</label>
+                <input type="file" id="socialFile" accept="image/*,video/*" class="border rounded px-2 py-1 w-full">
+                <div id="filePreview" class="mt-2"></div>
+            </div>
+            <button onclick="addSocialPost()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Add Post
+            </button>
+            <div id="socialPosts" class="mt-4 space-y-3"></div>
         </div>
 
         <!-- Lineup -->
@@ -82,7 +146,8 @@
             <div class="space-y-2">
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Headliner</span>
-                    <input type="text" id="lineup1" placeholder="Enter headliner" class="flex-1 border rounded px-2 py-1">
+                    <input type="text" id="lineup1" placeholder="Enter headliner"
+                        class="flex-1 border rounded px-2 py-1">
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 2</span>
@@ -133,15 +198,15 @@
         function renderTasks() {
             const taskList = document.getElementById('taskList');
             const emptyState = document.getElementById('emptyState');
-            
+
             if (tasks.length === 0) {
                 taskList.innerHTML = '';
                 emptyState.classList.remove('hidden');
                 return;
             }
-            
+
             emptyState.classList.add('hidden');
-            
+
             // Group by category
             const grouped = {};
             tasks.forEach(task => {
@@ -149,7 +214,7 @@
                 if (!grouped[cat]) grouped[cat] = [];
                 grouped[cat].push(task);
             });
-            
+
             let html = '';
             Object.keys(grouped).sort().forEach(category => {
                 html += `<div class="mb-4">
@@ -171,12 +236,12 @@
                     `).join('')}
                 </div>`;
             });
-            
+
             taskList.innerHTML = html;
         }
 
         function toggleTask(id) {
-            tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
             setLS('tasks', tasks);
             renderTasks();
         }
@@ -212,12 +277,12 @@
             ['Taylor', 'Jay'].forEach(owner => {
                 const container = document.getElementById(`${owner.toLowerCase()}Tasks`);
                 const ownerTasks = personalTasks.filter(t => t.owner === owner);
-                
+
                 if (ownerTasks.length === 0) {
                     container.innerHTML = '<p class="text-sm text-gray-500">No tasks yet.</p>';
                     return;
                 }
-                
+
                 container.innerHTML = ownerTasks.map(task => `
                     <div class="flex items-center justify-between">
                         <label class="flex items-center gap-2 flex-1">
@@ -237,7 +302,7 @@
             const input = document.getElementById(`${owner.toLowerCase()}Input`);
             const title = input.value.trim();
             if (!title) return;
-            
+
             personalTasks.push({
                 id: genId(),
                 owner,
@@ -251,7 +316,7 @@
         }
 
         function togglePersonalTask(id) {
-            personalTasks = personalTasks.map(t => t.id === id ? {...t, done: !t.done} : t);
+            personalTasks = personalTasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
             setLS('personalTasks', personalTasks);
             renderPersonalTasks();
         }
@@ -261,6 +326,129 @@
             setLS('personalTasks', personalTasks);
             renderPersonalTasks();
         }
+
+        // Staff Assignments
+        let staff = getLS('staffAssignments', {});
+
+        function loadStaff() {
+            ['dj', 'door', 'av', 'photo'].forEach(role => {
+                const input = document.getElementById(`staff-${role}`);
+                if (input) {
+                    input.value = staff[role] || '';
+                }
+            });
+        }
+
+        function saveStaff(role, value) {
+            staff[role] = value;
+            setLS('staffAssignments', staff);
+        }
+
+        // Social Media Calendar
+        let socialPosts = getLS('socialMediaPosts', []);
+
+        function getTodayDate() {
+            const today = new Date();
+            return today.toISOString().split('T')[0];
+        }
+
+        function loadSocialPosts() {
+            const dateInput = document.getElementById('socialDate');
+            const selectedDate = dateInput.value || getTodayDate();
+            const posts = socialPosts.filter(p => p.date === selectedDate);
+            const container = document.getElementById('socialPosts');
+            
+            if (posts.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this date.</p>';
+                return;
+            }
+            
+            container.innerHTML = posts.map(post => `
+                <div class="border rounded p-3 flex gap-3">
+                    ${post.url ? `
+                        ${post.type === 'video' 
+                            ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
+                            : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
+                        }
+                    ` : ''}
+                    <div class="flex-1">
+                        <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
+                        <button onclick="deleteSocialPost('${post.id}')" 
+                            class="text-sm text-red-600">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addSocialPost() {
+            const dateInput = document.getElementById('socialDate');
+            const captionInput = document.getElementById('socialCaption');
+            const fileInput = document.getElementById('socialFile');
+            
+            const date = dateInput.value || getTodayDate();
+            const caption = captionInput.value.trim();
+            const file = fileInput.files[0];
+            
+            if (!caption && !file) {
+                alert('Please add a caption or file');
+                return;
+            }
+            
+            let url = '';
+            let type = 'text';
+            
+            if (file) {
+                // Convert to base64 data URL for localStorage
+                const reader = new FileReader();
+                url = await new Promise((resolve) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                type = file.type.startsWith('video') ? 'video' : 'image';
+            }
+            
+            const post = {
+                id: genId(),
+                date,
+                caption,
+                url,
+                type,
+                createdAt: Date.now()
+            };
+            
+            socialPosts.push(post);
+            setLS('socialMediaPosts', socialPosts);
+            
+            captionInput.value = '';
+            fileInput.value = '';
+            loadSocialPosts();
+        }
+
+        function deleteSocialPost(id) {
+            if (confirm('Delete this post?')) {
+                socialPosts = socialPosts.filter(p => p.id !== id);
+                setLS('socialMediaPosts', socialPosts);
+                loadSocialPosts();
+            }
+        }
+
+        // File preview
+        document.getElementById('socialFile')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const preview = document.getElementById('filePreview');
+            
+            if (!file) {
+                preview.innerHTML = '';
+                return;
+            }
+            
+            const url = URL.createObjectURL(file);
+            const isVideo = file.type.startsWith('video');
+            
+            preview.innerHTML = isVideo 
+                ? `<video src="${url}" class="max-h-40 rounded border" controls></video>`
+                : `<img src="${url}" class="max-h-40 rounded border">`;
+        });
 
         // Lineup
         let lineup = getLS('lineup', {});
@@ -281,7 +469,13 @@
         // Initialize
         renderTasks();
         renderPersonalTasks();
+        loadStaff();
         loadLineup();
+        
+        // Set today's date for social media
+        document.getElementById('socialDate').value = getTodayDate();
+        loadSocialPosts();
     </script>
 </body>
+
 </html>
