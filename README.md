@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Produce Task Tracker
 
 A real-time web application for event producers to track and manage shared tasks. Built with Next.js, Firebase Firestore, and Tailwind CSS.
@@ -10,90 +11,50 @@ A real-time web application for event producers to track and manage shared tasks
 - ✅ **Completion Tracking**: Check off tasks as they're completed
 - 📱 **Mobile-Friendly**: Responsive design that works on all devices
 - 🔗 **No Login Required**: Share a public link to collaborate instantly
+# 🎤 Producer Tasks
 
-## Getting Started
+A real-time task tracker for comedy show producers built with Next.js and Firebase.
 
-### Prerequisites
+## 🚀 Features
 
-- Node.js 18+ installed
-- A Firebase project with Firestore enabled
+- Real-time task synchronization (when Firebase configured)
+- Offline local mode (no config needed)
+- Task categorization (Venue, Comedians, Marketing, Equipment, Misc)
+- Completion tracking
+- Responsive web interface
 
-### Firebase Setup
+## 🛠️ Setup
 
-1. Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable Firestore Database in your project
-3. Get your Firebase configuration from Project Settings
-4. Update Firestore rules to allow public read/write:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /tasks/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
-```
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/taylordrew4u2/produce.git
-cd produce
-```
-
-2. Install dependencies:
 ```bash
 npm install
+cp .env.local.example .env.local
 ```
 
-3. Create a `.env.local` file in the root directory with your Firebase credentials:
-```bash
-cp .env.example .env.local
-```
+Fill `.env.local` with Firebase Web app credentials.
 
-4. Edit `.env.local` and add your Firebase configuration values
+## 🔥 Firebase
 
-5. Run the development server:
+1. Visit https://console.firebase.google.com
+2. Create a project and enable Firestore + Storage
+3. Register a Web app and copy credentials into `.env.local`
+4. (Optional) Adjust Firestore security rules before production
+
+## 🧪 Development
+
 ```bash
 npm run dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
+Open http://localhost:3000.
 
-## Deployment
+## 🚀 Deploy
 
-### Deploy to Vercel
+1. Push to GitHub
+2. Import the repo on https://vercel.com
+3. Add environment variables
+4. Deploy
 
-The easiest way to deploy this app is using [Vercel](https://vercel.com):
-
-1. Push your code to GitHub
-2. Import your repository in Vercel
-3. Add your Firebase environment variables in Vercel project settings
-4. Deploy!
-
-Alternatively, click the button below:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/taylordrew4u2/produce)
-
-## Usage
-
-1. Open the app in your browser
-2. Add tasks using the form at the top
-3. Tasks will appear grouped by category
-4. Check the checkbox to mark tasks as complete
-5. Share the URL with your team - all changes sync in real-time!
-
-## Technology Stack
-
-- **Framework**: Next.js 15 with App Router
-- **Database**: Firebase Firestore
-- **Styling**: Tailwind CSS
-- **Language**: TypeScript
-- **Deployment**: Vercel
-
-## License
+## 📄 License
 
 MIT
+5. Run the development server:

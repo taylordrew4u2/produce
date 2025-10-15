@@ -1,0 +1,10 @@
+{
+	"image": "mcr.microsoft.com/devcontainers/universal:2",
+	"features": {
+		"ghcr.io/devcontainers-extra/features/vercel-cli:1": {},
+		"ghcr.io/devcontainers-extra/features/vercel-ncc:1": {},
+		"ghcr.io/devcontainers-extra/features/vercel-pkg:1": {},
+		"ghcr.io/devcontainers-extra/features/vercel-release:1": {},
+		"ghcr.io/devcontainers-extra/features/vercel-serve:1": {}
+	}
+}
