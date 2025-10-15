@@ -137,15 +137,23 @@
 
         <!-- Social Media Calendar -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Social Media Calendar</h2>
-
-            <!-- Month Navigation -->
             <div class="flex items-center justify-between mb-4">
-                <button onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
-                    Prev</button>
-                <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
-                <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next →</button>
+                <h2 class="text-xl font-semibold">Social Media Calendar</h2>
+                <button onclick="loadScheduleHelper()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                    📅 Load Instagram Schedule
+                </button>
             </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Calendar Section (Left) -->
+                <div class="lg:col-span-2">
+                    <!-- Month Navigation -->
+                    <div class="flex items-center justify-between mb-4">
+                        <button onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                            Prev</button>
+                        <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
+                        <button onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next →</button>
+                    </div>
 
             <!-- Calendar Grid -->
             <div class="grid grid-cols-7 gap-1 mb-4">
@@ -181,6 +189,81 @@
                 <div id="socialPosts" class="space-y-3"></div>
             </div>
         </div>
+
+        <!-- Operations Notes Sidebar (Right) -->
+        <div class="lg:col-span-1">
+            <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
+                <h3 class="font-semibold text-gray-800 mb-3">📋 Daily Operations</h3>
+                
+                <div class="text-sm space-y-3">
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">⏰ Posting Schedule</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>• 12:00 PM ET - Main feed post</li>
+                            <li>• 8:00 PM ET - Evening post</li>
+                            <li>• Stories throughout day</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">📸 Content Rules</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>• Grid: 1080x1350px (4:5)</li>
+                            <li>• Stories: 1080x1920px (9:16)</li>
+                            <li>• Reels: 1080x1920px, 15-90s</li>
+                            <li>• Carousel: 2-10 slides</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">✍️ Caption Guidelines</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>• Max 2,200 characters</li>
+                            <li>• Hook in first 125 chars</li>
+                            <li>• 3-5 emojis max</li>
+                            <li>• 5-10 hashtags</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">🎯 Story Tactics</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>• Reshare all feed posts</li>
+                            <li>• Countdown stickers daily</li>
+                            <li>• Poll/quiz engagement</li>
+                            <li>• Link in bio reminders</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">💰 Boost Settings</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>• Announce post: $50</li>
+                            <li>• Lineup reveal: $75</li>
+                            <li>• Final push: $100</li>
+                            <li>• Target: Local 25mi, 21-45</li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-medium text-gray-700 mb-1">📌 Pinned Order</p>
+                        <ul class="text-gray-600 space-y-1 ml-4">
+                            <li>1. Full lineup poster</li>
+                            <li>2. Ticket link post</li>
+                            <li>3. Show details/venue</li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-2 border-t">
+                        <p class="text-xs text-gray-500 italic">
+                            💡 Track engagement rates, save top performers, A/B test captions
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- Lineup -->
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -676,6 +759,54 @@
             loadStaff();
             renderCalendar();
         }
+
+        // Pre-populate Instagram Schedule
+        function loadInstagramSchedule() {
+            // Only add if social posts are empty (first time setup)
+            if (data.socialPosts.length > 0) return;
+
+            const schedule = [
+                { date: '2025-10-16', caption: '📅 TEASER SAVE-THE-DATE\n10-15s reel (add ticket link if live)' },
+                { date: '2025-10-20', caption: '🎉 OFFICIAL ANNOUNCE + ON-SALE\nCarousel: show art, date/time/venue, map slide' },
+                { date: '2025-10-24', caption: '✨ "WHAT TO EXPECT" CAROUSEL\nVibe, venue, clips' },
+                { date: '2025-10-27', caption: '🎤 REVEAL #1\nFeed post (photo or 9-15s reel)\nCaption: unique credit + hook + CTA\nStory reshare within 2 hours' },
+                { date: '2025-10-29', caption: '🎤 REVEAL #2\nSame format as #1\nAdd Story poll: "Coming?"' },
+                { date: '2025-10-31', caption: '🎤 REVEAL #3\nPin to profile\nAdd Story countdown sticker\n⏰ Early-bird ends 23:59 ET' },
+                { date: '2025-11-01', caption: '💰 PRICE INCREASE\nEarly-bird pricing ends' },
+                { date: '2025-11-03', caption: '🎤 REVEAL #4\nCarousel: 1 promo + 1 clip + 1 CTA slide' },
+                { date: '2025-11-06', caption: '⭐ HEADLINER REVEAL\nReel first, boosted 72h\nAdd "Limited seating" line' },
+                { date: '2025-11-07', caption: '📋 FULL LINEUP POSTER\nPin as #1\nCaption: all handles + ticket link' },
+                { date: '2025-11-09', caption: '🎬 HEADLINER CLIP\n6-12s vertical, punchline in first 2s' },
+                { date: '2025-11-10', caption: '🎥 QUICK TO-CAMERA REEL\n≤15s: premise + CTA' },
+                { date: '2025-11-12', caption: '⚠️ "LAST-CHANCE TIER" POST\nPrice bump after 23:59 ET' },
+                { date: '2025-11-13', caption: '💬 FAN/SOCIAL PROOF CAROUSEL\nCrowd shots, quotes, pull-quotes\nFinal-week price bump' },
+                { date: '2025-11-14', caption: '📍 FINAL PUSH: LOGISTICS\nDoors, start time, nearest train, dress vibe' },
+                { date: '2025-11-15', caption: '🎊 SHOW DAY!\n\nMorning: Day-of reel\nT-6h: Story Q&A\nT-2h: "Doors in 2h" Story\nT-30m: "Show starts in 30" Story\nPost-show: 3-slide thank-you + next date teaser' }
+            ];
+
+            schedule.forEach((item, index) => {
+                data.socialPosts.push({
+                    id: `schedule-${index}`,
+                    date: item.date,
+                    caption: item.caption,
+                    url: '',
+                    type: 'text',
+                    createdAt: Date.now() + index
+                });
+            });
+
+            saveLocal();
+        }
+
+        // Add button to load schedule
+        window.loadScheduleHelper = () => {
+            if (confirm('Load Instagram Rollout Schedule for Nov 15, 2025 show?\n\nThis will add 16 scheduled posts to your calendar.')) {
+                data.socialPosts = []; // Clear existing
+                loadInstagramSchedule();
+                renderCalendar();
+                alert('✅ Schedule loaded! Click on the dates to see details.');
+            }
+        };
 
         // Initialize
         loadLocal();
