@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Producer Tasks - Instant Collaboration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .peer-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1000;
+            background: #10b981;
+            color: white;
+        }
+
+        .peer-count {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen py-8 px-4">
+    <div class="peer-status">
+        🟢 Connected
+        <span class="peer-count" id="peerCount">0 others</span>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">🎤 Producer Tasks</h1>
+            <p class="text-gray-600">Instant Real-Time Collaboration</p>
+            <p class="text-sm text-gray-500 mt-2">Share this URL with your team - changes sync instantly!</p>
+            <button onclick="copyShareLink()"
+                class="mt-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                📋 Copy Share Link
+            </button>
+        </header>
+
+        <!-- Add Task -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Add New Task</h2>
+            <form id="taskForm" class="space-y-4">
+                <input type="text" id="title" placeholder="Task title" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="assignee" placeholder="Assignee" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="category"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Venue">Venue</option>
+                    <option value="Comedians">Comedians</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Misc">Misc</option>
+                </select>
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                    Add Task
+                </button>
+            </form>
+        </div>
+
+        <!-- Personal Tasks -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Personal Tasks</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border rounded p-4">
+                    <h3 class="font-medium mb-3">Taylor</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="taylorInput" placeholder="Add task"
+                            class="flex-1 border rounded px-2 py-1">
+                        <button onclick="addPersonalTask('Taylor')"
+                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
+                    </div>
+                    <div id="taylorTasks" class="space-y-2"></div>
+                </div>
+                <div class="border rounded p-4">
+                    <h3 class="font-medium mb-3">Jay</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="jayInput" placeholder="Add task" class="flex-1 border rounded px-2 py-1">
+                        <button onclick="addPersonalTask('Jay')"
+                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
+                    </div>
+                    <div id="jayTasks" class="space-y-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Tasks</h2>
+            <div id="tasksList"></div>
+        </div>
+
+        <!-- Lineup -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Comedy Show Lineup</h2>
+            <div class="space-y-2">
+                <div class="flex gap-2 items-center">
+                    <span class="w-28 text-sm text-gray-600">Headliner</span>
+                    <input type="text" id="lineup1" placeholder="Enter headliner"
+                        class="flex-1 border rounded px-2 py-1" onblur="saveLineup()">
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="w-28 text-sm text-gray-600">Comic 2</span>
+                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1"
+                        onblur="saveLineup()">
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="w-28 text-sm text-gray-600">Comic 3</span>
+                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1"
+                        onblur="saveLineup()">
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="w-28 text-sm text-gray-600">Comic 4</span>
+                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1"
+                        onblur="saveLineup()">
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="w-28 text-sm text-gray-600">Comic 5</span>
+                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1"
+                        onblur="saveLineup()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Shared state
+        let data = {
+            tasks: [],
+            personalTasks: [],
+            lineup: {}
+        };
+
+        // Load from localStorage
+        function loadLocal() {
+            try {
+                const saved = localStorage.getItem('producerTasks');
+                if (saved) data = JSON.parse(saved);
+            } catch (e) { }
+        }
+
+        // Save to localStorage
+        function saveLocal() {
+            localStorage.setItem('producerTasks', JSON.stringify(data));
+        }
+
+        // PeerJS setup - using public server
+        const peer = new Peer({
+            host: 'peerjs-server.herokuapp.com',
+            secure: true,
+            port: 443,
+            path: '/'
+        });
+
+        let connections = [];
+        const roomId = 'producer-tasks-room'; // Fixed room for all users
+
+        peer.on('open', (id) => {
+            console.log('My peer ID:', id);
+            // Try to connect to the room
+            connectToRoom();
+        });
+
+        // Connect to other peers in the room
+        function connectToRoom() {
+            // Store our ID in a simple backend-less way using URL hash
+            const hash = window.location.hash.slice(1);
+            if (!hash) {
+                // First user - create room
+                window.location.hash = peer.id;
+            } else if (hash !== peer.id) {
+                // Join existing room
+                const conn = peer.connect(hash);
+                setupConnection(conn);
+            }
+        }
+
+        // Handle incoming connections
+        peer.on('connection', (conn) => {
+            setupConnection(conn);
+        });
+
+        function setupConnection(conn) {
+            conn.on('open', () => {
+                connections.push(conn);
+                updatePeerCount();
+                // Send current data to new peer
+                conn.send({ type: 'sync', data });
+            });
+
+            conn.on('data', (received) => {
+                if (received.type === 'sync') {
+                    // Merge data (newer wins)
+                    data = received.data;
+                    saveLocal();
+                    render();
+                } else if (received.type === 'update') {
+                    // Apply update
+                    data = received.data;
+                    saveLocal();
+                    render();
+                }
+                // Relay to other peers
+                connections.forEach(c => {
+                    if (c !== conn && c.open) {
+                        c.send(received);
+                    }
+                });
+            });
+
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
+                updatePeerCount();
+            });
+        }
+
+        function broadcast(update) {
+            const msg = { type: 'update', data };
+            connections.forEach(conn => {
+                if (conn.open) {
+                    conn.send(msg);
+                }
+            });
+        }
+
+        function updatePeerCount() {
+            const count = connections.length;
+            document.getElementById('peerCount').textContent = count === 0 ? 'Solo' : `${count} other${count > 1 ? 's' : ''}`;
+        }
+
+        // Tasks
+        function renderTasks() {
+            const container = document.getElementById('tasksList');
+            if (data.tasks.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">No tasks yet</p>';
+                return;
+            }
+
+            const grouped = {};
+            data.tasks.forEach(t => {
+                const cat = t.category || 'Misc';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(t);
+            });
+
+            let html = '';
+            Object.keys(grouped).sort().forEach(cat => {
+                html += `<div class="mb-4"><h3 class="font-semibold text-gray-700 mb-2">${cat}</h3>`;
+                grouped[cat].forEach(t => {
+                    html += `<div class="border-b py-2 flex justify-between items-center">
+                        <div class="flex-1">
+                            <p class="${t.completed ? 'line-through text-gray-500' : ''}">${t.title}</p>
+                            <small class="text-gray-600">${t.assignee}</small>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} 
+                                onclick="toggleTask('${t.id}')" class="w-5 h-5 cursor-pointer">
+                            <button onclick="deleteTask('${t.id}')" class="text-red-600 text-sm hover:text-red-800">Delete</button>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const task = {
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+                title: document.getElementById('title').value,
+                assignee: document.getElementById('assignee').value,
+                category: document.getElementById('category').value,
+                completed: false
+            };
+            data.tasks.push(task);
+            saveLocal();
+            broadcast();
+            renderTasks();
+            e.target.reset();
+        });
+
+        window.toggleTask = (id) => {
+            data.tasks = data.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveLocal();
+            broadcast();
+            renderTasks();
+        };
+
+        window.deleteTask = (id) => {
+            if (!confirm('Delete this task?')) return;
+            data.tasks = data.tasks.filter(t => t.id !== id);
+            saveLocal();
+            broadcast();
+            renderTasks();
+        };
+
+        // Personal Tasks
+        function renderPersonalTasks() {
+            ['Taylor', 'Jay'].forEach(owner => {
+                const container = document.getElementById(`${owner.toLowerCase()}Tasks`);
+                const tasks = data.personalTasks.filter(t => t.owner === owner);
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No tasks yet</p>';
+                    return;
+                }
+
+                container.innerHTML = tasks.map(t => `
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 flex-1 cursor-pointer">
+                            <input type="checkbox" ${t.done ? 'checked' : ''} 
+                                onchange="togglePersonalTask('${t.id}')" class="cursor-pointer">
+                            <span class="${t.done ? 'line-through text-gray-500' : ''}">${t.title}</span>
+                        </label>
+                        <button onclick="deletePersonalTask('${t.id}')" class="text-sm text-red-600 hover:text-red-800">Delete</button>
+                    </div>
+                `).join('');
+            });
+        }
+
+        window.addPersonalTask = (owner) => {
+            const input = document.getElementById(`${owner.toLowerCase()}Input`);
+            const title = input.value.trim();
+            if (!title) return;
+
+            data.personalTasks.push({
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+                owner,
+                title,
+                done: false
+            });
+            saveLocal();
+            broadcast();
+            renderPersonalTasks();
+            input.value = '';
+        };
+
+        window.togglePersonalTask = (id) => {
+            data.personalTasks = data.personalTasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            saveLocal();
+            broadcast();
+            renderPersonalTasks();
+        };
+
+        window.deletePersonalTask = (id) => {
+            data.personalTasks = data.personalTasks.filter(t => t.id !== id);
+            saveLocal();
+            broadcast();
+            renderPersonalTasks();
+        };
+
+        // Lineup
+        function loadLineup() {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`lineup${i}`).value = data.lineup[i] || '';
+            }
+        }
+
+        window.saveLineup = () => {
+            for (let i = 1; i <= 5; i++) {
+                data.lineup[i] = document.getElementById(`lineup${i}`).value;
+            }
+            saveLocal();
+            broadcast();
+        };
+
+        // Copy share link
+        window.copyShareLink = () => {
+            const url = window.location.href.split('#')[0] + '#' + peer.id;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Share link copied! Send this to your team.');
+            });
+        };
+
+        // Render everything
+        function render() {
+            renderTasks();
+            renderPersonalTasks();
+            loadLineup();
+        }
+
+        // Initialize
+        loadLocal();
+        render();
+    </script>
+</body>
+
+</html>
