@@ -174,10 +174,12 @@
                 <div class="lg:col-span-2">
                     <!-- Month Navigation -->
                     <div class="flex items-center justify-between mb-4">
-                        <button type="button" onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                        <button type="button" onclick="changeMonth(-1)"
+                            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
                             Prev</button>
                         <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
-                        <button type="button" onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
+                        <button type="button" onclick="changeMonth(1)"
+                            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
                             →</button>
                     </div>
 
@@ -294,47 +296,136 @@
         <!-- Lineup -->
         <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4">Comedy Show Lineup</h2>
-            <div class="space-y-2">
-                <div class="flex gap-2 items-center">
-                    <span class="w-28 text-sm text-gray-600">Headliner</span>
-                    <input type="text" id="lineup1" placeholder="Enter headliner"
-                        class="flex-1 border rounded px-2 py-1">
-                    <button type="button" onclick="saveLineup(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                        💾 Save
-                    </button>
+            <div class="space-y-4">
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="w-28 text-sm font-medium text-gray-700">Headliner</span>
+                        <input type="text" id="lineup1" placeholder="Enter headliner"
+                            class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="saveLineup(event)"
+                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                            💾 Save
+                        </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                            <input type="file" id="lineupFile1" onchange="uploadLineupFile(1, event)" class="hidden"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <button type="button" onclick="document.getElementById('lineupFile1').click()"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                                📎 Upload File
+                            </button>
+                            <span id="lineupFileName1" class="text-xs text-gray-600"></span>
+                        </label>
+                        <button type="button" id="lineupFileDelete1" onclick="deleteLineupFile(1)"
+                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2 items-center">
-                    <span class="w-28 text-sm text-gray-600">Comic 2</span>
-                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
-                    <button type="button" onclick="saveLineup(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                        💾 Save
-                    </button>
+
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="w-28 text-sm font-medium text-gray-700">Comic 2</span>
+                        <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="saveLineup(event)"
+                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                            💾 Save
+                        </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                            <input type="file" id="lineupFile2" onchange="uploadLineupFile(2, event)" class="hidden"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <button type="button" onclick="document.getElementById('lineupFile2').click()"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                                📎 Upload File
+                            </button>
+                            <span id="lineupFileName2" class="text-xs text-gray-600"></span>
+                        </label>
+                        <button type="button" id="lineupFileDelete2" onclick="deleteLineupFile(2)"
+                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2 items-center">
-                    <span class="w-28 text-sm text-gray-600">Comic 3</span>
-                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
-                    <button type="button" onclick="saveLineup(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                        💾 Save
-                    </button>
+
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="w-28 text-sm font-medium text-gray-700">Comic 3</span>
+                        <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="saveLineup(event)"
+                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                            💾 Save
+                        </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                            <input type="file" id="lineupFile3" onchange="uploadLineupFile(3, event)" class="hidden"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <button type="button" onclick="document.getElementById('lineupFile3').click()"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                                📎 Upload File
+                            </button>
+                            <span id="lineupFileName3" class="text-xs text-gray-600"></span>
+                        </label>
+                        <button type="button" id="lineupFileDelete3" onclick="deleteLineupFile(3)"
+                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2 items-center">
-                    <span class="w-28 text-sm text-gray-600">Comic 4</span>
-                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
-                    <button type="button" onclick="saveLineup(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                        💾 Save
-                    </button>
+
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="w-28 text-sm font-medium text-gray-700">Comic 4</span>
+                        <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="saveLineup(event)"
+                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                            💾 Save
+                        </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                            <input type="file" id="lineupFile4" onchange="uploadLineupFile(4, event)" class="hidden"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <button type="button" onclick="document.getElementById('lineupFile4').click()"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                                📎 Upload File
+                            </button>
+                            <span id="lineupFileName4" class="text-xs text-gray-600"></span>
+                        </label>
+                        <button type="button" id="lineupFileDelete4" onclick="deleteLineupFile(4)"
+                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
-                <div class="flex gap-2 items-center">
-                    <span class="w-28 text-sm text-gray-600">Comic 5</span>
-                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
-                    <button type="button" onclick="saveLineup(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                        💾 Save
-                    </button>
+
+                <div class="border rounded p-3 bg-gray-50">
+                    <div class="flex gap-2 items-center mb-2">
+                        <span class="w-28 text-sm font-medium text-gray-700">Comic 5</span>
+                        <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="saveLineup(event)"
+                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                            💾 Save
+                        </button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                            <input type="file" id="lineupFile5" onchange="uploadLineupFile(5, event)" class="hidden"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <button type="button" onclick="document.getElementById('lineupFile5').click()"
+                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                                📎 Upload File
+                            </button>
+                            <span id="lineupFileName5" class="text-xs text-gray-600"></span>
+                        </label>
+                        <button type="button" id="lineupFileDelete5" onclick="deleteLineupFile(5)"
+                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                            🗑️
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -346,6 +437,7 @@
             tasks: [],
             personalTasks: [],
             lineup: {},
+            lineupFiles: {},
             staff: {},
             socialPosts: []
         };
@@ -361,6 +453,7 @@
                         tasks: loaded.tasks || [],
                         personalTasks: loaded.personalTasks || [],
                         lineup: loaded.lineup || {},
+                        lineupFiles: loaded.lineupFiles || {},
                         staff: loaded.staff || {},
                         socialPosts: loaded.socialPosts || []
                     };
@@ -585,8 +678,60 @@
         function loadLineup() {
             for (let i = 1; i <= 5; i++) {
                 document.getElementById(`lineup${i}`).value = data.lineup[i] || '';
+                updateLineupFileDisplay(i);
             }
         }
+
+        function updateLineupFileDisplay(position) {
+            const fileData = data.lineupFiles[position];
+            const fileNameSpan = document.getElementById(`lineupFileName${position}`);
+            const deleteBtn = document.getElementById(`lineupFileDelete${position}`);
+
+            if (fileData) {
+                fileNameSpan.innerHTML = `<a href="${fileData.data}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
+                deleteBtn.classList.remove('hidden');
+            } else {
+                fileNameSpan.textContent = '';
+                deleteBtn.classList.add('hidden');
+            }
+        }
+
+        window.uploadLineupFile = (position, event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Check file size (max 5MB for localStorage)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 5MB.');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                data.lineupFiles[position] = {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: e.target.result
+                };
+                console.log(`File uploaded for lineup position ${position}:`, file.name);
+                saveLocal();
+                broadcast();
+                updateLineupFileDisplay(position);
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.deleteLineupFile = (position) => {
+            if (confirm('Delete this file?')) {
+                delete data.lineupFiles[position];
+                document.getElementById(`lineupFile${position}`).value = '';
+                saveLocal();
+                broadcast();
+                updateLineupFileDisplay(position);
+            }
+        };
 
         window.saveLineup = (event) => {
             console.log('saveLineup called');
