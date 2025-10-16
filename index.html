@@ -1016,15 +1016,32 @@
                 return;
             }
 
-            container.innerHTML = posts.map(post => `
+            container.innerHTML = posts.map(post => {
+                let filePreview = '';
+                if (post.url) {
+                    if (post.type === 'video') {
+                        filePreview = `
+                            <div class="w-48">
+                                <video src="${post.url}" class="w-full h-32 object-cover rounded mb-1" controls></video>
+                                <a href="${post.url}" download="${post.fileName || 'video.mp4'}" class="text-xs text-blue-600 hover:underline">⬇️ Download video</a>
+                            </div>
+                        `;
+                    } else if (post.type === 'image') {
+                        filePreview = `
+                            <div class="w-32">
+                                <img src="${post.url}" class="w-32 h-32 object-cover rounded mb-1">
+                                <a href="${post.url}" download="${post.fileName || 'image.jpg'}" class="text-xs text-blue-600 hover:underline">⬇️ Download</a>
+                            </div>
+                        `;
+                    } else {
+                        // For other file types, show a download link
+                        filePreview = `<div class="p-4"><a href="${post.url}" download="${post.fileName || 'file'}" class="text-blue-600 hover:underline">📎 ${post.fileName || 'Download file'}</a></div>`;
+                    }
+                }
+                return `
                 <div class="border rounded p-3 bg-white" id="post-${post.id}">
                     <div class="flex gap-3">
-                        ${post.url ? `
-                            ${post.type === 'video'
-                        ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
-                        : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
-                    }
-                        ` : ''}
+                        ${filePreview}
                         <div class="flex-1">
                             <div id="view-${post.id}">
                                 <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
@@ -1047,7 +1064,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         window.addSocialPost = async () => {
@@ -1072,12 +1090,42 @@
             let type = 'text';
 
             if (file) {
-                const reader = new FileReader();
-                url = await new Promise((resolve) => {
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-                type = file.type.startsWith('video') ? 'video' : 'image';
+                // Check file size - allow larger files for videos
+                const maxSize = file.type.startsWith('video') ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for images
+                if (file.size > maxSize) {
+                    const maxSizeMB = file.type.startsWith('video') ? '50MB' : '10MB';
+                    alert(`File is too large. Maximum size is ${maxSizeMB} for ${file.type.startsWith('video') ? 'videos' : 'images'}.`);
+                    fileInput.value = '';
+                    return;
+                }
+
+                // Show uploading indicator
+                const originalButtonText = event.target ? event.target.innerText : '';
+                if (event.target) event.target.innerText = '⏳ Uploading...';
+
+                try {
+                    const reader = new FileReader();
+                    url = await new Promise((resolve, reject) => {
+                        reader.onload = (e) => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    
+                    // Determine file type
+                    if (file.type.startsWith('video')) {
+                        type = 'video';
+                    } else if (file.type.startsWith('image')) {
+                        type = 'image';
+                    } else {
+                        type = 'file';
+                    }
+                } catch (error) {
+                    alert('Error uploading file. Please try again.');
+                    if (event.target && originalButtonText) event.target.innerText = originalButtonText;
+                    return;
+                }
+
+                if (event.target && originalButtonText) event.target.innerText = originalButtonText;
             }
 
             const post = {
@@ -1086,6 +1134,7 @@
                 caption,
                 url,
                 type,
+                fileName: file ? file.name : '',
                 createdAt: Date.now()
             };
 
