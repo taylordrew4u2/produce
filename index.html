@@ -214,7 +214,8 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Media (Image/Video)</label>
                                 <input type="file" id="socialFile" accept="image/*,video/*"
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                <p class="text-xs text-gray-500 mt-1">Max: 50MB for videos, 10MB for images</p>
+                                <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
+                                <p class="text-xs text-amber-600 mt-1">⚠️ Large files may hit browser storage limits. Compress videos if needed.</p>
                             </div>
 
                             <div id="filePreview" class="mb-3"></div>
@@ -552,9 +553,22 @@
             }
         }
 
-        // Save to localStorage
+        // Save to localStorage with quota error handling
         function saveLocal() {
-            localStorage.setItem('producerTasks', JSON.stringify(data));
+            try {
+                const jsonData = JSON.stringify(data);
+                const sizeMB = (new Blob([jsonData]).size / (1024 * 1024)).toFixed(2);
+                console.log(`Saving data: ${sizeMB}MB`);
+                localStorage.setItem('producerTasks', jsonData);
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    console.error('Storage quota exceeded!', e);
+                    alert('Storage limit exceeded! Your data is too large (probably from large video files).\n\nOptions:\n1. Delete some large videos from social media posts\n2. Use smaller video files (compress them first)\n3. Clear old data\n\nNote: Browser localStorage typically has 5-10MB limit.');
+                } else {
+                    console.error('Error saving data:', e);
+                    alert('Error saving data. Please try again.');
+                }
+            }
         }
 
         // PeerJS setup - using public server
@@ -1102,18 +1116,20 @@
             let type = 'text';
 
             if (file) {
-                // Check file size - allow larger files for videos
-                const maxSize = file.type.startsWith('video') ? 50 * 1024 * 1024 : 10 * 1024 * 1024; // 50MB for video, 10MB for images
+                // Check file size - allow larger files for videos (up to 100MB)
+                const maxSize = file.type.startsWith('video') ? 100 * 1024 * 1024 : 20 * 1024 * 1024; // 100MB for video, 20MB for images
                 if (file.size > maxSize) {
-                    const maxSizeMB = file.type.startsWith('video') ? '50MB' : '10MB';
-                    alert(`File is too large. Maximum size is ${maxSizeMB} for ${file.type.startsWith('video') ? 'videos' : 'images'}.`);
+                    const maxSizeMB = file.type.startsWith('video') ? '100MB' : '20MB';
+                    alert(`File is too large. Maximum size is ${maxSizeMB} for ${file.type.startsWith('video') ? 'videos' : 'images'}.\n\nNote: Browser localStorage has limits. If you get errors, try a smaller file.`);
                     fileInput.value = '';
                     return;
                 }
 
-                // Show uploading indicator
-                const originalButtonText = event.target ? event.target.innerText : '';
-                if (event.target) event.target.innerText = '⏳ Uploading...';
+                // Show uploading indicator with file size
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                const addButton = document.querySelector('button[onclick="addSocialPost()"]');
+                const originalButtonText = addButton ? addButton.innerHTML : '';
+                if (addButton) addButton.innerHTML = `⏳ Uploading ${fileSizeMB}MB...`;
 
                 try {
                     const reader = new FileReader();
@@ -1131,13 +1147,17 @@
                     } else {
                         type = 'file';
                     }
+
+                    console.log(`File uploaded: ${file.name} (${fileSizeMB}MB, type: ${type})`);
                 } catch (error) {
-                    alert('Error uploading file. Please try again.');
-                    if (event.target && originalButtonText) event.target.innerText = originalButtonText;
+                    console.error('File upload error:', error);
+                    alert('Error reading file. Please try again with a smaller file.');
+                    if (addButton && originalButtonText) addButton.innerHTML = originalButtonText;
+                    fileInput.value = '';
                     return;
                 }
 
-                if (event.target && originalButtonText) event.target.innerText = originalButtonText;
+                if (addButton && originalButtonText) addButton.innerHTML = originalButtonText;
             }
 
             const post = {
