@@ -25,7 +25,7 @@ This app now supports **real-time collaboration** where anyone with the URL can 
 1. Click the "Rules" tab in Firestore
 2. Replace the rules with this:
 
-```
+```rules
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -54,32 +54,83 @@ service cloud.firestore {
 1. Open `index-simple.html` (or `index.html`)
 2. Find line ~66 with the Firebase config
 3. Replace `YOUR_API_KEY`, etc. with your actual values from Step 4:
-
-```javascript
 const firebaseConfig = {
-    apiKey: "AIzaSyC...",  // Your actual API key
-    authDomain: "your-project.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123"
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
 };
-```
+
+    ```javascript
+    const firebaseConfig = {
+        const firebaseConfig = {
+
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};ERS2u0HM_iFnw3M...",  // Your actual API key
+        const firebaseConfig = {
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};app.com",
+        const firebaseConfig = {
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};
+        const firebaseConfig = {
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};ot.com",
+        const firebaseConfig = {
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};
+        const firebaseConfig = {
+  apiKey: "AIzaSyDJswTUWjB0q5rO_sBZERS2u0HM_iFnw3M",
+  authDomain: "producer-tasks.firebaseapp.com",
+  projectId: "producer-tasks",
+  storageBucket: "producer-tasks.firebasestorage.app",
+  messagingSenderId: "762020116589",
+  appId: "1:762020116589:web:e6ea1023504621c4746764"
+};
+    };
+    ```
 
 4. Save the file
 5. Commit and push:
 
-```bash
-git add index-simple.html
-git commit -m "Add Firebase config for real-time sync"
-git push
-```
+    ```bash
+    git add index-simple.html
+    git commit -m "Add Firebase config for real-time sync"
+    git push
+    ```
 
 ### Step 6: Share the URL
 
 Your app will be live at:
 
-```
+```text
 https://taylordrew4u2.github.io/produce/index-simple.html
 ```
 

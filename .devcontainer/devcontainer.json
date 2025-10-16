@@ -6,5 +6,12 @@
 		"ghcr.io/devcontainers-extra/features/vercel-pkg:1": {},
 		"ghcr.io/devcontainers-extra/features/vercel-release:1": {},
 		"ghcr.io/devcontainers-extra/features/vercel-serve:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"toba.vsfire"
+			]
+		}
 	}
 }

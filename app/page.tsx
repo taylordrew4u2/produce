@@ -1,5 +1,9 @@
 import AddTaskForm from '@/components/AddTaskForm';
 import TaskList from '@/components/TaskList';
+import PersonalTasks from '@/components/PersonalTasks';
+import StaffAssignments from '@/components/StaffAssignments';
+import SocialMediaCalendar from '@/components/SocialMediaCalendar';
+import LineupManager from '@/components/LineupManager';
 
 export default function Home() {
   return (
@@ -16,6 +20,26 @@ export default function Home() {
 
         <AddTaskForm />
         <TaskList />
+
+        {/* Staff assignments */}
+        <div className="mt-8">
+          <StaffAssignments />
+        </div>
+
+        {/* Personal tasks */}
+        <div className="mt-8">
+          <PersonalTasks />
+        </div>
+
+        {/* Social media calendar */}
+        <div className="mt-8">
+          <SocialMediaCalendar />
+        </div>
+
+        {/* Lineup manager */}
+        <div className="mt-8 mb-16">
+          <LineupManager />
+        </div>
       </div>
     </div>
   );
