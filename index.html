@@ -201,15 +201,27 @@
 
                         <!-- Add Post Form -->
                         <div class="mb-4 bg-gray-50 p-4 rounded">
-                            <h4 class="font-medium mb-2">Add Post</h4>
-                            <textarea id="socialCaption" placeholder="Post caption..."
-                                class="w-full border rounded px-3 py-2 mb-2" rows="2"></textarea>
-                            <input type="file" id="socialFile" accept="image/*,video/*"
-                                class="border rounded px-2 py-1 w-full mb-2">
-                            <div id="filePreview" class="mb-2"></div>
+                            <h4 class="font-medium mb-3">Add Post</h4>
+
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Caption</label>
+                                <textarea id="socialCaption" placeholder="Enter your post caption here..."
+                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    rows="3"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Media (Image/Video)</label>
+                                <input type="file" id="socialFile" accept="image/*,video/*"
+                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                <p class="text-xs text-gray-500 mt-1">Max: 50MB for videos, 10MB for images</p>
+                            </div>
+
+                            <div id="filePreview" class="mb-3"></div>
+
                             <button type="button" onclick="addSocialPost()"
-                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                                Add Post
+                                class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium">
+                                ➕ Add Post
                             </button>
                         </div>
 
@@ -1110,7 +1122,7 @@
                         reader.onerror = reject;
                         reader.readAsDataURL(file);
                     });
-                    
+
                     // Determine file type
                     if (file.type.startsWith('video')) {
                         type = 'video';
