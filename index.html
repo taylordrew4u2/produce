@@ -4,81 +4,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Producer Tasks</title>
+    <title>Producer Tasks - Instant Collaboration</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
         }
 
-        .status-indicator {
+        .peer-status {
             position: fixed;
             top: 10px;
             right: 10px;
-            padding: 8px 12px;
+            padding: 8px 16px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
             z-index: 1000;
-        }
-
-        .status-online {
             background: #10b981;
             color: white;
         }
 
-        .status-offline {
-            background: #ef4444;
+        .peer-count {
+            background: #3b82f6;
             color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
         }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen py-8 px-4">
-    <!-- Status Indicator -->
-    <div id="statusIndicator" class="status-indicator status-offline">⚠️ Offline Mode</div>
+    <div class="peer-status">
+        🟢 Connected
+        <span class="peer-count" id="peerCount">0 others</span>
+    </div>
 
-    <!-- Main App Content -->
-    <div id="appContent" class="max-w-4xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         <header class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">🎤 Producer Tasks</h1>
-            <p class="text-gray-600">Real-time collaborative task management</p>
-            <p class="text-sm text-gray-500 mt-1">Share this URL with your team - changes sync in real-time!</p>
+            <p class="text-gray-600">Instant Real-Time Collaboration</p>
+            <p class="text-sm text-gray-500 mt-2">Share this URL with your team - changes sync instantly!</p>
+            <button type="button" onclick="copyShareLink()"
+                class="mt-2 text-sm bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                📋 Copy Share Link
+            </button>
         </header>
 
-        <!-- Add Task Form -->
+        <!-- Add Task -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Add New Task</h2>
             <form id="taskForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                    <input type="text" id="title" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter task title">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
-                    <input type="text" id="assignee" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter assignee name">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select id="category"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="Venue">Venue</option>
-                        <option value="Comedians">Comedians</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Equipment">Equipment</option>
-                        <option value="Misc">Misc</option>
-                    </select>
-                </div>
+                <input type="text" id="title" placeholder="Task title" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="assignee" placeholder="Assignee" required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="category"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Venue">Venue</option>
+                    <option value="Comedians">Comedians</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Equipment">Equipment</option>
+                    <option value="Misc">Misc</option>
+                </select>
                 <button type="submit"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
                     Add Task
@@ -86,378 +76,709 @@
             </form>
         </div>
 
-        <!-- Task List -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Tasks</h2>
-            <div id="taskList" class="space-y-2"></div>
-            <p id="emptyState" class="text-gray-500 text-center py-4 hidden">No tasks yet. Add one above!</p>
-        </div>
-
         <!-- Personal Tasks -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Personal Tasks</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Taylor's Tasks -->
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Taylor</h3>
                     <div class="flex gap-2 mb-3">
-                        <input type="text" id="taylorInput" placeholder="Add task for Taylor"
+                        <input type="text" id="taylorInput" placeholder="Add task"
                             class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Taylor')"
-                            class="bg-black text-white px-3 py-1 rounded">Add</button>
+                        <button type="button" onclick="addPersonalTask('Taylor')"
+                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
                     </div>
                     <div id="taylorTasks" class="space-y-2"></div>
                 </div>
-                <!-- Jay's Tasks -->
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Jay</h3>
                     <div class="flex gap-2 mb-3">
-                        <input type="text" id="jayInput" placeholder="Add task for Jay"
-                            class="flex-1 border rounded px-2 py-1">
-                        <button onclick="addPersonalTask('Jay')"
-                            class="bg-black text-white px-3 py-1 rounded">Add</button>
+                        <input type="text" id="jayInput" placeholder="Add task" class="flex-1 border rounded px-2 py-1">
+                        <button type="button" onclick="addPersonalTask('Jay')"
+                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
                     </div>
                     <div id="jayTasks" class="space-y-2"></div>
                 </div>
             </div>
         </div>
 
+        <!-- Tasks List -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Tasks</h2>
+            <div id="tasksList"></div>
+        </div>
+
         <!-- Staff Assignments -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Staff Assignments</h2>
             <div class="space-y-3">
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">DJ</label>
-                    <input type="text" id="staff-dj" placeholder="Enter DJ name" class="w-full border rounded px-2 py-1"
-                        onblur="saveStaff('dj', this.value)">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">DJ</label>
+                        <input type="text" id="staff-dj" placeholder="Enter DJ name"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button type="button" onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Door</label>
-                    <input type="text" id="staff-door" placeholder="Enter door person"
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff('door', this.value)">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">Door</label>
+                        <input type="text" id="staff-door" placeholder="Enter door person"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button type="button" onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
-                    <input type="text" id="staff-av" placeholder="Enter AV tech" class="w-full border rounded px-2 py-1"
-                        onblur="saveStaff('av', this.value)">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
+                        <input type="text" id="staff-av" placeholder="Enter AV tech"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button type="button" onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Photographer</label>
-                    <input type="text" id="staff-photo" placeholder="Enter photographer"
-                        class="w-full border rounded px-2 py-1" onblur="saveStaff('photo', this.value)">
+                <div class="flex gap-2 items-end">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-600 mb-1">Photographer</label>
+                        <input type="text" id="staff-photo" placeholder="Enter photographer"
+                            class="w-full border rounded px-2 py-1">
+                    </div>
+                    <button type="button" onclick="saveStaff(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                        💾 Save
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Social Media Calendar -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-            <h2 class="text-xl font-semibold mb-4">Social Media Calendar</h2>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Select Date</label>
-                <input type="date" id="socialDate" class="border rounded px-2 py-1" onchange="loadSocialPosts()">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold">Social Media Calendar</h2>
+                <button onclick="loadScheduleHelper()"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                    📅 Load Instagram Schedule
+                </button>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Post Caption</label>
-                <textarea id="socialCaption" placeholder="Enter post caption" class="w-full border rounded px-2 py-1"
-                    rows="3"></textarea>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Calendar Section (Left) -->
+                <div class="lg:col-span-2">
+                    <!-- Month Navigation -->
+                    <div class="flex items-center justify-between mb-4">
+                        <button type="button" onclick="changeMonth(-1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                            Prev</button>
+                        <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
+                        <button type="button" onclick="changeMonth(1)" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
+                            →</button>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div class="grid grid-cols-7 gap-1 mb-4">
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sun</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Mon</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Tue</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Wed</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Thu</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Fri</div>
+                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sat</div>
+                        <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
+                    </div>
+
+                    <!-- Selected Day Details (hidden until day is clicked) -->
+                    <div id="dayDetails" class="hidden border-t pt-4">
+                        <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
+
+                        <!-- Add Post Form -->
+                        <div class="mb-4 bg-gray-50 p-4 rounded">
+                            <h4 class="font-medium mb-2">Add Post</h4>
+                            <textarea id="socialCaption" placeholder="Post caption..."
+                                class="w-full border rounded px-3 py-2 mb-2" rows="2"></textarea>
+                            <input type="file" id="socialFile" accept="image/*,video/*"
+                                class="border rounded px-2 py-1 w-full mb-2">
+                            <div id="filePreview" class="mb-2"></div>
+                            <button type="button" onclick="addSocialPost()"
+                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                                Add Post
+                            </button>
+                        </div>
+
+                        <!-- Posts for Selected Day -->
+                        <div id="socialPosts" class="space-y-3"></div>
+                    </div>
+                </div>
+
+                <!-- Operations Notes Sidebar (Right) -->
+                <div class="lg:col-span-1">
+                    <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">📋 Daily Operations</h3>
+
+                        <div class="text-sm space-y-3">
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">⏰ Posting Schedule</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• 12:00 PM ET - Main feed post</li>
+                                    <li>• 8:00 PM ET - Evening post</li>
+                                    <li>• Stories throughout day</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">📸 Content Rules</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Grid: 1080x1350px (4:5)</li>
+                                    <li>• Stories: 1080x1920px (9:16)</li>
+                                    <li>• Reels: 1080x1920px, 15-90s</li>
+                                    <li>• Carousel: 2-10 slides</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">✍️ Caption Guidelines</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Max 2,200 characters</li>
+                                    <li>• Hook in first 125 chars</li>
+                                    <li>• 3-5 emojis max</li>
+                                    <li>• 5-10 hashtags</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">🎯 Story Tactics</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Reshare all feed posts</li>
+                                    <li>• Countdown stickers daily</li>
+                                    <li>• Poll/quiz engagement</li>
+                                    <li>• Link in bio reminders</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">💰 Boost Settings</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>• Announce post: $50</li>
+                                    <li>• Lineup reveal: $75</li>
+                                    <li>• Final push: $100</li>
+                                    <li>• Target: Local 25mi, 21-45</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <p class="font-medium text-gray-700 mb-1">📌 Pinned Order</p>
+                                <ul class="text-gray-600 space-y-1 ml-4">
+                                    <li>1. Full lineup poster</li>
+                                    <li>2. Ticket link post</li>
+                                    <li>3. Show details/venue</li>
+                                </ul>
+                            </div>
+
+                            <div class="pt-2 border-t">
+                                <p class="text-xs text-gray-500 italic">
+                                    💡 Track engagement rates, save top performers, A/B test captions
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm text-gray-600 mb-1">Image/Video</label>
-                <input type="file" id="socialFile" accept="image/*,video/*" class="border rounded px-2 py-1 w-full">
-                <div id="filePreview" class="mt-2"></div>
-            </div>
-            <button onclick="addSocialPost()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Add Post
-            </button>
-            <div id="socialPosts" class="mt-4 space-y-3"></div>
         </div>
 
         <!-- Lineup -->
-        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4">Comedy Show Lineup</h2>
             <div class="space-y-2">
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Headliner</span>
                     <input type="text" id="lineup1" placeholder="Enter headliner"
                         class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 2</span>
-                    <input type="text" id="lineup2" placeholder="Enter comic 2" class="flex-1 border rounded px-2 py-1">
+                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 3</span>
-                    <input type="text" id="lineup3" placeholder="Enter comic 3" class="flex-1 border rounded px-2 py-1">
+                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 4</span>
-                    <input type="text" id="lineup4" placeholder="Enter comic 4" class="flex-1 border rounded px-2 py-1">
+                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
                 <div class="flex gap-2 items-center">
                     <span class="w-28 text-sm text-gray-600">Comic 5</span>
-                    <input type="text" id="lineup5" placeholder="Enter comic 5" class="flex-1 border rounded px-2 py-1">
+                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Firebase Configuration - ADD YOUR FIREBASE CONFIG HERE
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+        // Shared state
+        let data = {
+            tasks: [],
+            personalTasks: [],
+            lineup: {},
+            staff: {},
+            socialPosts: []
         };
 
-        // Initialize Firebase
-        let db, storage, isFirebaseReady = false;
-
-        try {
-            if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                storage = firebase.storage();
-                isFirebaseReady = true;
-                updateStatus(true);
-            } else {
-                console.warn('Firebase not configured - using localStorage only');
-                updateStatus(false);
-            }
-        } catch (e) {
-            console.error('Firebase initialization failed:', e);
-            updateStatus(false);
-        }
-
-        function updateStatus(online) {
-            const indicator = document.getElementById('statusIndicator');
-            if (online) {
-                indicator.textContent = '🟢 Real-Time Sync Active';
-                indicator.className = 'status-indicator status-online';
-            } else {
-                indicator.textContent = '⚠️ Offline Mode (Local Only)';
-                indicator.className = 'status-indicator status-offline';
-            }
-        }
-
-        // LocalStorage helpers
-        function getLS(key, fallback) {
+        // Load from localStorage
+        function loadLocal() {
             try {
-                const data = localStorage.getItem(key);
-                return data ? JSON.parse(data) : fallback;
-            } catch {
-                return fallback;
-            }
-        }
-
-        function setLS(key, value) {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
+                const saved = localStorage.getItem('producerTasks');
+                if (saved) {
+                    const loaded = JSON.parse(saved);
+                    // Merge with defaults to ensure all properties exist
+                    data = {
+                        tasks: loaded.tasks || [],
+                        personalTasks: loaded.personalTasks || [],
+                        lineup: loaded.lineup || {},
+                        staff: loaded.staff || {},
+                        socialPosts: loaded.socialPosts || []
+                    };
+                }
             } catch (e) {
-                console.error('Failed to save to localStorage:', e);
+                console.error('Error loading data:', e);
             }
         }
 
-        function genId() {
-            return Date.now().toString(36) + Math.random().toString(36).slice(2);
+        // Save to localStorage
+        function saveLocal() {
+            localStorage.setItem('producerTasks', JSON.stringify(data));
         }
 
-        // Main tasks
-        let tasks = getLS('tasks', []);
+        // PeerJS setup - using public server
+        const peer = new Peer({
+            host: 'peerjs-server.herokuapp.com',
+            secure: true,
+            port: 443,
+            path: '/'
+        });
 
+        let connections = [];
+        const roomId = 'producer-tasks-room'; // Fixed room for all users
+
+        peer.on('open', (id) => {
+            console.log('My peer ID:', id);
+            // Try to connect to the room
+            connectToRoom();
+        });
+
+        // Connect to other peers in the room
+        function connectToRoom() {
+            // Store our ID in a simple backend-less way using URL hash
+            const hash = window.location.hash.slice(1);
+            if (!hash) {
+                // First user - create room
+                window.location.hash = peer.id;
+            } else if (hash !== peer.id) {
+                // Join existing room
+                const conn = peer.connect(hash);
+                setupConnection(conn);
+            }
+        }
+
+        // Handle incoming connections
+        peer.on('connection', (conn) => {
+            setupConnection(conn);
+        });
+
+        function setupConnection(conn) {
+            conn.on('open', () => {
+                connections.push(conn);
+                updatePeerCount();
+                // Send current data to new peer
+                conn.send({ type: 'sync', data });
+            });
+
+            conn.on('data', (received) => {
+                if (received.type === 'sync') {
+                    // Merge data (newer wins)
+                    data = received.data;
+                    saveLocal();
+                    render();
+                } else if (received.type === 'update') {
+                    // Apply update
+                    data = received.data;
+                    saveLocal();
+                    render();
+                }
+                // Relay to other peers
+                connections.forEach(c => {
+                    if (c !== conn && c.open) {
+                        c.send(received);
+                    }
+                });
+            });
+
+            conn.on('close', () => {
+                connections = connections.filter(c => c !== conn);
+                updatePeerCount();
+            });
+        }
+
+        function broadcast(update) {
+            const msg = { type: 'update', data };
+            connections.forEach(conn => {
+                if (conn.open) {
+                    conn.send(msg);
+                }
+            });
+        }
+
+        function updatePeerCount() {
+            const count = connections.length;
+            document.getElementById('peerCount').textContent = count === 0 ? 'Solo' : `${count} other${count > 1 ? 's' : ''}`;
+        }
+
+        // Tasks
         function renderTasks() {
-            const taskList = document.getElementById('taskList');
-            const emptyState = document.getElementById('emptyState');
-
-            if (tasks.length === 0) {
-                taskList.innerHTML = '';
-                emptyState.classList.remove('hidden');
+            const container = document.getElementById('tasksList');
+            if (data.tasks.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">No tasks yet</p>';
                 return;
             }
 
-            emptyState.classList.add('hidden');
-
-            // Group by category
             const grouped = {};
-            tasks.forEach(task => {
-                const cat = task.category || 'Misc';
+            data.tasks.forEach(t => {
+                const cat = t.category || 'Misc';
                 if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(task);
+                grouped[cat].push(t);
             });
 
             let html = '';
-            Object.keys(grouped).sort().forEach(category => {
-                html += `<div class="mb-4">
-                    <h3 class="font-semibold text-gray-700 mb-2">${category}</h3>
-                    ${grouped[category].map(task => `
-                        <div class="border-b py-2 flex justify-between items-center">
-                            <div class="flex-1">
-                                <p class="${task.completed ? 'line-through text-gray-500' : ''}">${task.title}</p>
-                                <small class="text-gray-600">${task.assignee}</small>
-                            </div>
-                            <div class="flex gap-2 items-center">
-                                <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                                    onchange="toggleTask('${task.id}')" 
-                                    class="w-5 h-5 cursor-pointer">
-                                <button onclick="deleteTask('${task.id}')" 
-                                    class="text-red-600 hover:text-red-800 text-sm">Delete</button>
-                            </div>
+            Object.keys(grouped).sort().forEach(cat => {
+                html += `<div class="mb-4"><h3 class="font-semibold text-gray-700 mb-2">${cat}</h3>`;
+                grouped[cat].forEach(t => {
+                    html += `<div class="border-b py-2 flex justify-between items-center">
+                        <div class="flex-1">
+                            <p class="${t.completed ? 'line-through text-gray-500' : ''}">${t.title}</p>
+                            <small class="text-gray-600">${t.assignee}</small>
                         </div>
-                    `).join('')}
-                </div>`;
+                        <div class="flex gap-2">
+                            <input type="checkbox" ${t.completed ? 'checked' : ''} 
+                                onclick="toggleTask('${t.id}')" class="w-5 h-5 cursor-pointer">
+                            <button onclick="deleteTask('${t.id}')" class="text-red-600 text-sm hover:text-red-800">Delete</button>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
             });
-
-            taskList.innerHTML = html;
-        }
-
-        function toggleTask(id) {
-            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-            setLS('tasks', tasks);
-            renderTasks();
-        }
-
-        function deleteTask(id) {
-            if (confirm('Delete this task?')) {
-                tasks = tasks.filter(t => t.id !== id);
-                setLS('tasks', tasks);
-                renderTasks();
-            }
+            container.innerHTML = html;
         }
 
         document.getElementById('taskForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const task = {
-                id: genId(),
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
                 title: document.getElementById('title').value,
                 assignee: document.getElementById('assignee').value,
                 category: document.getElementById('category').value,
-                completed: false,
-                createdAt: Date.now()
+                completed: false
             };
-            tasks.push(task);
-            setLS('tasks', tasks);
+            data.tasks.push(task);
+            saveLocal();
+            broadcast();
             renderTasks();
             e.target.reset();
         });
 
-        // Personal tasks
-        let personalTasks = getLS('personalTasks', []);
+        window.toggleTask = (id) => {
+            data.tasks = data.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            saveLocal();
+            broadcast();
+            renderTasks();
+        };
 
+        window.deleteTask = (id) => {
+            if (!confirm('Delete this task?')) return;
+            data.tasks = data.tasks.filter(t => t.id !== id);
+            saveLocal();
+            broadcast();
+            renderTasks();
+        };
+
+        // Personal Tasks
         function renderPersonalTasks() {
             ['Taylor', 'Jay'].forEach(owner => {
                 const container = document.getElementById(`${owner.toLowerCase()}Tasks`);
-                const ownerTasks = personalTasks.filter(t => t.owner === owner);
+                const tasks = data.personalTasks.filter(t => t.owner === owner);
 
-                if (ownerTasks.length === 0) {
-                    container.innerHTML = '<p class="text-sm text-gray-500">No tasks yet.</p>';
+                if (tasks.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-gray-500">No tasks yet</p>';
                     return;
                 }
 
-                container.innerHTML = ownerTasks.map(task => `
+                container.innerHTML = tasks.map(t => `
                     <div class="flex items-center justify-between">
-                        <label class="flex items-center gap-2 flex-1">
-                            <input type="checkbox" ${task.done ? 'checked' : ''} 
-                                onchange="togglePersonalTask('${task.id}')"
-                                class="cursor-pointer">
-                            <span class="${task.done ? 'line-through text-gray-500' : ''}">${task.title}</span>
+                        <label class="flex items-center gap-2 flex-1 cursor-pointer">
+                            <input type="checkbox" ${t.done ? 'checked' : ''} 
+                                onchange="togglePersonalTask('${t.id}')" class="cursor-pointer">
+                            <span class="${t.done ? 'line-through text-gray-500' : ''}">${t.title}</span>
                         </label>
-                        <button onclick="deletePersonalTask('${task.id}')" 
-                            class="text-sm text-red-600">Delete</button>
+                        <button onclick="deletePersonalTask('${t.id}')" class="text-sm text-red-600 hover:text-red-800">Delete</button>
                     </div>
                 `).join('');
             });
         }
 
-        function addPersonalTask(owner) {
+        window.addPersonalTask = (owner) => {
             const input = document.getElementById(`${owner.toLowerCase()}Input`);
             const title = input.value.trim();
             if (!title) return;
 
-            personalTasks.push({
-                id: genId(),
+            data.personalTasks.push({
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
                 owner,
                 title,
-                done: false,
-                createdAt: Date.now()
+                done: false
             });
-            setLS('personalTasks', personalTasks);
+            saveLocal();
+            broadcast();
             renderPersonalTasks();
             input.value = '';
+        };
+
+        window.togglePersonalTask = (id) => {
+            data.personalTasks = data.personalTasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            saveLocal();
+            broadcast();
+            renderPersonalTasks();
+        };
+
+        window.deletePersonalTask = (id) => {
+            data.personalTasks = data.personalTasks.filter(t => t.id !== id);
+            saveLocal();
+            broadcast();
+            renderPersonalTasks();
+        };
+
+        // Lineup
+        function loadLineup() {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`lineup${i}`).value = data.lineup[i] || '';
+            }
         }
 
-        function togglePersonalTask(id) {
-            personalTasks = personalTasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
-            setLS('personalTasks', personalTasks);
-            renderPersonalTasks();
-        }
+        window.saveLineup = (event) => {
+            console.log('saveLineup called');
+            for (let i = 1; i <= 5; i++) {
+                data.lineup[i] = document.getElementById(`lineup${i}`).value;
+            }
+            console.log('Lineup data saved:', data.lineup);
+            saveLocal();
+            broadcast();
 
-        function deletePersonalTask(id) {
-            personalTasks = personalTasks.filter(t => t.id !== id);
-            setLS('personalTasks', personalTasks);
-            renderPersonalTasks();
-        }
+            // Show brief confirmation
+            if (event && event.target) {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Saved!';
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                }, 1500);
+            }
+        };
 
         // Staff Assignments
-        let staff = getLS('staffAssignments', {});
-
         function loadStaff() {
             ['dj', 'door', 'av', 'photo'].forEach(role => {
                 const input = document.getElementById(`staff-${role}`);
                 if (input) {
-                    input.value = staff[role] || '';
+                    input.value = data.staff[role] || '';
                 }
             });
         }
 
-        function saveStaff(role, value) {
-            staff[role] = value;
-            setLS('staffAssignments', staff);
-        }
+        window.saveStaff = (event) => {
+            console.log('saveStaff called');
+            ['dj', 'door', 'av', 'photo'].forEach(role => {
+                data.staff[role] = document.getElementById(`staff-${role}`).value;
+            });
+            console.log('Staff data saved:', data.staff);
+            saveLocal();
+            broadcast();
+
+            // Show brief confirmation
+            if (event && event.target) {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✓ Saved!';
+                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                    btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                }, 1500);
+            }
+        };
 
         // Social Media Calendar
-        let socialPosts = getLS('socialMediaPosts', []);
+        let currentMonth = new Date();
+        let selectedDate = null;
 
         function getTodayDate() {
-            const today = new Date();
-            return today.toISOString().split('T')[0];
+            return new Date().toISOString().split('T')[0];
         }
 
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            // Update month title
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('calendarMonth').textContent = `${monthNames[month]} ${year}`;
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Count posts per day
+            const postCounts = {};
+            data.socialPosts.forEach(post => {
+                postCounts[post.date] = (postCounts[post.date] || 0) + 1;
+            });
+
+            // Build calendar grid
+            const calendarDays = document.getElementById('calendarDays');
+            let html = '';
+
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="h-16"></div>';
+            }
+
+            // Days of the month
+            const today = getTodayDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = dateStr === today;
+                const isSelected = dateStr === selectedDate;
+                const postCount = postCounts[dateStr] || 0;
+
+                html += `
+                    <div onclick="selectDay('${dateStr}')" 
+                        class="h-16 border rounded p-1 cursor-pointer hover:bg-blue-50 ${isSelected ? 'bg-blue-100 border-blue-500' : 'border-gray-200'} ${isToday ? 'border-blue-300 font-bold' : ''} flex flex-col">
+                        <div class="text-sm ${isToday ? 'text-blue-600' : ''}">${day}</div>
+                        ${postCount > 0 ? `<div class="text-xs text-blue-600 mt-auto">📝 ${postCount}</div>` : ''}
+                    </div>
+                `;
+            }
+
+            calendarDays.innerHTML = html;
+        }
+
+        window.changeMonth = (delta) => {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderCalendar();
+        };
+
+        window.selectDay = (dateStr) => {
+            selectedDate = dateStr;
+            renderCalendar();
+
+            // Show day details
+            const dayDetails = document.getElementById('dayDetails');
+            dayDetails.classList.remove('hidden');
+
+            // Format date nicely
+            const date = new Date(dateStr + 'T00:00:00');
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selectedDayTitle').textContent = date.toLocaleDateString('en-US', options);
+
+            // Load posts for this day
+            loadSocialPosts();
+        };
+
         function loadSocialPosts() {
-            const dateInput = document.getElementById('socialDate');
-            const selectedDate = dateInput.value || getTodayDate();
-            const posts = socialPosts.filter(p => p.date === selectedDate);
+            if (!selectedDate) return;
+
+            const posts = data.socialPosts.filter(p => p.date === selectedDate);
             const container = document.getElementById('socialPosts');
 
             if (posts.length === 0) {
-                container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this date.</p>';
+                container.innerHTML = '<p class="text-sm text-gray-500">No posts scheduled for this day yet.</p>';
                 return;
             }
 
             container.innerHTML = posts.map(post => `
-                <div class="border rounded p-3 flex gap-3">
-                    ${post.url ? `
-                        ${post.type === 'video'
+                <div class="border rounded p-3 bg-white" id="post-${post.id}">
+                    <div class="flex gap-3">
+                        ${post.url ? `
+                            ${post.type === 'video'
                         ? `<video src="${post.url}" class="w-32 h-32 object-cover rounded" controls></video>`
                         : `<img src="${post.url}" class="w-32 h-32 object-cover rounded">`
                     }
-                    ` : ''}
-                    <div class="flex-1">
-                        <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
-                        <button onclick="deleteSocialPost('${post.id}')" 
-                            class="text-sm text-red-600">Delete</button>
+                        ` : ''}
+                        <div class="flex-1">
+                            <div id="view-${post.id}">
+                                <p class="text-sm mb-2">${post.caption || '<span class="text-gray-500">(no caption)</span>'}</p>
+                                <div class="flex gap-2">
+                                    <button onclick="editSocialPost('${post.id}')" 
+                                        class="text-sm text-blue-600 hover:text-blue-800">✏️ Edit</button>
+                                    <button onclick="deleteSocialPost('${post.id}')" 
+                                        class="text-sm text-red-600 hover:text-red-800">🗑️ Delete</button>
+                                </div>
+                            </div>
+                            <div id="edit-${post.id}" class="hidden">
+                                <textarea id="caption-${post.id}" class="w-full border rounded px-2 py-1 text-sm mb-2" rows="3">${post.caption || ''}</textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="saveSocialPost('${post.id}')" 
+                                        class="text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">💾 Save</button>
+                                    <button onclick="cancelEditSocialPost('${post.id}')" 
+                                        class="text-sm bg-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-400">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function addSocialPost() {
-            const dateInput = document.getElementById('socialDate');
+        window.addSocialPost = async () => {
+            if (!selectedDate) {
+                alert('Please select a day on the calendar first');
+                return;
+            }
+
             const captionInput = document.getElementById('socialCaption');
             const fileInput = document.getElementById('socialFile');
 
-            const date = dateInput.value || getTodayDate();
+            const date = selectedDate;
             const caption = captionInput.value.trim();
             const file = fileInput.files[0];
 
@@ -470,7 +791,6 @@
             let type = 'text';
 
             if (file) {
-                // Convert to base64 data URL for localStorage
                 const reader = new FileReader();
                 url = await new Promise((resolve) => {
                     reader.onload = (e) => resolve(e.target.result);
@@ -480,7 +800,7 @@
             }
 
             const post = {
-                id: genId(),
+                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
                 date,
                 caption,
                 url,
@@ -488,21 +808,47 @@
                 createdAt: Date.now()
             };
 
-            socialPosts.push(post);
-            setLS('socialMediaPosts', socialPosts);
+            data.socialPosts.push(post);
+            saveLocal();
+            broadcast();
 
             captionInput.value = '';
             fileInput.value = '';
+            document.getElementById('filePreview').innerHTML = '';
+            renderCalendar(); // Update calendar to show new post count
             loadSocialPosts();
-        }
+        };
 
-        function deleteSocialPost(id) {
-            if (confirm('Delete this post?')) {
-                socialPosts = socialPosts.filter(p => p.id !== id);
-                setLS('socialMediaPosts', socialPosts);
+        window.deleteSocialPost = (id) => {
+            if (!confirm('Delete this post?')) return;
+            data.socialPosts = data.socialPosts.filter(p => p.id !== id);
+            saveLocal();
+            broadcast();
+            renderCalendar(); // Update calendar to show new post count
+            loadSocialPosts();
+        };
+
+        window.editSocialPost = (id) => {
+            document.getElementById(`view-${id}`).classList.add('hidden');
+            document.getElementById(`edit-${id}`).classList.remove('hidden');
+        };
+
+        window.cancelEditSocialPost = (id) => {
+            document.getElementById(`edit-${id}`).classList.add('hidden');
+            document.getElementById(`view-${id}`).classList.remove('hidden');
+        };
+
+        window.saveSocialPost = (id) => {
+            const newCaption = document.getElementById(`caption-${id}`).value.trim();
+            const post = data.socialPosts.find(p => p.id === id);
+            if (post) {
+                post.caption = newCaption;
+                saveLocal();
+                broadcast();
                 loadSocialPosts();
+                renderCalendar();
             }
-        }
+        };
 
         // File preview
         document.getElementById('socialFile')?.addEventListener('change', (e) => {
@@ -522,36 +868,74 @@
                 : `<img src="${url}" class="max-h-40 rounded border">`;
         });
 
-        // Lineup
-        let lineup = getLS('lineup', {});
+        // Copy share link
+        window.copyShareLink = () => {
+            const url = window.location.href.split('#')[0] + '#' + peer.id;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Share link copied! Send this to your team.');
+            });
+        };
 
-        function loadLineup() {
-            for (let i = 1; i <= 5; i++) {
-                const input = document.getElementById(`lineup${i}`);
-                input.value = lineup[i] || '';
-                input.addEventListener('blur', () => saveLineup(i, input.value));
-            }
-        }
-
-        function saveLineup(position, value) {
-            lineup[position] = value;
-            setLS('lineup', lineup);
-        }
-
-        // Initialize app after authentication
-        function initializeApp() {
+        // Render everything
+        function render() {
             renderTasks();
             renderPersonalTasks();
-            loadStaff();
             loadLineup();
-
-            // Set today's date for social media
-            document.getElementById('socialDate').value = getTodayDate();
-            loadSocialPosts();
+            loadStaff();
+            renderCalendar();
         }
 
-        // Check auth on page load
-        checkAuth();
+        // Pre-populate Instagram Schedule
+        function loadInstagramSchedule() {
+            // Only add if social posts are empty (first time setup)
+            if (data.socialPosts.length > 0) return;
+
+            const schedule = [
+                { date: '2025-10-16', caption: '📅 TEASER SAVE-THE-DATE\n10-15s reel (add ticket link if live)' },
+                { date: '2025-10-20', caption: '🎉 OFFICIAL ANNOUNCE + ON-SALE\nCarousel: show art, date/time/venue, map slide' },
+                { date: '2025-10-24', caption: '✨ "WHAT TO EXPECT" CAROUSEL\nVibe, venue, clips' },
+                { date: '2025-10-27', caption: '🎤 REVEAL #1\nFeed post (photo or 9-15s reel)\nCaption: unique credit + hook + CTA\nStory reshare within 2 hours' },
+                { date: '2025-10-29', caption: '🎤 REVEAL #2\nSame format as #1\nAdd Story poll: "Coming?"' },
+                { date: '2025-10-31', caption: '🎤 REVEAL #3\nPin to profile\nAdd Story countdown sticker\n⏰ Early-bird ends 23:59 ET' },
+                { date: '2025-11-01', caption: '💰 PRICE INCREASE\nEarly-bird pricing ends' },
+                { date: '2025-11-03', caption: '🎤 REVEAL #4\nCarousel: 1 promo + 1 clip + 1 CTA slide' },
+                { date: '2025-11-06', caption: '⭐ HEADLINER REVEAL\nReel first, boosted 72h\nAdd "Limited seating" line' },
+                { date: '2025-11-07', caption: '📋 FULL LINEUP POSTER\nPin as #1\nCaption: all handles + ticket link' },
+                { date: '2025-11-09', caption: '🎬 HEADLINER CLIP\n6-12s vertical, punchline in first 2s' },
+                { date: '2025-11-10', caption: '🎥 QUICK TO-CAMERA REEL\n≤15s: premise + CTA' },
+                { date: '2025-11-12', caption: '⚠️ "LAST-CHANCE TIER" POST\nPrice bump after 23:59 ET' },
+                { date: '2025-11-13', caption: '💬 FAN/SOCIAL PROOF CAROUSEL\nCrowd shots, quotes, pull-quotes\nFinal-week price bump' },
+                { date: '2025-11-14', caption: '📍 FINAL PUSH: LOGISTICS\nDoors, start time, nearest train, dress vibe' },
+                { date: '2025-11-15', caption: '🎊 SHOW DAY!\n\nMorning: Day-of reel\nT-6h: Story Q&A\nT-2h: "Doors in 2h" Story\nT-30m: "Show starts in 30" Story\nPost-show: 3-slide thank-you + next date teaser' }
+            ];
+
+            schedule.forEach((item, index) => {
+                data.socialPosts.push({
+                    id: `schedule-${index}`,
+                    date: item.date,
+                    caption: item.caption,
+                    url: '',
+                    type: 'text',
+                    createdAt: Date.now() + index
+                });
+            });
+
+            saveLocal();
+        }
+
+        // Add button to load schedule
+        window.loadScheduleHelper = () => {
+            if (confirm('Load Instagram Rollout Schedule for Nov 15, 2025 show?\n\nThis will add 16 scheduled posts to your calendar.')) {
+                data.socialPosts = []; // Clear existing
+                loadInstagramSchedule();
+                renderCalendar();
+                alert('✅ Schedule loaded! Click on the dates to see details.');
+            }
+        };
+
+        // Initialize
+        loadLocal();
+        render();
     </script>
 </body>
 
