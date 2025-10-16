@@ -2,94 +2,175 @@
 
 ## Architecture Overview
 
-This is a **Next.js 14 (App Router)** task management app for comedy show producers with a **dual-mode data layer**:
-- **Firebase mode**: Real-time sync via Firestore + Firebase Storage when `.env.local` credentials are configured
-- **Offline mode**: Falls back to localStorage automatically when Firebase keys are missing
+This is a **single-file vanilla JavaScript application** deployed to GitHub Pages with **zero configuration needed**.
 
-### Critical Pattern: Dual-Mode Data Layer
+**Live URL:** https://taylordrew4u2.github.io/produce/
 
-Every component that stores data implements **both Firebase and localStorage** branches using this pattern:
+### Core Technology Stack
 
-```typescript
-// In lib/firebase.ts: export isFirebaseReady boolean
-// In components: check isFirebaseReady to branch logic
+- **Vanilla JavaScript** - No frameworks, no build process
+- **PeerJS** - WebRTC peer-to-peer real-time collaboration
+- **localStorage** - Offline data persistence
+- **Tailwind CSS (CDN)** - Utility-first styling
+- **GitHub Pages** - Free static hosting with automatic deployment
 
-useEffect(() => {
-  if (!isFirebaseReady) {
-    setData(lsGet<T[]>('key', []))
-    return
-  }
-  const unsub = onSnapshot(collection(db, 'collectionName'), (snap) => {
-    setData(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+### P2P Sync Pattern
+
+The app uses **WebRTC via PeerJS** for zero-config real-time collaboration:
+
+```javascript
+// Connect to PeerJS cloud server with room code
+const peer = new Peer({ /* auto-generated ID */ })
+const roomId = localStorage.getItem('roomId') || prompt('Room code?')
+
+// Broadcast changes to all peers in room
+function broadcast(type, data) {
+  connections.forEach(conn => {
+    if (conn.open) conn.send({ type, data })
   })
-  return () => unsub()
-}, [])
+}
+
+// On data change, update localStorage + broadcast
+function saveTasks(tasks) {
+  localStorage.setItem('tasks', JSON.stringify(tasks))
+  broadcast('tasks', tasks)
+}
 ```
 
-See `components/PersonalTasks.tsx`, `components/SocialMediaCalendar.tsx`, and `components/LineupManager.tsx` for reference implementations.
+**Key insight:** NO server dependency - works entirely in browser with localStorage + WebRTC relay.
 
-## Key Files & Responsibilities
+## Key Files
 
-- **`lib/firebase.ts`**: Exports `db`, `storage`, and `isFirebaseReady` flag. Gracefully handles missing env vars.
-- **`lib/localStore.ts`**: Typed localStorage helpers (`lsGet`, `lsSet`, `lsRemove`) + `genId()` for offline IDs.
-- **`types/task.ts`**: Core `Task` interface and `NewTask` type.
-- **`components/`**: All client components (`'use client'` directive required) with dual-mode CRUD logic.
+### Main Application
+- **`index.html`**: Single-file application (942 lines) containing all HTML, CSS, and JavaScript
+  - PeerJS WebRTC integration for P2P sync
+  - localStorage for offline persistence
+  - Instagram schedule helper (pre-populates 11 posts)
+  - Operations notes sidebar
+  - Task management with categories
+  - Show lineup (positions 1-5)
+  - Personal task lists (Taylor/Jay)
+  - Social media calendar
 
-## Data Collections
+### Scripts
+- **`scripts/generate-icons.mjs`**: Generate PWA icons from source image (optional)
 
-| Firestore Collection | localStorage Key | Purpose |
-|---------------------|------------------|---------|
-| `tasks` | `'tasks'` | Main producer tasks with category, assignee, completion |
-| `personalTasks` | `'personalTasks'` | Taylor/Jay personal task lists |
-| `lineup` | `'lineup'` | Comedy show performer lineup (positions 1-5) |
-| `socialMediaPosts` | `'socialMediaPosts'` | Date-scheduled posts with image/video uploads |
+### Configuration
+- **`package.json`**: Minimal - only contains `sharp` for icon generation
+- **`.github/workflows/`**: GitHub Actions for automatic deployment to Pages
+
+## Data Storage
+
+All data is stored in browser's **localStorage** with these keys:
+
+| Key | Data Structure | Purpose |
+|-----|----------------|---------|
+| `tasks` | Array of `{id, title, category, assignedTo, completed, createdAt}` | Main producer tasks |
+| `personalTasks` | Array of `{id, owner, text, completed}` | Taylor/Jay personal lists |
+| `lineup` | Array of `{id, position, performerName, notes}` | Comedy show lineup (1-5) |
+| `socialMediaPosts` | Array of `{id, scheduledDate, platform, caption, imageUrl, status}` | Scheduled social posts |
+| `roomId` | String | PeerJS room code for P2P sync |
+| `peerStatus` | Object | Connection status info |
 
 ## Development Workflow
 
 ```bash
-npm run dev          # Start dev server (localhost:3000)
-npm run build        # Production build
-npm run lint         # ESLint check
-npm run icons        # Generate PWA icons (scripts/generate-icons.mjs)
+# Optional: Generate PWA icons from source image
+npm install
+npm run icons
+
+# Deploy - just push to main branch
+git push origin main
 ```
+
+GitHub Actions automatically deploys `index.html` to GitHub Pages on every push to `main`.
 
 **No authentication** - this is an intentionally public/shared task tracker.
 
-## Component Conventions
+## Code Structure (within index.html)
 
-1. **All data components are client components** - use `'use client'` directive
-2. **Always implement dual-mode pattern** - check `isFirebaseReady` before every data operation
-3. **Use TypeScript strictly** - `tsconfig.json` has `strict: true`
-4. **Import aliases** - Use `@/` for root imports (configured in `tsconfig.json`)
-5. **Styling** - Tailwind utility classes with dark mode support (`dark:` prefix)
+The single HTML file contains:
 
-## Firebase Storage Pattern
+1. **HTML Structure** (~200 lines)
+   - Header with peer status indicator
+   - Main content sections (tasks, lineup, personal lists, social calendar)
+   - Operations notes sidebar
+   - Modal dialogs for editing
 
-When uploading files (e.g., `SocialMediaCalendar.tsx`):
-- **Online**: Use `uploadBytesResumable()` with progress tracking, store download URL
-- **Offline**: Convert to base64 data URL and store inline in localStorage (suitable for small files only)
+2. **CSS Styling** (~100 lines)
+   - Tailwind CSS via CDN
+   - Custom styles for peer status, modals, cards
+   - Responsive grid layouts
 
-## Data Inconsistencies to Handle
+3. **JavaScript Logic** (~640 lines)
+   - PeerJS initialization and room management
+   - localStorage CRUD operations
+   - P2P broadcast functions
+   - Event handlers for all UI interactions
+   - Instagram schedule helper
+   - Date formatting utilities
 
-Tasks use inconsistent field names across the codebase:
-- `assignedTo` vs `assignee` (both exist)
-- `isCompleted` vs `completed` (both exist)
+## Key JavaScript Patterns
 
-When reading, use `task.assignedTo ?? task.assignee` and `task.isCompleted ?? task.completed`. When writing, preserve the existing key or default to `assignee`/`completed`.
+### P2P Broadcast on Change
+```javascript
+// After any localStorage update, broadcast to peers
+function saveTasks(tasks) {
+  localStorage.setItem('tasks', JSON.stringify(tasks))
+  broadcast('tasks', tasks)
+}
 
-## Environment Variables
-
+// All peers receive updates via WebRTC
+peer.on('connection', (conn) => {
+  conn.on('data', (data) => {
+    if (data.type === 'tasks') {
+      localStorage.setItem('tasks', JSON.stringify(data.data))
+      renderTasks()
+    }
+  })
+})
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-NEXT_PUBLIC_FIREBASE_PROJECT_ID
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-NEXT_PUBLIC_FIREBASE_APP_ID
+
+### localStorage Helper Pattern
+```javascript
+// Get with default fallback
+const tasks = JSON.parse(localStorage.getItem('tasks') || '[]')
+
+// Save with broadcast
+function saveTasks(tasks) {
+  localStorage.setItem('tasks', JSON.stringify(tasks))
+  broadcast('tasks', tasks)
+}
 ```
 
-All are optional - app works offline without them. Use `.env.local` (gitignored).
+### Room Code Sharing
+```javascript
+// On first load, prompt for room code or generate
+const roomId = localStorage.getItem('roomId') || prompt('Enter room code to join:')
+localStorage.setItem('roomId', roomId)
+
+// Connect to room
+const peer = new Peer(roomId)
+```
 
 ## Deployment
 
-Vercel is the primary deployment target (see `vercel.json`). Set all Firebase env vars in Vercel dashboard for production.
+**GitHub Pages** - Automatically deploys on push to `main` branch via GitHub Actions.
+
+Live URL: https://taylordrew4u2.github.io/produce/
+
+## Privacy & Security
+
+- All data stays in browser's localStorage
+- P2P sync uses WebRTC relay servers only for connection establishment
+- No data stored on servers
+- Room codes provide basic access control (share code = share data)
+- No authentication system (intentional design for quick collaboration)
+
+## Development Tips
+
+- **Local testing**: Open `index.html` in browser directly (no server needed)
+- **P2P testing**: Open multiple browser tabs/windows with same room code
+- **Debug localStorage**: Use browser DevTools → Application → Local Storage
+- **Debug P2P**: Check PeerJS status indicator in header (green = connected)
+- **Clear data**: Delete localStorage keys to reset app state

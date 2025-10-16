@@ -1,123 +1,53 @@
 # 🎤 Producer Tasks
 
-A real-time task tracker for comedy show producers built with Next.js and Firebase. Works fully offline via localStorage when Firebase keys are not configured.
+**Zero-config P2P task manager for comedy show producers**
+
+Live at: **<https://taylordrew4u2.github.io/produce/>**
 
 ## 🚀 Features
 
-- Real-time task synchronization (when Firebase configured)
-- Offline local mode (no config needed)
-- Task categorization (Venue, Comedians, Marketing, Equipment, Misc)
-- Completion tracking
-- Social Media calendar with uploads (Firebase Storage) or inline data URLs offline
-- Responsive web interface
+- 🔄 **Real-time P2P Sync**: Collaborate instantly via WebRTC - no server needed
+- 💾 **Offline First**: Works completely offline with localStorage
+- 🔗 **Room Codes**: Share a room code to sync with team members
+- � **Task Management**: Create, assign, and track tasks by category
+- 📅 **Social Media Calendar**: Schedule posts with Instagram helper
+- 🎭 **Show Lineup**: Manage comedian positions 1-5
+- � **Personal Lists**: Separate task lists for Taylor & Jay
+- 👥 **Staff Management**: Track team member assignments
+- 📱 **Mobile-Friendly**: Works on all devices, no installation required
 
-## 🛠️ Setup
+## 🎯 How It Works
+
+1. Open <https://taylordrew4u2.github.io/produce/>
+2. Share your room code with team members
+3. Everyone with the same room code sees live updates
+4. Everything saves to localStorage automatically
+5. No login, no backend, no configuration needed
+
+## �️ Tech Stack
+
+- **Vanilla JavaScript** - No framework bloat
+- **PeerJS** - WebRTC for P2P real-time sync
+- **localStorage** - Offline persistence
+- **GitHub Pages** - Free static hosting
+- **Tailwind CSS** - Utility-first styling
+
+## � Development
 
 ```bash
+# Generate PWA icons (optional)
 npm install
-cp .env.local.example .env.local
+npm run icons
+
+# Deploy - just push to main branch
+git push origin main
 ```
 
-Fill `.env.local` with Firebase Web app credentials.
+GitHub Actions automatically deploys `index.html` to GitHub Pages.
 
-## 🔥 Firebase
+## 🔒 Privacy
 
-1. Visit https://console.firebase.google.com
-2. Create a project and enable Firestore + Storage
-3. Register a Web app and copy credentials into `.env.local`
-4. (Optional) Adjust Firestore security rules before production
-
-## 🧪 Development
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## 🚀 Deploy
-
-1. Push to GitHub
-2. Import the repo on https://vercel.com
-3. Add environment variables
-4. Deploy
-
-## 📄 License
-
-MIT
-## Features
-
-- 📝 **Add Tasks**: Simple form to create tasks with title, assignee, and category
-- 🔄 **Real-time Sync**: Tasks update instantly across all connected users
-- 📂 **Category Grouping**: Tasks are automatically organized by category
-- ✅ **Completion Tracking**: Check off tasks as they're completed
-- 📱 **Mobile-Friendly**: Responsive design that works on all devices
-- 🔗 **No Login Required**: Share a public link to collaborate instantly
-# 🎤 Producer Tasks
-
-A real-time task tracker for comedy show producers built with Next.js and Firebase.
-
-# 🎤 Producer Tasks
-
-A real-time task tracker for comedy show producers built with Next.js and Firebase. Works fully offline via localStorage when Firebase keys are not configured.
-
-## 🚀 Features
-
-- Real-time task synchronization (when Firebase configured)
-- Offline local mode (no config needed)
-- Task categorization (Venue, Comedians, Marketing, Equipment, Misc)
-- Completion tracking
-- Social Media calendar with uploads (Firebase Storage) or inline data URLs offline
-- Responsive web interface
-
-## 🛠️ Setup
-
-```bash
-npm install
-cp .env.local.example .env.local
-```
-
-Fill `.env.local` with Firebase Web app credentials.
-
-## 🔥 Firebase
-
-1. Visit https://console.firebase.google.com
-2. Create a project and enable Firestore + Storage
-3. Register a Web app and copy credentials into `.env.local`
-4. (Optional) Adjust Firestore security rules before production
-
-## 🧪 Development
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## 🚀 Deploy
-
-1. Push to GitHub
-2. Import the repo on https://vercel.com
-3. Add environment variables
-4. Deploy
-
-## 📄 License
-
-MIT
-## 🧪 Development
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## 🚀 Deploy
-
-1. Push to GitHub
-2. Import the repo on https://vercel.com
-3. Add environment variables
-4. Deploy
+All data stays in your browser's localStorage. P2P sync uses WebRTC relay servers only for connection establishment - no data is stored on servers.
 
 ## 📄 License
 
