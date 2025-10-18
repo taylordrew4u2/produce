@@ -64,15 +64,15 @@
             <div class="flex gap-2">
                 <button type="button" onclick="requestPersistentStorage()"
                     class="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
-                    📦 Make storage persistent
+                    📦 Request persistent storage (optional)
                 </button>
                 <button type="button" onclick="updateStorageUI()"
                     class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm">
                     ↻ Refresh
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Tip: Persistent storage reduces the chance of the browser clearing
-                your data and typically unlocks much larger quotas.</p>
+            <p class="text-xs text-gray-500 mt-2">ℹ️ Files work fine without persistent storage! This is just an
+                optimization that may provide larger quotas and better protection from cleanup.</p>
         </div>
 
         <!-- Add Task -->
@@ -309,7 +309,7 @@
                         class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-1">
                         Sync Files with Team
                     </button>
-                    <button onclick="debugFileSync()" 
+                    <button onclick="debugFileSync()"
                         class="w-full bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-xs mb-2">
                         🔍 Debug File Sync
                     </button>
@@ -914,7 +914,7 @@
                         await new Promise(resolve => setTimeout(resolve, 500));
                         attempts++;
                     }
-                    
+
                     if (db) {
                         await requestMissingFiles(conn);
                     } else {
@@ -1467,14 +1467,14 @@
             console.log('🔍 File Sync Debug Info:');
             console.log('- IndexedDB ready:', !!db);
             console.log('- Connected peers:', connections.length);
-            console.log('- Connections:', connections.map(c => ({open: c.open, peer: c.peer})));
-            
+            console.log('- Connections:', connections.map(c => ({ open: c.open, peer: c.peer })));
+
             if (db) {
                 try {
                     const fileIds = await getAllFileIDs();
                     console.log('- Our files:', fileIds);
                     console.log('- File count:', fileIds.length);
-                    
+
                     // Show summary
                     alert(`Debug Info:
                     
@@ -1586,9 +1586,9 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                 }
                 const granted = await navigator.storage.persist();
                 if (granted) {
-                    alert('Storage set to persistent. Your files are less likely to be cleared, and quotas are larger.');
+                    alert('✅ Storage set to persistent! Your files are protected from automatic cleanup and you get larger quotas.');
                 } else {
-                    alert('Could not make storage persistent. The browser may require more engagement. You can still use large IndexedDB storage.');
+                    alert('ℹ️ Persistent storage not granted yet - this is normal!\n\nWhat this means:\n• Your files still work normally (1GB+ capacity)\n• Browser may eventually ask for permission after more usage\n• Files are safe for your current session\n\nNo action needed - file sync and storage work fine! 👍');
                 }
                 updateStorageUI();
             } catch (err) {
