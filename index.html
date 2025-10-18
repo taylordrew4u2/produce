@@ -301,6 +301,38 @@
                 </div>
             </div>
 
+            <!-- File Export Tools -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border rounded p-3">
+                    <h3 class="font-medium text-sm mb-2">🗂️ Export Files</h3>
+                    <button onclick="exportAllFiles()"
+                        class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
+                        Download All Files as Zip
+                    </button>
+                    <p class="text-xs text-gray-500">Downloads all stored images, videos, and audio files</p>
+                </div>
+
+                <div class="border rounded p-3">
+                    <h3 class="font-medium text-sm mb-2">📋 List Files</h3>
+                    <button onclick="listAllFiles()"
+                        class="w-full bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm mb-2">
+                        Show File Inventory
+                    </button>
+                    <p class="text-xs text-gray-500">View all stored files and download individually</p>
+                </div>
+            </div>
+
+            <div id="fileListModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg p-6 max-w-2xl max-h-96 overflow-auto w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">📂 Stored Files</h3>
+                        <button onclick="closeFileList()" class="text-gray-500 hover:text-gray-700">✕</button>
+                    </div>
+                    <div id="fileListContent" class="space-y-2"></div>
+                </div>
+            </div>
+
             <!-- Drag & Drop Zone -->
             <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone"
                 ondrop="handleFileDrop(event)" ondragover="event.preventDefault()" ondragenter="event.preventDefault()">
@@ -686,6 +718,132 @@
         let connections = [];
         const roomId = 'producer-tasks-room'; // Fixed room for all users
 
+        // -------- Offline Change Tracking --------
+        let offlineChanges = JSON.parse(localStorage.getItem('offlineChanges') || '{}');
+        let lastSyncTime = parseInt(localStorage.getItem('lastSyncTime') || Date.now());
+        let isOnline = navigator.onLine;
+
+        // Track what changed while offline
+        function trackOfflineChange(type, itemId = null) {
+            if (!isOnline || connections.length === 0) {
+                const changeKey = itemId ? `${type}_${itemId}` : type;
+                offlineChanges[changeKey] = {
+                    type: type,
+                    itemId: itemId,
+                    timestamp: Date.now(),
+                    description: getChangeDescription(type, itemId)
+                };
+                localStorage.setItem('offlineChanges', JSON.stringify(offlineChanges));
+                updateOfflineIndicator();
+            }
+        }
+
+        function getChangeDescription(type, itemId) {
+            switch (type) {
+                case 'tasks': return itemId ? `Updated task ${itemId}` : 'Modified tasks';
+                case 'lineup': return itemId ? `Updated lineup position ${itemId}` : 'Modified lineup';
+                case 'socialPosts': return itemId ? `Updated social post` : 'Modified social posts';
+                case 'personalTasks': return 'Updated personal tasks';
+                default: return `Modified ${type}`;
+            }
+        }
+
+        // Clear offline changes after successful sync
+        function clearOfflineChanges() {
+            offlineChanges = {};
+            lastSyncTime = Date.now();
+            localStorage.setItem('offlineChanges', JSON.stringify(offlineChanges));
+            localStorage.setItem('lastSyncTime', lastSyncTime.toString());
+            updateOfflineIndicator();
+        }
+
+        // Update UI to show offline changes
+        function updateOfflineIndicator() {
+            const offlineCount = Object.keys(offlineChanges).length;
+            let indicator = document.getElementById('offline-indicator');
+
+            if (!indicator) {
+                // Create indicator in header
+                const header = document.querySelector('header .flex');
+                if (header) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'offline-indicator';
+                    indicator.className = 'ml-4';
+                    header.appendChild(indicator);
+                }
+            }
+
+            if (indicator) {
+                if (offlineCount > 0) {
+                    indicator.innerHTML = `
+                        <div class="flex items-center gap-2 text-sm">
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                📝 ${offlineCount} pending sync${offlineCount !== 1 ? 's' : ''}
+                            </span>
+                            <button onclick="showOfflineChanges()" class="text-blue-600 hover:text-blue-800 underline text-xs">
+                                View
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    indicator.innerHTML = '';
+                }
+            }
+        }
+
+        // Show what changed while offline
+        function showOfflineChanges() {
+            const changes = Object.values(offlineChanges);
+            if (changes.length === 0) {
+                alert('No pending changes to sync.');
+                return;
+            }
+
+            let message = `Changes made while offline (${changes.length}):\n\n`;
+            changes.forEach(change => {
+                const time = new Date(change.timestamp).toLocaleTimeString();
+                message += `• ${change.description} at ${time}\n`;
+            });
+            message += '\nThese will sync automatically when you reconnect with team members.';
+            alert(message);
+        }
+
+        // Show sync success notification
+        function showSyncNotification() {
+            const count = Object.keys(offlineChanges).length;
+            if (count > 0) {
+                // Create temporary notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
+                notification.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span>✅ Synced ${count} offline change${count !== 1 ? 's' : ''} with team</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 font-bold">&times;</button>
+                    </div>
+                `;
+                document.body.appendChild(notification);
+
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+        }        // Monitor online/offline status
+        window.addEventListener('online', () => {
+            isOnline = true;
+            console.log('Back online - will sync pending changes');
+            updateOfflineIndicator();
+            // Trigger sync when peers connect
+        });
+
+        window.addEventListener('offline', () => {
+            isOnline = false;
+            console.log('Gone offline - will track changes');
+            updateOfflineIndicator();
+        });
+
         peer.on('open', (id) => {
             console.log('My peer ID:', id);
             // Try to connect to the room
@@ -715,8 +873,24 @@
             conn.on('open', () => {
                 connections.push(conn);
                 updatePeerCount();
-                // Send current data to new peer
-                conn.send({ type: 'sync', data });
+
+                // Send current data to new peer with offline changes info
+                const syncMessage = {
+                    type: 'sync',
+                    data,
+                    timestamp: Date.now(),
+                    offlineChanges: Object.keys(offlineChanges).length > 0 ? offlineChanges : null
+                };
+                conn.send(syncMessage);
+
+                // If we have pending offline changes, broadcast them
+                if (Object.keys(offlineChanges).length > 0) {
+                    console.log(`Syncing ${Object.keys(offlineChanges).length} offline changes`);
+                    setTimeout(() => {
+                        broadcast(null, 'offline-sync');
+                        showSyncNotification();
+                    }, 1000); // Small delay to ensure connection is stable
+                }
             });
 
             conn.on('data', async (received) => {
@@ -745,13 +919,33 @@
             });
         }
 
-        function broadcast(update) {
-            const msg = { type: 'update', data };
+        function broadcast(update, changeType = null, itemId = null) {
+            // Track offline changes if not connected
+            if (connections.length === 0 || !isOnline) {
+                if (changeType) {
+                    trackOfflineChange(changeType, itemId);
+                }
+                return; // Don't broadcast if no connections
+            }
+
+            const msg = {
+                type: 'update',
+                data,
+                timestamp: Date.now(),
+                changeType: changeType,
+                itemId: itemId
+            };
+
             connections.forEach(conn => {
                 if (conn.open) {
                     conn.send(msg);
                 }
             });
+
+            // Clear offline changes after successful broadcast
+            if (Object.keys(offlineChanges).length > 0) {
+                clearOfflineChanges();
+            }
         }
 
         function updatePeerCount() {
@@ -977,6 +1171,143 @@
             }
         }
 
+        async function exportAllFiles() {
+            try {
+                if (!db) {
+                    alert('IndexedDB not available');
+                    return;
+                }
+
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                const request = store.getAll();
+
+                request.onsuccess = async () => {
+                    const files = request.result;
+                    if (files.length === 0) {
+                        alert('No files stored to export');
+                        return;
+                    }
+
+                    // For simplicity, we'll download files individually
+                    // A full zip implementation would require JSZip library
+                    alert(`Found ${files.length} files. They will download individually.`);
+
+                    for (const fileObj of files) {
+                        try {
+                            // Convert data URL to blob
+                            const response = await fetch(fileObj.data);
+                            const blob = await response.blob();
+
+                            // Download file
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileObj.name || `file_${fileObj.id}`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+
+                            // Small delay between downloads
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        } catch (err) {
+                            console.error(`Failed to export file ${fileObj.name}:`, err);
+                        }
+                    }
+
+                    alert('✅ File export complete!');
+                };
+
+                request.onerror = () => {
+                    console.error('Failed to get files from IndexedDB');
+                    alert('❌ Failed to access stored files');
+                };
+            } catch (err) {
+                console.error('Export files error:', err);
+                alert('❌ Export failed: ' + err.message);
+            }
+        }
+
+        async function listAllFiles() {
+            try {
+                if (!db) {
+                    alert('IndexedDB not available');
+                    return;
+                }
+
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                const request = store.getAll();
+
+                request.onsuccess = () => {
+                    const files = request.result;
+                    const modal = document.getElementById('fileListModal');
+                    const content = document.getElementById('fileListContent');
+
+                    if (files.length === 0) {
+                        content.innerHTML = '<p class="text-gray-500 text-center">No files stored</p>';
+                    } else {
+                        const html = files.map(fileObj => {
+                            const sizeKB = fileObj.data ? Math.round(fileObj.data.length / 1024) : 0;
+                            const timestamp = new Date(fileObj.timestamp).toLocaleDateString();
+                            return `
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                                    <div class="flex-1">
+                                        <div class="font-medium text-sm">${fileObj.name || fileObj.id}</div>
+                                        <div class="text-xs text-gray-500">${fileObj.type} • ${sizeKB} KB • ${timestamp}</div>
+                                    </div>
+                                    <button onclick="downloadSingleFile('${fileObj.id}')" 
+                                        class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">
+                                        📥 Download
+                                    </button>
+                                </div>
+                            `;
+                        }).join('');
+                        content.innerHTML = html;
+                    }
+
+                    modal.classList.remove('hidden');
+                };
+
+                request.onerror = () => {
+                    alert('❌ Failed to load file list');
+                };
+            } catch (err) {
+                console.error('List files error:', err);
+                alert('❌ Failed to list files: ' + err.message);
+            }
+        }
+
+        function closeFileList() {
+            document.getElementById('fileListModal').classList.add('hidden');
+        }
+
+        async function downloadSingleFile(fileId) {
+            try {
+                const fileData = await getFileFromIDB(fileId);
+                if (!fileData) {
+                    alert('File not found');
+                    return;
+                }
+
+                const response = await fetch(fileData.data);
+                const blob = await response.blob();
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileData.name || `file_${fileId}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Download file error:', err);
+                alert('❌ Failed to download file: ' + err.message);
+            }
+        }
+
         async function requestPersistentStorage() {
             try {
                 if (!(navigator.storage && navigator.storage.persist)) {
@@ -1043,7 +1374,7 @@
             };
             data.tasks.push(task);
             saveLocal();
-            broadcast();
+            broadcast(null, 'tasks', task.id);
             renderTasks();
             e.target.reset();
         });
@@ -1051,7 +1382,7 @@
         window.toggleTask = (id) => {
             data.tasks = data.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
             saveLocal();
-            broadcast();
+            broadcast(null, 'tasks', id);
             renderTasks();
         };
 
@@ -1059,7 +1390,7 @@
             if (!confirm('Delete this task?')) return;
             data.tasks = data.tasks.filter(t => t.id !== id);
             saveLocal();
-            broadcast();
+            broadcast(null, 'tasks', id);
             renderTasks();
         };
 
@@ -1139,13 +1470,8 @@
                     const fileObj = await getFileFromIDB(fileData.fileId);
                     if (fileObj) url = fileObj.data;
                 }
-                // Drive file: link to Drive viewer
-                if (fileData.driveFileId) {
-                    url = `https://drive.google.com/file/d/${fileData.driveFileId}/view`;
-                    fileNameSpan.innerHTML = `<a href="${url}" target="_blank" class="text-blue-600 hover:underline">${fileData.name} (Drive)</a>`;
-                } else {
-                    fileNameSpan.innerHTML = `<a href="${url}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
-                }
+
+                fileNameSpan.innerHTML = `<a href="${url}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
                 deleteBtn.classList.remove('hidden');
             } else {
                 fileNameSpan.textContent = '';
@@ -1165,13 +1491,8 @@
                     const fileObj = await getFileFromIDB(audioData.fileId);
                     if (fileObj) url = fileObj.data;
                 }
-                // Drive file: link to Drive viewer
-                if (audioData.driveFileId) {
-                    url = `https://drive.google.com/file/d/${audioData.driveFileId}/view`;
-                    audioNameSpan.innerHTML = `<a href="${url}" target="_blank" class="text-purple-600 hover:underline">🎵 ${audioData.name} (Drive)</a>`;
-                } else {
-                    audioNameSpan.innerHTML = `<a href="${url}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`;
-                }
+
+                audioNameSpan.innerHTML = `<a href="${url}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`;
                 deleteBtn.classList.remove('hidden');
             } else {
                 audioNameSpan.textContent = '';
@@ -1190,9 +1511,6 @@
                 return;
             }
 
-            const useDrive = false; // Google Drive removed
-            let driveFileId = null;
-
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const url = e.target.result;
@@ -1209,9 +1527,8 @@
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: fileId || driveFileId ? '' : url,
-                    fileId: fileId,
-                    driveFileId: driveFileId
+                    data: fileId ? '' : url,
+                    fileId: fileId
                 };
                 console.log(`File uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
@@ -1256,9 +1573,6 @@
                 return;
             }
 
-            const useDrive = false; // Google Drive removed
-            let driveFileId = null;
-
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const url = e.target.result;
@@ -1275,9 +1589,8 @@
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: fileId || driveFileId ? '' : url,
-                    fileId: fileId,
-                    driveFileId: driveFileId
+                    data: fileId ? '' : url,
+                    fileId: fileId
                 };
                 console.log(`MP3 uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
@@ -1311,7 +1624,7 @@
             }
             console.log('Lineup data saved:', data.lineup);
             saveLocal();
-            broadcast();
+            broadcast(null, 'lineup');
 
             // Show brief confirmation
             if (event && event.target) {
@@ -1574,8 +1887,6 @@
 
             const postId = Date.now().toString(36) + Math.random().toString(36).slice(2);
             let fileId = null;
-            let driveFileId = null;
-            const useDrive = false; // Google Drive removed
 
             // Save large files to IndexedDB
             if (file && url.length > 50000) {
@@ -1594,24 +1905,19 @@
                 id: postId,
                 date,
                 caption,
-                url: fileId || driveFileId ? '' : url, // Empty if in IndexedDB or Drive
+                url: fileId ? '' : url, // Empty if in IndexedDB
                 fileId: fileId, // Reference to IndexedDB
-                driveFileId: driveFileId, // Reference to Google Drive
                 type,
                 fileName: file ? file.name : '',
                 createdAt: Date.now()
             };
 
-            // Load the URL from IndexedDB or Drive for display
+            // Load the URL from IndexedDB for display
             if (fileId) {
                 const fileData = await getFileFromIDB(fileId);
                 if (fileData) {
                     post.url = fileData.data;
                 }
-            } else if (driveFileId) {
-                // For Drive files, we'll store a link to download
-                post.url = `https://drive.google.com/file/d/${driveFileId}/view`;
-                post.driveLink = post.url;
             }
 
             data.socialPosts.push(post);
@@ -1916,10 +2222,12 @@
             }
         }
 
-        // If returning from OAuth redirect, handle authorization code
+        // Initialize offline change tracking on page load
         (async () => {
-            await gdriveHandleCallback();
-            updateGDriveStatus();
+            updateOfflineIndicator();
+            updateStorageUI();
+            await loadLocal();
+            await render();
         })();
     </script>
 </body>
