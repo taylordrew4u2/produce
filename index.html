@@ -306,8 +306,12 @@
                 <div class="border rounded p-3">
                     <h3 class="font-medium text-sm mb-2">🔄 Sync Files</h3>
                     <button onclick="syncFilesWithTeam()" id="syncFilesBtn"
-                        class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-2">
+                        class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-1">
                         Sync Files with Team
+                    </button>
+                    <button onclick="debugFileSync()" 
+                        class="w-full bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-xs mb-2">
+                        🔍 Debug File Sync
                     </button>
                     <p class="text-xs text-gray-500">Share files between your phone and computer</p>
                 </div>
@@ -902,9 +906,21 @@
                 }
 
                 // Start file sync process after data sync
-                setTimeout(() => {
-                    requestMissingFiles(conn);
-                }, 2000);
+                setTimeout(async () => {
+                    // Wait for IndexedDB to be ready
+                    let attempts = 0;
+                    while (!db && attempts < 10) {
+                        console.log(`⏳ Waiting for IndexedDB... (attempt ${attempts + 1})`);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        attempts++;
+                    }
+                    
+                    if (db) {
+                        await requestMissingFiles(conn);
+                    } else {
+                        console.log('❌ IndexedDB not ready after 5 seconds, skipping file sync');
+                    }
+                }, 3000); // Increased delay
             });
 
             conn.on('data', async (received) => {
@@ -920,7 +936,7 @@
                     await render();
                 } else if (received.type === 'file-request') {
                     // Another device is requesting files they're missing
-                    await handleFileRequest(received.missingFiles, conn);
+                    await handleFileRequest(received.ourFiles, conn);
                 } else if (received.type === 'file-data') {
                     // Receiving file data from another device
                     await handleIncomingFile(received);
@@ -984,8 +1000,17 @@
         // Request files that we're missing from a newly connected peer
         async function requestMissingFiles(conn) {
             try {
+                console.log('🔄 Starting file sync request...');
+
+                // Check if IndexedDB is ready
+                if (!db) {
+                    console.log('⚠️ IndexedDB not ready yet, skipping file sync');
+                    return;
+                }
+
                 // Get list of all files we currently have
                 const ourFiles = await getAllFileIDs();
+                console.log(`📋 We have ${ourFiles.length} files:`, ourFiles);
 
                 // Ask the other device what files they have
                 conn.send({
@@ -993,21 +1018,33 @@
                     ourFiles: ourFiles
                 });
 
-                console.log(`Requested file sync from peer (we have ${ourFiles.length} files)`);
+                console.log(`📤 Requested file sync from peer (we have ${ourFiles.length} files)`);
+                showFileTransferStatus(`🔄 Requesting file sync...`);
             } catch (error) {
-                console.error('Error requesting missing files:', error);
+                console.error('❌ Error requesting missing files:', error);
+                showFileTransferStatus('❌ File sync request failed', 3000);
             }
         }
 
         // Handle file request from another device
         async function handleFileRequest(theirFiles, conn) {
             try {
+                console.log(`📥 Received file request from peer. They have ${theirFiles.length} files:`, theirFiles);
+
+                if (!db) {
+                    console.log('⚠️ IndexedDB not ready, cannot process file request');
+                    return;
+                }
+
                 const ourFiles = await getAllFileIDs();
+                console.log(`📋 We have ${ourFiles.length} files:`, ourFiles);
+
                 const filesToSend = [];
 
                 // Find files we have that they don't
                 for (let fileId of ourFiles) {
                     if (!theirFiles.includes(fileId)) {
+                        console.log(`📤 They're missing file: ${fileId}`);
                         const fileData = await getFileFromIDB(fileId);
                         if (fileData) {
                             filesToSend.push({
@@ -1422,6 +1459,43 @@
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
+            }
+        }
+
+        // Debug function to check file sync status
+        async function debugFileSync() {
+            console.log('🔍 File Sync Debug Info:');
+            console.log('- IndexedDB ready:', !!db);
+            console.log('- Connected peers:', connections.length);
+            console.log('- Connections:', connections.map(c => ({open: c.open, peer: c.peer})));
+            
+            if (db) {
+                try {
+                    const fileIds = await getAllFileIDs();
+                    console.log('- Our files:', fileIds);
+                    console.log('- File count:', fileIds.length);
+                    
+                    // Show summary
+                    alert(`Debug Info:
+                    
+IndexedDB: ${db ? 'Ready ✅' : 'Not Ready ❌'}
+Connected Peers: ${connections.length}
+Our Files: ${fileIds.length}
+
+${fileIds.length > 0 ? 'Files: ' + fileIds.slice(0, 3).join(', ') + (fileIds.length > 3 ? '...' : '') : 'No files stored'}
+
+Check browser console for full details.`);
+                } catch (error) {
+                    console.error('Error getting file list:', error);
+                    alert('Debug Error: ' + error.message);
+                }
+            } else {
+                alert(`Debug Info:
+                
+IndexedDB: Not Ready ❌
+Connected Peers: ${connections.length}
+
+IndexedDB is required for file sync. Try refreshing the page.`);
             }
         }
 
