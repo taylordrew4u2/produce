@@ -1,0 +1,34 @@
+🚨 ACCESS BLOCKED ERROR? DO THIS NOW:
+
+1. Go to: https://console.cloud.google.com/apis/credentials/consent
+
+2. Scroll to "Test users" section
+
+3. Click "+ ADD USERS"
+
+4. Enter your Google email
+
+5. Click "SAVE"
+
+6. Try signing in again - SHOULD WORK! ✅
+
+═══════════════════════════════════════════════════════
+
+STILL NOT WORKING?
+
+Option B: Publish the app instead
+- Same page, click "PUBLISH APP" at top
+- Confirm dialog
+- Now anyone can sign in
+
+═══════════════════════════════════════════════════════
+
+WHY THIS HAPPENS:
+- OAuth apps start in "Testing" mode
+- Testing mode = only test users allowed
+- You forgot to add yourself
+- Fix = add yourself OR publish app
+
+═══════════════════════════════════════════════════════
+
+For detailed help, see: FIX-ACCESS-BLOCKED.md

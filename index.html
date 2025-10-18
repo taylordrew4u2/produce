@@ -53,6 +53,28 @@
             </button>
         </header>
 
+        <!-- Storage (Persistent) -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-xl font-semibold">Storage</h2>
+                <div id="storagePersistBadge" class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">checking…
+                </div>
+            </div>
+            <p id="storageInfo" class="text-sm text-gray-600 mb-3">Estimating storage…</p>
+            <div class="flex gap-2">
+                <button type="button" onclick="requestPersistentStorage()"
+                    class="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
+                    📦 Make storage persistent
+                </button>
+                <button type="button" onclick="updateStorageUI()"
+                    class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm">
+                    ↻ Refresh
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Tip: Persistent storage reduces the chance of the browser clearing
+                your data and typically unlocks much larger quotas.</p>
+        </div>
+
         <!-- Add Task -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Add New Task</h2>
@@ -169,9 +191,9 @@
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Calendar Section (Left) -->
-                <div class="lg:col-span-2">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Calendar Section (Left - More Compact) -->
+                <div class="lg:col-span-3">
                     <!-- Month Navigation -->
                     <div class="flex items-center justify-between mb-4">
                         <button type="button" onclick="changeMonth(-1)"
@@ -184,15 +206,19 @@
                     </div>
 
                     <!-- Calendar Grid -->
-                    <div class="grid grid-cols-7 gap-1 mb-4">
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sun</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Mon</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Tue</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Wed</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Thu</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Fri</div>
-                        <div class="text-center text-sm font-semibold text-gray-600 py-2">Sat</div>
-                        <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+                        <!-- Day Headers -->
+                        <div class="grid grid-cols-7 bg-gray-50 border-b">
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Sun</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Mon</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Tue</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Wed</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Thu</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Fri</div>
+                            <div class="text-center text-xs font-semibold text-gray-600 py-3">Sat</div>
+                        </div>
+                        <!-- Calendar Days Container -->
+                        <div id="calendarDays" class="grid grid-cols-7"></div>
                     </div>
 
                     <!-- Selected Day Details (hidden until day is clicked) -->
@@ -215,7 +241,8 @@
                                 <input type="file" id="socialFile" accept="image/*,video/*"
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                 <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
-                                <p class="text-xs text-amber-600 mt-1">⚠️ Large files may hit browser storage limits. Compress videos if needed.</p>
+                                <p class="text-xs text-amber-600 mt-1">⚠️ Large files may hit browser storage limits.
+                                    Compress videos if needed.</p>
                             </div>
 
                             <div id="filePreview" class="mb-3"></div>
@@ -234,73 +261,72 @@
                 <!-- Operations Notes Sidebar (Right) -->
                 <div class="lg:col-span-1">
                     <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
-                        <h3 class="font-semibold text-gray-800 mb-3">📋 Daily Operations</h3>
-
+                        <h3 class="font-semibold text-gray-800 mb-3">� Quick Notes</h3>
                         <div class="text-sm space-y-3">
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">⏰ Posting Schedule</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>• 12:00 PM ET - Main feed post</li>
-                                    <li>• 8:00 PM ET - Evening post</li>
-                                    <li>• Stories throughout day</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">📸 Content Rules</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>• Grid: 1080x1350px (4:5)</li>
-                                    <li>• Stories: 1080x1920px (9:16)</li>
-                                    <li>• Reels: 1080x1920px, 15-90s</li>
-                                    <li>• Carousel: 2-10 slides</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">✍️ Caption Guidelines</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>• Max 2,200 characters</li>
-                                    <li>• Hook in first 125 chars</li>
-                                    <li>• 3-5 emojis max</li>
-                                    <li>• 5-10 hashtags</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">🎯 Story Tactics</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>• Reshare all feed posts</li>
-                                    <li>• Countdown stickers daily</li>
-                                    <li>• Poll/quiz engagement</li>
-                                    <li>• Link in bio reminders</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">💰 Boost Settings</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>• Announce post: $50</li>
-                                    <li>• Lineup reveal: $75</li>
-                                    <li>• Final push: $100</li>
-                                    <li>• Target: Local 25mi, 21-45</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <p class="font-medium text-gray-700 mb-1">📌 Pinned Order</p>
-                                <ul class="text-gray-600 space-y-1 ml-4">
-                                    <li>1. Full lineup poster</li>
-                                    <li>2. Ticket link post</li>
-                                    <li>3. Show details/venue</li>
-                                </ul>
-                            </div>
-
-                            <div class="pt-2 border-t">
-                                <p class="text-xs text-gray-500 italic">
-                                    💡 Track engagement rates, save top performers, A/B test captions
-                                </p>
-                            </div>
+                            <p class="text-gray-600">Use this space for show notes, reminders, or quick references.</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Local File Management (Easy Alternative) -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-xl font-semibold">💾 Local File Management</h2>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">No setup required</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-4">Save/load your data directly to your computer. Works offline, no OAuth
+                needed!</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Export/Import Data -->
+                <div class="border rounded p-3">
+                    <h3 class="font-medium text-sm mb-2">📤 Export All Data</h3>
+                    <button onclick="exportAllData()"
+                        class="w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm mb-2">
+                        Download Backup File
+                    </button>
+                    <p class="text-xs text-gray-500">Saves all tasks, lineup, social posts + file references</p>
+                </div>
+
+                <div class="border rounded p-3">
+                    <h3 class="font-medium text-sm mb-2">📥 Import Data</h3>
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importAllData(event)">
+                    <button onclick="document.getElementById('importFile').click()"
+                        class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-2">
+                        Load Backup File
+                    </button>
+                    <p class="text-xs text-gray-500">Restores from previously exported backup</p>
+                </div>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone"
+                ondrop="handleFileDrop(event)" ondragover="event.preventDefault()" ondragenter="event.preventDefault()">
+                <div class="text-gray-500">
+                    <span class="text-2xl">📎</span>
+                    <p class="text-sm mt-2">Drag & drop files here to save them locally</p>
+                    <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - stores in IndexedDB</p>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 bg-gray-50 rounded">
+                <h3 class="font-medium text-sm mb-2">📊 Storage Status</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <span class="text-gray-600">IndexedDB Usage:</span>
+                        <div id="localStorageUsage" class="font-mono text-green-600">Calculating...</div>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Files Stored:</span>
+                        <div id="fileCount" class="font-mono text-blue-600">Calculating...</div>
+                    </div>
+                    <div>
+                        <button onclick="cleanupOldFiles()"
+                            class="bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
+                            🧹 Cleanup
+                        </button>
                     </div>
                 </div>
             </div>
@@ -371,9 +397,7 @@
                             </button>
                             <span id="lineupFileName2" class="text-xs text-gray-600"></span>
                         </label>
-                        <button type="button" id="lineupFileDelete2" onclick="deleteLineupFile(2)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
+                        🗑️
                         </button>
                     </div>
                     <div class="flex gap-2 items-center">
@@ -385,6 +409,7 @@
                                 🎵 Upload MP3
                             </button>
                             <span id="lineupAudioName2" class="text-xs text-gray-600"></span>
+                        </label>
                         </label>
                         <button type="button" id="lineupAudioDelete2" onclick="deleteLineupAudio(2)"
                             class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
@@ -412,9 +437,7 @@
                             </button>
                             <span id="lineupFileName3" class="text-xs text-gray-600"></span>
                         </label>
-                        <button type="button" id="lineupFileDelete3" onclick="deleteLineupFile(3)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
+                        🗑️
                         </button>
                     </div>
                     <div class="flex gap-2 items-center">
@@ -426,6 +449,7 @@
                                 🎵 Upload MP3
                             </button>
                             <span id="lineupAudioName3" class="text-xs text-gray-600"></span>
+                        </label>
                         </label>
                         <button type="button" id="lineupAudioDelete3" onclick="deleteLineupAudio(3)"
                             class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
@@ -453,9 +477,7 @@
                             </button>
                             <span id="lineupFileName4" class="text-xs text-gray-600"></span>
                         </label>
-                        <button type="button" id="lineupFileDelete4" onclick="deleteLineupFile(4)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
+                        🗑️
                         </button>
                     </div>
                     <div class="flex gap-2 items-center">
@@ -467,6 +489,7 @@
                                 🎵 Upload MP3
                             </button>
                             <span id="lineupAudioName4" class="text-xs text-gray-600"></span>
+                        </label>
                         </label>
                         <button type="button" id="lineupAudioDelete4" onclick="deleteLineupAudio(4)"
                             class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
@@ -494,9 +517,7 @@
                             </button>
                             <span id="lineupFileName5" class="text-xs text-gray-600"></span>
                         </label>
-                        <button type="button" id="lineupFileDelete5" onclick="deleteLineupFile(5)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
+                        🗑️
                         </button>
                     </div>
                     <div class="flex gap-2 items-center">
@@ -509,6 +530,7 @@
                             </button>
                             <span id="lineupAudioName5" class="text-xs text-gray-600"></span>
                         </label>
+                        </label>
                         <button type="button" id="lineupAudioDelete5" onclick="deleteLineupAudio(5)"
                             class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
                             🗑️
@@ -520,6 +542,72 @@
     </div>
 
     <script>
+        // IndexedDB setup for large file storage (up to 1GB+)
+        let db;
+        const DB_NAME = 'producerTasksDB';
+        const DB_VERSION = 1;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB initialized for large file storage');
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+
+                    // Create object store for large files
+                    if (!db.objectStoreNames.contains('files')) {
+                        const fileStore = db.createObjectStore('files', { keyPath: 'id' });
+                        fileStore.createIndex('type', 'type', { unique: false });
+                        console.log('Created IndexedDB files store');
+                    }
+                };
+            });
+        }
+
+        // Save large file to IndexedDB
+        async function saveFileToIDB(id, data, type, fileName) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                const file = { id, data, type, fileName, timestamp: Date.now() };
+
+                const request = store.put(file);
+                request.onsuccess = () => resolve(id);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Get large file from IndexedDB
+        async function getFileFromIDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readonly');
+                const store = transaction.objectStore('files');
+                const request = store.get(id);
+
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Delete file from IndexedDB
+        async function deleteFileFromIDB(id) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['files'], 'readwrite');
+                const store = transaction.objectStore('files');
+                const request = store.delete(id);
+
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
         // Shared state
         let data = {
             tasks: [],
@@ -528,16 +616,15 @@
             lineupFiles: {},
             lineupAudio: {},
             staff: {},
-            socialPosts: []
+            socialPosts: [] // Now stores references to IndexedDB files
         };
 
-        // Load from localStorage
-        function loadLocal() {
+        // Load from localStorage (metadata only, files in IndexedDB)
+        async function loadLocal() {
             try {
                 const saved = localStorage.getItem('producerTasks');
                 if (saved) {
                     const loaded = JSON.parse(saved);
-                    // Merge with defaults to ensure all properties exist
                     data = {
                         tasks: loaded.tasks || [],
                         personalTasks: loaded.personalTasks || [],
@@ -547,27 +634,44 @@
                         staff: loaded.staff || {},
                         socialPosts: loaded.socialPosts || []
                     };
+
+                    // Load actual file data from IndexedDB for social posts
+                    for (let post of data.socialPosts) {
+                        if (post.fileId) {
+                            const fileData = await getFileFromIDB(post.fileId);
+                            if (fileData) {
+                                post.url = fileData.data;
+                            }
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('Error loading data:', e);
             }
         }
 
-        // Save to localStorage with quota error handling
+        // Save to localStorage (metadata) and IndexedDB (large files)
         function saveLocal() {
             try {
-                const jsonData = JSON.stringify(data);
+                // Save metadata to localStorage (without large file data)
+                const dataToSave = JSON.parse(JSON.stringify(data));
+
+                // Remove large file URLs from socialPosts before saving to localStorage
+                dataToSave.socialPosts = dataToSave.socialPosts.map(post => {
+                    if (post.url && post.url.length > 10000) {
+                        // Large file - reference only
+                        return { ...post, url: '' }; // URL will be loaded from IndexedDB
+                    }
+                    return post;
+                });
+
+                const jsonData = JSON.stringify(dataToSave);
                 const sizeMB = (new Blob([jsonData]).size / (1024 * 1024)).toFixed(2);
-                console.log(`Saving data: ${sizeMB}MB`);
+                console.log(`Saving metadata: ${sizeMB}MB to localStorage`);
                 localStorage.setItem('producerTasks', jsonData);
             } catch (e) {
-                if (e.name === 'QuotaExceededError' || e.code === 22) {
-                    console.error('Storage quota exceeded!', e);
-                    alert('Storage limit exceeded! Your data is too large (probably from large video files).\n\nOptions:\n1. Delete some large videos from social media posts\n2. Use smaller video files (compress them first)\n3. Clear old data\n\nNote: Browser localStorage typically has 5-10MB limit.');
-                } else {
-                    console.error('Error saving data:', e);
-                    alert('Error saving data. Please try again.');
-                }
+                console.error('Error saving data:', e);
+                alert('Error saving data. Please try again.');
             }
         }
 
@@ -615,17 +719,17 @@
                 conn.send({ type: 'sync', data });
             });
 
-            conn.on('data', (received) => {
+            conn.on('data', async (received) => {
                 if (received.type === 'sync') {
                     // Merge data (newer wins)
                     data = received.data;
                     saveLocal();
-                    render();
+                    await render();
                 } else if (received.type === 'update') {
                     // Apply update
                     data = received.data;
                     saveLocal();
-                    render();
+                    await render();
                 }
                 // Relay to other peers
                 connections.forEach(c => {
@@ -653,6 +757,243 @@
         function updatePeerCount() {
             const count = connections.length;
             document.getElementById('peerCount').textContent = count === 0 ? 'Solo' : `${count} other${count > 1 ? 's' : ''}`;
+        }
+
+        // -------- Storage (Persistent) UI --------
+        async function updateStorageUI() {
+            try {
+                const infoEl = document.getElementById('storageInfo');
+                const badgeEl = document.getElementById('storagePersistBadge');
+
+                let persisted = false;
+                if (navigator.storage && navigator.storage.persisted) {
+                    persisted = await navigator.storage.persisted();
+                }
+
+                if (badgeEl) {
+                    if (persisted) {
+                        badgeEl.textContent = 'persistent';
+                        badgeEl.className = 'text-xs px-2 py-1 rounded bg-green-100 text-green-700';
+                    } else {
+                        badgeEl.textContent = 'not persistent';
+                        badgeEl.className = 'text-xs px-2 py-1 rounded bg-amber-100 text-amber-700';
+                    }
+                }
+
+                if (navigator.storage && navigator.storage.estimate) {
+                    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+                    const usedMB = (usage / 1024 / 1024).toFixed(2);
+                    const quotaMB = (quota / 1024 / 1024).toFixed(2);
+                    const pct = quota ? ((usage / quota) * 100).toFixed(2) : '0.00';
+                    if (infoEl) infoEl.textContent = `Using ${usedMB} MB of ${quotaMB} MB (${pct}%)`;
+                } else {
+                    if (infoEl) infoEl.textContent = 'Storage estimate API not available in this browser.';
+                }
+            } catch (err) {
+                console.error('updateStorageUI error:', err);
+            }
+        }
+
+        // -------- Local File Management Functions --------
+        async function exportAllData() {
+            try {
+                // Gather all data
+                const data = {
+                    version: '1.0',
+                    timestamp: new Date().toISOString(),
+                    tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
+                    personalTasks: JSON.parse(localStorage.getItem('personalTasks') || '[]'),
+                    lineup: JSON.parse(localStorage.getItem('lineup') || '[]'),
+                    socialMediaPosts: JSON.parse(localStorage.getItem('socialMediaPosts') || '[]'),
+                    roomId: localStorage.getItem('roomId'),
+                    // Note: IndexedDB files are referenced but not exported (too large)
+                    note: 'Large files in IndexedDB are not included in this backup. Use "Download files separately" option if needed.'
+                };
+
+                // Create downloadable file
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                // Download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `producer-tasks-backup-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                alert('✅ Data exported successfully! File saved to your Downloads folder.');
+            } catch (err) {
+                console.error('Export error:', err);
+                alert('❌ Export failed: ' + err.message);
+            }
+        }
+
+        async function importAllData(event) {
+            try {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                // Confirm before overwriting
+                if (!confirm('⚠️ This will replace all current data. Are you sure?')) {
+                    return;
+                }
+
+                // Restore data
+                if (data.tasks) localStorage.setItem('tasks', JSON.stringify(data.tasks));
+                if (data.personalTasks) localStorage.setItem('personalTasks', JSON.stringify(data.personalTasks));
+                if (data.lineup) localStorage.setItem('lineup', JSON.stringify(data.lineup));
+                if (data.socialMediaPosts) localStorage.setItem('socialMediaPosts', JSON.stringify(data.socialMediaPosts));
+                if (data.roomId) localStorage.setItem('roomId', data.roomId);
+
+                // Reload the page to reflect changes
+                alert('✅ Data imported successfully! Page will reload to show changes.');
+                location.reload();
+            } catch (err) {
+                console.error('Import error:', err);
+                alert('❌ Import failed: ' + err.message);
+            }
+        }
+
+        async function updateLocalStorageInfo() {
+            try {
+                // Count files in IndexedDB
+                let fileCount = 0;
+                let totalSize = 0;
+
+                if (db) {
+                    const transaction = db.transaction(['files'], 'readonly');
+                    const store = transaction.objectStore('files');
+                    const request = store.getAll();
+
+                    request.onsuccess = () => {
+                        const files = request.result;
+                        fileCount = files.length;
+                        totalSize = files.reduce((sum, file) => {
+                            return sum + (file.data ? file.data.length : 0);
+                        }, 0);
+
+                        // Update display
+                        const usageMB = (totalSize / 1024 / 1024).toFixed(2);
+                        document.getElementById('localStorageUsage').textContent = `${usageMB} MB`;
+                        document.getElementById('fileCount').textContent = `${fileCount} files`;
+                    };
+                } else {
+                    document.getElementById('localStorageUsage').textContent = 'Not available';
+                    document.getElementById('fileCount').textContent = '0 files';
+                }
+            } catch (err) {
+                console.error('Local storage info error:', err);
+                document.getElementById('localStorageUsage').textContent = 'Error';
+                document.getElementById('fileCount').textContent = 'Error';
+            }
+        }
+
+        async function cleanupOldFiles() {
+            try {
+                if (!confirm('🧹 Remove unused files from IndexedDB? This cannot be undone.')) {
+                    return;
+                }
+
+                // Get all file references from current data
+                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+                const lineup = JSON.parse(localStorage.getItem('lineup') || '[]');
+                const socialPosts = JSON.parse(localStorage.getItem('socialMediaPosts') || '[]');
+
+                const usedFileIds = new Set();
+
+                // Collect file IDs in use
+                socialPosts.forEach(post => {
+                    if (post.fileId) usedFileIds.add(post.fileId);
+                });
+
+                lineup.forEach(pos => {
+                    if (pos.fileId) usedFileIds.add(pos.fileId);
+                    if (pos.audioFileId) usedFileIds.add(pos.audioFileId);
+                });
+
+                // Get all files in IndexedDB
+                if (db) {
+                    const transaction = db.transaction(['files'], 'readwrite');
+                    const store = transaction.objectStore('files');
+                    const getAllRequest = store.getAll();
+
+                    getAllRequest.onsuccess = () => {
+                        const allFiles = getAllRequest.result;
+                        let deletedCount = 0;
+
+                        allFiles.forEach(file => {
+                            if (!usedFileIds.has(file.id)) {
+                                store.delete(file.id);
+                                deletedCount++;
+                            }
+                        });
+
+                        alert(`✅ Cleanup complete! Removed ${deletedCount} unused files.`);
+                        updateLocalStorageInfo(); // Refresh stats
+                    };
+                }
+            } catch (err) {
+                console.error('Cleanup error:', err);
+                alert('❌ Cleanup failed: ' + err.message);
+            }
+        }
+
+        async function handleFileDrop(event) {
+            event.preventDefault();
+
+            const files = Array.from(event.dataTransfer.files);
+            if (files.length === 0) return;
+
+            try {
+                for (const file of files) {
+                    // Generate a unique file ID
+                    const fileId = 'drop_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+
+                    // Read file as data URL
+                    const reader = new FileReader();
+                    const dataUrl = await new Promise((resolve, reject) => {
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    // Save to IndexedDB
+                    await saveFileToIDB(fileId, dataUrl, file.type, file.name);
+
+                    console.log(`✅ Saved dropped file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+                }
+
+                alert(`✅ Saved ${files.length} file(s) to local storage!`);
+                updateLocalStorageInfo(); // Refresh storage stats
+
+            } catch (err) {
+                console.error('File drop error:', err);
+                alert('❌ Failed to save dropped files: ' + err.message);
+            }
+        }
+
+        async function requestPersistentStorage() {
+            try {
+                if (!(navigator.storage && navigator.storage.persist)) {
+                    alert('Persistent storage is not supported in this browser.');
+                    return;
+                }
+                const granted = await navigator.storage.persist();
+                if (granted) {
+                    alert('Storage set to persistent. Your files are less likely to be cleared, and quotas are larger.');
+                } else {
+                    alert('Could not make storage persistent. The browser may require more engagement. You can still use large IndexedDB storage.');
+                }
+                updateStorageUI();
+            } catch (err) {
+                console.error('requestPersistentStorage error:', err);
+                alert('Error requesting persistent storage. See console for details.');
+            }
         }
 
         // Tasks
@@ -778,21 +1119,33 @@
         };
 
         // Lineup
-        function loadLineup() {
+        async function loadLineup() {
             for (let i = 1; i <= 5; i++) {
                 document.getElementById(`lineup${i}`).value = data.lineup[i] || '';
-                updateLineupFileDisplay(i);
-                updateLineupAudioDisplay(i);
+                await updateLineupFileDisplay(i);
+                await updateLineupAudioDisplay(i);
             }
         }
 
-        function updateLineupFileDisplay(position) {
+        async function updateLineupFileDisplay(position) {
             const fileData = data.lineupFiles[position];
             const fileNameSpan = document.getElementById(`lineupFileName${position}`);
             const deleteBtn = document.getElementById(`lineupFileDelete${position}`);
 
             if (fileData) {
-                fileNameSpan.innerHTML = `<a href="${fileData.data}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
+                let url = fileData.data;
+                // Load from IndexedDB if needed
+                if (fileData.fileId && !url) {
+                    const fileObj = await getFileFromIDB(fileData.fileId);
+                    if (fileObj) url = fileObj.data;
+                }
+                // Drive file: link to Drive viewer
+                if (fileData.driveFileId) {
+                    url = `https://drive.google.com/file/d/${fileData.driveFileId}/view`;
+                    fileNameSpan.innerHTML = `<a href="${url}" target="_blank" class="text-blue-600 hover:underline">${fileData.name} (Drive)</a>`;
+                } else {
+                    fileNameSpan.innerHTML = `<a href="${url}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
+                }
                 deleteBtn.classList.remove('hidden');
             } else {
                 fileNameSpan.textContent = '';
@@ -800,13 +1153,25 @@
             }
         }
 
-        function updateLineupAudioDisplay(position) {
+        async function updateLineupAudioDisplay(position) {
             const audioData = data.lineupAudio[position];
             const audioNameSpan = document.getElementById(`lineupAudioName${position}`);
             const deleteBtn = document.getElementById(`lineupAudioDelete${position}`);
 
             if (audioData) {
-                audioNameSpan.innerHTML = `<a href="${audioData.data}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`;
+                let url = audioData.data;
+                // Load from IndexedDB if needed
+                if (audioData.fileId && !url) {
+                    const fileObj = await getFileFromIDB(audioData.fileId);
+                    if (fileObj) url = fileObj.data;
+                }
+                // Drive file: link to Drive viewer
+                if (audioData.driveFileId) {
+                    url = `https://drive.google.com/file/d/${audioData.driveFileId}/view`;
+                    audioNameSpan.innerHTML = `<a href="${url}" target="_blank" class="text-purple-600 hover:underline">🎵 ${audioData.name} (Drive)</a>`;
+                } else {
+                    audioNameSpan.innerHTML = `<a href="${url}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`;
+                }
                 deleteBtn.classList.remove('hidden');
             } else {
                 audioNameSpan.textContent = '';
@@ -814,24 +1179,39 @@
             }
         }
 
-        window.uploadLineupFile = (position, event) => {
+        window.uploadLineupFile = async (position, event) => {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Check file size (max 5MB for localStorage)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('File is too large. Maximum size is 5MB.');
+            // Check file size (max 100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 100MB.');
                 event.target.value = '';
                 return;
             }
 
+            const useDrive = false; // Google Drive removed
+            let driveFileId = null;
+
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
+                const url = e.target.result;
+                let fileId = null;
+
+                // Save large files (>50KB) to IndexedDB
+                if (url.length > 50000) {
+                    fileId = `lineupFile_${position}_${Date.now()}`;
+                    await saveFileToIDB(fileId, url, file.type, file.name);
+                    console.log(`Large file saved to IndexedDB for lineup position ${position}:`, file.name);
+                }
+
                 data.lineupFiles[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: e.target.result
+                    data: fileId || driveFileId ? '' : url,
+                    fileId: fileId,
+                    driveFileId: driveFileId
                 };
                 console.log(`File uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
@@ -841,8 +1221,15 @@
             reader.readAsDataURL(file);
         };
 
-        window.deleteLineupFile = (position) => {
+        window.deleteLineupFile = async (position) => {
             if (confirm('Delete this file?')) {
+                // Delete from IndexedDB if it exists
+                const fileData = data.lineupFiles[position];
+                if (fileData && fileData.fileId) {
+                    await deleteFileFromIDB(fileData.fileId);
+                    console.log('Deleted lineup file from IndexedDB:', fileData.fileId);
+                }
+
                 delete data.lineupFiles[position];
                 document.getElementById(`lineupFile${position}`).value = '';
                 saveLocal();
@@ -851,13 +1238,13 @@
             }
         };
 
-        window.uploadLineupAudio = (position, event) => {
+        window.uploadLineupAudio = async (position, event) => {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Check file size (max 10MB for audio)
-            if (file.size > 10 * 1024 * 1024) {
-                alert('Audio file is too large. Maximum size is 10MB.');
+            // Check file size (max 100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                alert('Audio file is too large. Maximum size is 100MB.');
                 event.target.value = '';
                 return;
             }
@@ -869,13 +1256,28 @@
                 return;
             }
 
+            const useDrive = false; // Google Drive removed
+            let driveFileId = null;
+
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
+                const url = e.target.result;
+                let fileId = null;
+
+                // Save large files (>50KB) to IndexedDB
+                if (url.length > 50000) {
+                    fileId = `lineupAudio_${position}_${Date.now()}`;
+                    await saveFileToIDB(fileId, url, file.type, file.name);
+                    console.log(`Large audio saved to IndexedDB for lineup position ${position}:`, file.name);
+                }
+
                 data.lineupAudio[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: e.target.result
+                    data: fileId || driveFileId ? '' : url,
+                    fileId: fileId,
+                    driveFileId: driveFileId
                 };
                 console.log(`MP3 uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
@@ -885,8 +1287,15 @@
             reader.readAsDataURL(file);
         };
 
-        window.deleteLineupAudio = (position) => {
+        window.deleteLineupAudio = async (position) => {
             if (confirm('Delete this MP3?')) {
+                // Delete from IndexedDB if it exists
+                const audioData = data.lineupAudio[position];
+                if (audioData && audioData.fileId) {
+                    await deleteFileFromIDB(audioData.fileId);
+                    console.log('Deleted lineup audio from IndexedDB:', audioData.fileId);
+                }
+
                 delete data.lineupAudio[position];
                 document.getElementById(`lineupAudio${position}`).value = '';
                 saveLocal();
@@ -986,7 +1395,7 @@
 
             // Empty cells for days before month starts
             for (let i = 0; i < firstDay; i++) {
-                html += '<div class="h-16"></div>';
+                html += '<div class="h-24 border-r border-b bg-gray-50"></div>';
             }
 
             // Days of the month
@@ -997,11 +1406,14 @@
                 const isSelected = dateStr === selectedDate;
                 const postCount = postCounts[dateStr] || 0;
 
+                const isLastColumn = (firstDay + day - 1) % 7 === 6;
+                const borderRight = isLastColumn ? '' : 'border-r';
+
                 html += `
                     <div onclick="selectDay('${dateStr}')" 
-                        class="h-16 border rounded p-1 cursor-pointer hover:bg-blue-50 ${isSelected ? 'bg-blue-100 border-blue-500' : 'border-gray-200'} ${isToday ? 'border-blue-300 font-bold' : ''} flex flex-col">
-                        <div class="text-sm ${isToday ? 'text-blue-600' : ''}">${day}</div>
-                        ${postCount > 0 ? `<div class="text-xs text-blue-600 mt-auto">📝 ${postCount}</div>` : ''}
+                        class="h-24 ${borderRight} border-b cursor-pointer hover:bg-blue-50 ${isSelected ? 'bg-blue-100' : ''} ${isToday ? 'bg-blue-50' : 'bg-white'} flex flex-col p-2 relative">
+                        <div class="text-sm font-medium ${isToday ? 'text-blue-600' : isSelected ? 'text-blue-700' : 'text-gray-900'}">${day}</div>
+                        ${postCount > 0 ? `<div class="text-xs text-blue-600 mt-auto flex items-center"><span class="bg-blue-100 text-blue-700 px-1 rounded text-xs">📝 ${postCount}</span></div>` : ''}
                     </div>
                 `;
             }
@@ -1160,15 +1572,47 @@
                 if (addButton && originalButtonText) addButton.innerHTML = originalButtonText;
             }
 
+            const postId = Date.now().toString(36) + Math.random().toString(36).slice(2);
+            let fileId = null;
+            let driveFileId = null;
+            const useDrive = false; // Google Drive removed
+
+            // Save large files to IndexedDB
+            if (file && url.length > 50000) {
+                try {
+                    fileId = `file_${postId}`;
+                    await saveFileToIDB(fileId, url, type, file.name);
+                    console.log(`✅ Large file saved to IndexedDB: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
+                } catch (error) {
+                    console.error('Error saving to IndexedDB:', error);
+                    alert('Error saving large file. Please try again.');
+                    return;
+                }
+            }
+
             const post = {
-                id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+                id: postId,
                 date,
                 caption,
-                url,
+                url: fileId || driveFileId ? '' : url, // Empty if in IndexedDB or Drive
+                fileId: fileId, // Reference to IndexedDB
+                driveFileId: driveFileId, // Reference to Google Drive
                 type,
                 fileName: file ? file.name : '',
                 createdAt: Date.now()
             };
+
+            // Load the URL from IndexedDB or Drive for display
+            if (fileId) {
+                const fileData = await getFileFromIDB(fileId);
+                if (fileData) {
+                    post.url = fileData.data;
+                }
+            } else if (driveFileId) {
+                // For Drive files, we'll store a link to download
+                post.url = `https://drive.google.com/file/d/${driveFileId}/view`;
+                post.driveLink = post.url;
+            }
 
             data.socialPosts.push(post);
             saveLocal();
@@ -1181,8 +1625,16 @@
             loadSocialPosts();
         };
 
-        window.deleteSocialPost = (id) => {
+        window.deleteSocialPost = async (id) => {
             if (!confirm('Delete this post?')) return;
+
+            // Find the post and delete its file from IndexedDB if it exists
+            const post = data.socialPosts.find(p => p.id === id);
+            if (post && post.fileId) {
+                await deleteFileFromIDB(post.fileId);
+                console.log('Deleted file from IndexedDB:', post.fileId);
+            }
+
             data.socialPosts = data.socialPosts.filter(p => p.id !== id);
             saveLocal();
             broadcast();
@@ -1239,10 +1691,10 @@
         };
 
         // Render everything
-        function render() {
+        async function render() {
             renderTasks();
             renderPersonalTasks();
-            loadLineup();
+            await loadLineup();
             loadStaff();
             renderCalendar();
         }
@@ -1296,8 +1748,179 @@
         };
 
         // Initialize
-        loadLocal();
-        render();
+        (async () => {
+            await initDB();
+            await loadLocal();
+            await render();
+            // Initialize storage UI once DOM is ready
+            updateStorageUI();
+            updateLocalStorageInfo();
+        })();
+
+        // -------- Google Drive (Client-side PKCE) helpers --------
+        // Minimal PKCE implementation and upload helper. This is optional; you must
+        // paste your OAuth Client ID into the "OAuth Client ID" box to use it.
+
+        async function sha256(str) {
+            const buf = new TextEncoder().encode(str);
+            const hash = await crypto.subtle.digest('SHA-256', buf);
+            return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function base64UrlEncode(str) {
+            return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        function randomString(length = 64) {
+            const arr = new Uint8Array(length);
+            crypto.getRandomValues(arr);
+            return Array.from(arr).map(n => ('0' + n.toString(16)).slice(-2)).join('');
+        }
+
+        // Store tokens in sessionStorage only
+        function saveTokens(tokens) {
+            sessionStorage.setItem('gdrive_tokens', JSON.stringify(tokens));
+        }
+
+        function loadTokens() {
+            try { return JSON.parse(sessionStorage.getItem('gdrive_tokens') || 'null'); } catch (e) { return null; }
+        }
+
+        async function gdriveSignIn() {
+            const clientId = (document.getElementById('gdriveClientId') || {}).value;
+            if (!clientId) return alert('Enter your OAuth Client ID (Web) first.');
+
+            const state = randomString(12);
+            const codeVerifier = base64UrlEncode(randomString(32));
+            const codeChallenge = await sha256(codeVerifier);
+
+            sessionStorage.setItem('gdrive_state', state);
+            sessionStorage.setItem('gdrive_code_verifier', codeVerifier);
+            sessionStorage.setItem('gdrive_client_id', clientId);
+
+            const redirect = location.origin + location.pathname; // same page
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(clientId)}&response_type=code&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file')}&redirect_uri=${encodeURIComponent(redirect)}&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${state}&prompt=consent&access_type=offline`;
+            window.location.href = authUrl;
+        }
+
+        async function gdriveHandleCallback() {
+            const params = new URLSearchParams(location.search);
+            const code = params.get('code');
+            const state = params.get('state');
+            if (!code) return;
+
+            const savedState = sessionStorage.getItem('gdrive_state');
+            const codeVerifier = sessionStorage.getItem('gdrive_code_verifier');
+            const clientId = sessionStorage.getItem('gdrive_client_id');
+
+            if (state !== savedState) { console.warn('State mismatch'); return; }
+
+            // Exchange code for token
+            try {
+                const redirect = location.origin + location.pathname;
+                const body = new URLSearchParams({
+                    code,
+                    client_id: clientId,
+                    grant_type: 'authorization_code',
+                    redirect_uri: redirect,
+                    code_verifier: codeVerifier
+                });
+
+                const res = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', body });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error_description || JSON.stringify(data));
+                saveTokens(data);
+                sessionStorage.removeItem('gdrive_state');
+                sessionStorage.removeItem('gdrive_code_verifier');
+                // clear code from url
+                history.replaceState({}, '', redirect);
+                updateGDriveStatus();
+                alert('Signed in to Google Drive (temporary tokens stored in session).');
+            } catch (err) {
+                console.error('Token exchange error', err);
+                alert('Error during sign-in. See console.');
+            }
+        }
+
+        function gdriveSignOut() {
+            sessionStorage.removeItem('gdrive_tokens');
+            document.getElementById('gdriveStatus').textContent = 'Not signed in';
+            updateGDriveButtons(false);
+        }
+
+        function updateGDriveButtons(signedIn) {
+            const signInBtn = document.getElementById('gdriveSignInBtn');
+            const signOutBtn = document.getElementById('gdriveSignOutBtn');
+            if (signInBtn) signInBtn.style.display = signedIn ? 'none' : 'inline-block';
+            if (signOutBtn) signOutBtn.style.display = signedIn ? 'inline-block' : 'none';
+        }
+
+        function updateGDriveStatus() {
+            const tokens = loadTokens();
+            const status = document.getElementById('gdriveStatus');
+            if (tokens && tokens.access_token) {
+                status.textContent = 'Signed in (token available)';
+                updateGDriveButtons(true);
+            } else {
+                status.textContent = 'Not signed in';
+                updateGDriveButtons(false);
+            }
+        }
+
+        // Helper: Upload a file to Drive and return the file ID
+        async function gdriveUploadFile(file, accessToken) {
+            return new Promise((resolve, reject) => {
+                const metadata = { name: file.name, mimeType: file.type };
+                const boundary = '-------cloud----' + Math.random().toString(36).slice(2);
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const base64Data = e.target.result.split(',')[1];
+                        const multipart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: ${file.type}\r\nContent-Transfer-Encoding: base64\r\n\r\n${base64Data}\r\n--${boundary}--`;
+
+                        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${accessToken}`,
+                                'Content-Type': `multipart/related; boundary=${boundary}`
+                            },
+                            body: multipart
+                        });
+
+                        const data = await res.json();
+                        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+                        resolve(data.id);
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.onerror = () => reject(new Error('File read error'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function gdriveUploadSelected() {
+            const fileInput = document.getElementById('gdriveFile');
+            const file = fileInput.files[0];
+            if (!file) return alert('Select a file first');
+            const tokens = loadTokens();
+            if (!tokens || !tokens.access_token) return alert('Sign in first');
+
+            try {
+                const fileId = await gdriveUploadFile(file, tokens.access_token);
+                alert(`Uploaded to Drive: ${file.name} (id: ${fileId})`);
+                fileInput.value = '';
+            } catch (err) {
+                console.error('Drive upload error', err);
+                alert('Drive upload failed. See console.');
+            }
+        }
+
+        // If returning from OAuth redirect, handle authorization code
+        (async () => {
+            await gdriveHandleCallback();
+            updateGDriveStatus();
+        })();
     </script>
 </body>
 

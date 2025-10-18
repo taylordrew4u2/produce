@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IndexedDB Storage Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #results {
+            white-space: pre-wrap;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧪 IndexedDB Storage Test</h1>
+    <p>Test the 1GB storage upgrade for the Producer Tasks app.</p>
+
+    <div class="test-section">
+        <h2>1. Check Browser Support</h2>
+        <button onclick="checkSupport()">Check IndexedDB Support</button>
+        <div id="support-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test File Storage</h2>
+        <input type="file" id="testFile" accept="image/*,video/*,audio/*">
+        <button onclick="testFileUpload()">Upload & Store in IndexedDB</button>
+        <button onclick="retrieveFile()">Retrieve & Display</button>
+        <button onclick="deleteFile()">Delete File</button>
+        <div id="file-result"></div>
+        <div id="file-display"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Storage Quota Check</h2>
+        <button onclick="checkStorageQuota()">Check Storage Usage</button>
+        <div id="quota-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Stress Test (Multiple Large Files)</h2>
+        <button onclick="stressTest()">Generate 10 x 5MB Files</button>
+        <button onclick="clearStressTest()">Clear Test Files</button>
+        <div id="stress-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results">Ready to test...</div>
+    </div>
+
+    <script>
+        const DB_NAME = 'producerTasksDB';
+        const STORE_NAME = 'files';
+        let db;
+        let testFileId = 'test_file_001';
+
+        // Initialize DB (same as main app)
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, 1);
+
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        objectStore.createIndex('type', 'type', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // Save file to IndexedDB
+        async function saveFileToIDB(id, data, type, name) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            await store.put({ id, data, type, name, timestamp: Date.now() });
+            return tx.complete;
+        }
+
+        // Get file from IndexedDB
+        async function getFileFromIDB(id) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const request = store.get(id);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Delete file from IndexedDB
+        async function deleteFileFromIDB(id) {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            await store.delete(id);
+            return tx.complete;
+        }
+
+        // Test functions
+        function log(message, isError = false) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = isError ? 'error' : 'success';
+            results.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        async function checkSupport() {
+            const result = document.getElementById('support-result');
+            if (!window.indexedDB) {
+                result.innerHTML = '<span class="error">❌ IndexedDB not supported</span>';
+                log('IndexedDB not supported in this browser', true);
+            } else {
+                result.innerHTML = '<span class="success">✅ IndexedDB supported</span>';
+                log('IndexedDB is supported');
+                try {
+                    await initDB();
+                    log('Database initialized successfully');
+                } catch (err) {
+                    log('Error initializing database: ' + err.message, true);
+                }
+            }
+        }
+
+        async function testFileUpload() {
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const result = document.getElementById('file-result');
+            result.innerHTML = '<span>⏳ Uploading...</span>';
+            log(`Uploading file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = e.target.result;
+                    await saveFileToIDB(testFileId, data, file.type, file.name);
+                    result.innerHTML = '<span class="success">✅ File saved to IndexedDB</span>';
+                    log(`Successfully saved: ${file.name}`);
+                };
+                reader.readAsDataURL(file);
+            } catch (err) {
+                result.innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+                log('Error saving file: ' + err.message, true);
+            }
+        }
+
+        async function retrieveFile() {
+            const result = document.getElementById('file-result');
+            const display = document.getElementById('file-display');
+
+            try {
+                const fileObj = await getFileFromIDB(testFileId);
+                if (!fileObj) {
+                    result.innerHTML = '<span class="error">❌ File not found</span>';
+                    log('File not found in IndexedDB', true);
+                    return;
+                }
+
+                result.innerHTML = `<span class="success">✅ Retrieved: ${fileObj.name}</span>`;
+                log(`Retrieved file: ${fileObj.name}`);
+
+                // Display based on type
+                if (fileObj.type.startsWith('image/')) {
+                    display.innerHTML = `<img src="${fileObj.data}" style="max-width: 100%; margin-top: 10px;">`;
+                } else if (fileObj.type.startsWith('video/')) {
+                    display.innerHTML = `<video controls style="max-width: 100%; margin-top: 10px;"><source src="${fileObj.data}" type="${fileObj.type}"></video>`;
+                } else if (fileObj.type.startsWith('audio/')) {
+                    display.innerHTML = `<audio controls style="margin-top: 10px;"><source src="${fileObj.data}" type="${fileObj.type}"></audio>`;
+                } else {
+                    display.innerHTML = `<a href="${fileObj.data}" download="${fileObj.name}">📎 Download ${fileObj.name}</a>`;
+                }
+            } catch (err) {
+                result.innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+                log('Error retrieving file: ' + err.message, true);
+            }
+        }
+
+        async function deleteFile() {
+            const result = document.getElementById('file-result');
+            const display = document.getElementById('file-display');
+
+            try {
+                await deleteFileFromIDB(testFileId);
+                result.innerHTML = '<span class="success">✅ File deleted</span>';
+                display.innerHTML = '';
+                log('File deleted from IndexedDB');
+            } catch (err) {
+                result.innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+                log('Error deleting file: ' + err.message, true);
+            }
+        }
+
+        async function checkStorageQuota() {
+            const result = document.getElementById('quota-result');
+
+            if (navigator.storage && navigator.storage.estimate) {
+                const estimate = await navigator.storage.estimate();
+                const usedMB = (estimate.usage / 1024 / 1024).toFixed(2);
+                const quotaMB = (estimate.quota / 1024 / 1024).toFixed(2);
+                const percentage = ((estimate.usage / estimate.quota) * 100).toFixed(2);
+
+                result.innerHTML = `
+                    <div class="success">
+                        ✅ Storage Info:<br>
+                        • Used: ${usedMB} MB<br>
+                        • Quota: ${quotaMB} MB<br>
+                        • Percentage: ${percentage}%
+                    </div>
+                `;
+                log(`Storage: ${usedMB} MB / ${quotaMB} MB (${percentage}%)`);
+            } else {
+                result.innerHTML = '<span class="error">❌ Storage API not available</span>';
+                log('Storage quota API not available', true);
+            }
+        }
+
+        async function stressTest() {
+            const result = document.getElementById('stress-result');
+            result.innerHTML = '<span>⏳ Generating test files...</span>';
+            log('Starting stress test: 10 x 5MB files');
+
+            try {
+                for (let i = 1; i <= 10; i++) {
+                    // Generate 5MB of random data in chunks (crypto.getRandomValues max is 65536 bytes)
+                    const size = 5 * 1024 * 1024;
+                    const chunkSize = 65536;
+                    const chunks = [];
+
+                    for (let offset = 0; offset < size; offset += chunkSize) {
+                        const chunk = new Uint8Array(Math.min(chunkSize, size - offset));
+                        crypto.getRandomValues(chunk);
+                        chunks.push(chunk);
+                    }
+
+                    const blob = new Blob(chunks, { type: 'application/octet-stream' });
+
+                    const reader = new FileReader();
+                    await new Promise((resolve) => {
+                        reader.onload = async (e) => {
+                            await saveFileToIDB(`stress_test_${i}`, e.target.result, 'application/octet-stream', `test_file_${i}.bin`);
+                            log(`Saved test file ${i}/10`);
+                            resolve();
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                }
+
+                result.innerHTML = '<span class="success">✅ All 10 files saved (50MB total)</span>';
+                log('Stress test complete: 50MB saved');
+                await checkStorageQuota();
+            } catch (err) {
+                result.innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+                log('Stress test failed: ' + err.message, true);
+            }
+        }
+
+        async function clearStressTest() {
+            const result = document.getElementById('stress-result');
+            result.innerHTML = '<span>⏳ Clearing test files...</span>';
+            log('Clearing stress test files');
+
+            try {
+                for (let i = 1; i <= 10; i++) {
+                    await deleteFileFromIDB(`stress_test_${i}`);
+                }
+                result.innerHTML = '<span class="success">✅ All test files deleted</span>';
+                log('Stress test files cleared');
+                await checkStorageQuota();
+            } catch (err) {
+                result.innerHTML = `<span class="error">❌ Error: ${err.message}</span>`;
+                log('Error clearing test files: ' + err.message, true);
+            }
+        }
+
+        // Initialize on load
+        (async () => {
+            log('Test page loaded');
+            await checkSupport();
+        })();
+    </script>
+</body>
+
+</html>
