@@ -1,332 +1,578 @@
-# 🎤 Producer Tasks - Instant Collaboration# 🎤 Producer Tasks - Instant Collaboration# 🎤 Producer Tasks
+# 🎤 Producer Tasks - Cross-Device File Sync# 🎤 Producer Tasks - Instant Collaboration# 🎤 Producer Tasks - Instant Collaboration# 🎤 Producer Tasks
 
-A **single-file vanilla JavaScript app** for real-time comedy show production management with **offline change tracking**. Zero setup, works offline, syncs when reconnected.A **single-file vanilla JavaScript app** for real-time comedy show production management. Zero setup, works offline, syncs instantly across devices.**Zero-config P2P task manager for comedy show producers**
+A **single-file vanilla JavaScript app** for real-time comedy show production management with **cross-device file synchronization**. Upload files on your phone, access them on your computer!A **single-file vanilla JavaScript app** for real-time comedy show production management with **offline change tracking**. Zero setup, works offline, syncs when reconnected.A **single-file vanilla JavaScript app** for real-time comedy show production management. Zero setup, works offline, syncs instantly across devices.**Zero-config P2P task manager for comedy show producers**
 
-**Live Demo:** [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**Live Demo:** [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)Live at: **<https://taylordrew4u2.github.io/produce/>**
+**Live Demo:** [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**Live Demo:** [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**Live Demo:** [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)Live at: **<https://taylordrew4u2.github.io/produce/>**
 
-## ✨ New: Offline Change Tracking## ✨ Features## 🚀 Features
+## 🆕 **New: Cross-Device File Sync!**## ✨ New: Offline Change Tracking## ✨ Features## 🚀 Features
 
-### 🔄 How Offline Sync Works### 🔄 Real-Time Collaboration- 🔄 **Real-time P2P Sync**: Collaborate instantly via WebRTC - no server needed
+### 📱➡️💻 How File Sync Works### 🔄 How Offline Sync Works### 🔄 Real-Time Collaboration- 🔄 **Real-time P2P Sync**: Collaborate instantly via WebRTC - no server needed
 
-- **Work offline** → All changes tracked automatically
+- **Upload on phone** → Files saved to your phone's browser storage
 
-- **Come back online** → Pending changes sync instantly with team  - **WebRTC P2P sync** via PeerJS - no servers needed- 💾 **Offline First**: Works completely offline with localStorage
+- **Connect devices** → Open same URL on computer and phone  - **Work offline** → All changes tracked automatically
 
-- **Visual indicators** → See exactly what needs to sync
+- **Auto-sync** → Files automatically transfer between devices
 
-- **Smart merging** → Newest changes win, no conflicts- Share URL with team → changes sync instantly- 🔗 **Room Codes**: Share a room code to sync with team members
+- **Manual sync** → Click "Sync Files with Team" for instant transfer- **Come back online** → Pending changes sync instantly with team  - **WebRTC P2P sync** via PeerJS - no servers needed- 💾 **Offline First**: Works completely offline with localStorage
 
-### 📊 Sync Status Indicators- Works completely offline when solo- � **Task Management**: Create, assign, and track tasks by category
+### 🔄 File Sync Features- **Visual indicators** → See exactly what needs to sync
+
+- ✅ **Images** → Photos from phone camera to computer
+
+- ✅ **Videos** → Video uploads sync across devices  - **Smart merging** → Newest changes win, no conflicts- Share URL with team → changes sync instantly- 🔗 **Room Codes**: Share a room code to sync with team members
+
+- ✅ **Audio** → Voice memos and music files
+
+- ✅ **Documents** → PDFs and other file types### 📊 Sync Status Indicators- Works completely offline when solo- � **Task Management**: Create, assign, and track tasks by category
+
+- ✅ **Bi-directional** → Works phone→computer AND computer→phone
 
 - **📝 X pending syncs** → Changes waiting to sync with team
 
-- **✅ Synced X changes** → Confirmation when offline changes are sent- 📅 **Social Media Calendar**: Schedule posts with Instagram helper
+### 📊 Sync Status Indicators
 
-- **Solo/Connected** → Current collaboration status
+- **🔄 Syncing files...** → Transfer in progress- **✅ Synced X changes** → Confirmation when offline changes are sent- 📅 **Social Media Calendar**: Schedule posts with Instagram helper
+
+- **📤 Sending X files...** → Uploading to other device
+
+- **📥 Received: filename** → File successfully transferred- **Solo/Connected** → Current collaboration status
+
+- **✅ Sent X files!** → Transfer complete
 
 ### 📋 Production Management- 🎭 **Show Lineup**: Manage comedian positions 1-5
 
+## ✨ Complete Feature Set
+
 ### 💾 What Gets Tracked Offline
 
-- ✅ **Task changes** → New tasks, completions, deletions- **Task tracking** with categories and assignments- � **Personal Lists**: Separate task lists for Taylor & Jay
+### 🔄 Real-Time Collaboration + File Sync
 
-- ✅ **Lineup updates** → Comedian positions and details  
+- **WebRTC P2P sync** via PeerJS - no servers needed- ✅ **Task changes** → New tasks, completions, deletions- **Task tracking** with categories and assignments- � **Personal Lists**: Separate task lists for Taylor & Jay
 
-- ✅ **Social media posts** → New posts, scheduling changes- **Comedy lineup** management (5 positions with files/audio)- 👥 **Staff Management**: Track team member assignments
+- **Cross-device file sharing** - upload on phone, use on computer
 
-- ✅ **Personal task lists** → Taylor & Jay individual tasks
+- **Offline change tracking** - see what syncs when reconnected- ✅ **Lineup updates** → Comedian positions and details  
 
-- **Social media calendar** with post scheduling- 📱 **Mobile-Friendly**: Works on all devices, no installation required
+- Share URL with team → changes sync instantly
 
-## 🚀 Features
+- Works completely offline when solo- ✅ **Social media posts** → New posts, scheduling changes- **Comedy lineup** management (5 positions with files/audio)- 👥 **Staff Management**: Track team member assignments
 
-- **Personal task lists** for Taylor & Jay
+### 📋 Production Management- ✅ **Personal task lists** → Taylor & Jay individual tasks
 
-### 🔄 Real-Time Collaboration
+- **Task tracking** with categories and assignments
 
-- **WebRTC P2P sync** via PeerJS - no servers needed## 🎯 How It Works
+- **Comedy lineup** management (5 positions with files/audio)- **Social media calendar** with post scheduling- 📱 **Mobile-Friendly**: Works on all devices, no installation required
 
-- **Offline change tracking** - see what syncs when reconnected
+- **Social media calendar** with post scheduling
 
-- Share URL with team → changes sync instantly### 💾 Local File Management
+- **Personal task lists** for Taylor & Jay## 🚀 Features
 
-- Works completely offline when solo
+### 💾 Local File Management + Cross-Device Sync- **Personal task lists** for Taylor & Jay
 
-- **1GB+ storage** via IndexedDB (no quotas!)1. Open <https://taylordrew4u2.github.io/produce/>
+- **1GB+ storage** via IndexedDB (no quotas!)
 
-### 📋 Production Management
+- **Large file support** - videos up to 100MB, images up to 20MB### 🔄 Real-Time Collaboration
 
-- **Task tracking** with categories and assignments- **Large file support** - videos up to 100MB, images up to 20MB2. Share your room code with team members
+- **Drag & drop uploads** - just drop files to save them
 
-- **Comedy lineup** management (5 positions with files/audio)
-
-- **Social media calendar** with post scheduling- **Drag & drop uploads** - just drop files to save them3. Everyone with the same room code sees live updates
-
-- **Personal task lists** for Taylor & Jay
-
-- **Complete offline backup** - export all data + files4. Everything saves to localStorage automatically
-
-### 💾 Local File Management
-
-- **1GB+ storage** via IndexedDB (no quotas!)- **Individual file downloads** - access any stored file5. No login, no backend, no configuration needed
-
-- **Large file support** - videos up to 100MB, images up to 20MB
-
-- **Drag & drop uploads** - just drop files to save them### 📅 Social Media Tools## �️ Tech Stack
+- **Cross-device file sync** - files uploaded anywhere appear everywhere- **WebRTC P2P sync** via PeerJS - no servers needed## 🎯 How It Works
 
 - **Complete offline backup** - export all data + files
 
-- **Individual file downloads** - access any stored file- **Visual calendar** with post counts and scheduling
+- **Individual file downloads** - access any stored file- **Offline change tracking** - see what syncs when reconnected
 
-### 📅 Social Media Tools- **File attachments** for images and videos- **Vanilla JavaScript** - No framework bloat
+### 📅 Social Media Tools- Share URL with team → changes sync instantly### 💾 Local File Management
 
 - **Visual calendar** with post counts and scheduling
 
-- **File attachments** for images and videos- **Instagram schedule helper** - pre-populates 11 strategic posts- **PeerJS** - WebRTC for P2P real-time sync
+- **File attachments** for images and videos (sync between devices!)- Works completely offline when solo
 
 - **Instagram schedule helper** - pre-populates 11 strategic posts
 
-- **Separate captions** - write detailed post content- **Separate captions** - write detailed post content- **localStorage** - Offline persistence
+- **Separate captions** - write detailed post content- **1GB+ storage** via IndexedDB (no quotas!)1. Open <https://taylordrew4u2.github.io/produce/>
 
-## 🎯 Offline Workflow Example- **GitHub Pages** - Free static hosting
+## 🎯 Cross-Device Workflow Examples### 📋 Production Management
 
-### Working Offline## 🚀 Quick Start- **Tailwind CSS** - Utility-first styling
+### Mobile → Desktop File Workflow- **Task tracking** with categories and assignments- **Large file support** - videos up to 100MB, images up to 20MB2. Share your room code with team members
 
-1. **Lose internet connection** → App continues working normally
+1. **On phone** → Upload photos from camera to lineup or social posts
 
-2. **Make changes** → Tasks, lineup updates, new social posts### Option 1: Use Live Version## � Development
+2. **On computer** → Open same URL, files appear automatically- **Comedy lineup** management (5 positions with files/audio)
 
-3. **See pending indicator** → "📝 3 pending syncs" appears in header
+3. **Edit/organize** → Use computer for detailed editing and planning
 
-4. **Click "View"** → See exactly what changed while offline1. Go to **[https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**
+4. **Back to phone** → New files sync back for mobile sharing- **Social media calendar** with post scheduling- **Drag & drop uploads** - just drop files to save them3. Everyone with the same room code sees live updates
 
-### Coming Back Online2. Share the URL with your team```bash
+### Team Collaboration with Files- **Personal task lists** for Taylor & Jay
 
-1. **Reconnect to internet** → App detects connection
+1. **Team member uploads** → Video or audio files from their device
 
-2. **Join team room** → Other contributors connect3. Start collaborating instantly!# Generate PWA icons (optional)
+2. **Auto-notification** → "📥 Received: video.mp4" appears for everyone- **Complete offline backup** - export all data + files4. Everything saves to localStorage automatically
 
-3. **Auto-sync** → All offline changes broadcast automatically  
+3. **Instant access** → All team members can view/download the file
 
-4. **Success notification** → "✅ Synced 3 offline changes with team"npm install
+4. **No email needed** → Direct device-to-device file sharing### 💾 Local File Management
 
-5. **Clean state** → Pending indicator disappears
+### Content Creation Workflow  - **1GB+ storage** via IndexedDB (no quotas!)- **Individual file downloads** - access any stored file5. No login, no backend, no configuration needed
 
-### Option 2: Run Locallynpm run icons
+1. **Shoot content** → Record videos/photos on phone during events
 
-### Team Member Perspective
+2. **Instant sync** → Files appear on team's computers automatically- **Large file support** - videos up to 100MB, images up to 20MB
 
-1. **See live updates** → Offline changes appear in real-time```bash
+3. **Edit and post** → Use computer tools while files sync in background
 
-2. **No conflicts** → Smart merging handles simultaneous edits
+4. **Share results** → Finished content syncs back to all devices- **Drag & drop uploads** - just drop files to save them### 📅 Social Media Tools## �️ Tech Stack
 
-3. **Full context** → All changes include timestamps and descriptions# Clone the repository# Deploy - just push to main branch
+## 📖 How Cross-Device File Sync Works- **Complete offline backup** - export all data + files
 
-## 📖 How It Worksgit clone <https://github.com/taylordrew4u2/produce.gitgit> push origin main
-
-### Real-Time Sync + Offline Detectioncd produce```
-
-- **PeerJS WebRTC** handles peer-to-peer connections
-
-- **Automatic offline detection** using `navigator.onLine` + connection count
-
-- **Change tracking** stores what changed while disconnected
-
-- **Smart sync** broadcasts pending changes when reconnected# Serve the single HTML fileGitHub Actions automatically deploys `index.html` to GitHub Pages.
-
-### Offline Change Detectionpython3 -m http.server 8080
+### Technical Architecture- **Individual file downloads** - access any stored file- **Visual calendar** with post counts and scheduling
 
 ```javascript
 
-// Track changes when offline or no peers connected# OR use any web server (nginx, Apache, etc.)## 🔒 Privacy
+// Automatic file sync when devices connect### 📅 Social Media Tools- **File attachments** for images and videos- **Vanilla JavaScript** - No framework bloat
 
-function trackOfflineChange(type, itemId) {
+peer.on('connection', (conn) => {
 
-  if (!isOnline || connections.length === 0) {
+  // After data sync, check for missing files- **Visual calendar** with post counts and scheduling
 
-    offlineChanges[changeKey] = {
+  setTimeout(() => {
 
-      type: 'tasks',# Open in browserAll data stays in your browser's localStorage. P2P sync uses WebRTC relay servers only for connection establishment - no data is stored on servers.
+    requestMissingFiles(conn) // "What files do you have?"- **File attachments** for images and videos- **Instagram schedule helper** - pre-populates 11 strategic posts- **PeerJS** - WebRTC for P2P real-time sync
 
-      itemId: '123', 
+  }, 2000)
 
-      timestamp: Date.now(),open http://localhost:8080
+})- **Instagram schedule helper** - pre-populates 11 strategic posts
 
-      description: 'Updated task 123'
 
-    }```## 📄 License
 
-  }
+// Handle file sharing requests- **Separate captions** - write detailed post content- **Separate captions** - write detailed post content- **localStorage** - Offline persistence
+
+conn.on('data', (message) => {
+
+  if (message.type === 'file-request') {## 🎯 Offline Workflow Example- **GitHub Pages** - Free static hosting
+
+    // Send files the other device doesn't have
+
+    sendMissingFiles(message.theirFiles, conn)### Working Offline## 🚀 Quick Start- **Tailwind CSS** - Utility-first styling
+
+  } else if (message.type === 'file-data') {
+
+    // Receive and save file from other device1. **Lose internet connection** → App continues working normally
+
+    saveReceivedFile(message.file)
+
+  }2. **Make changes** → Tasks, lineup updates, new social posts### Option 1: Use Live Version## � Development
+
+})
+
+```3. **See pending indicator** → "📝 3 pending syncs" appears in header
+
+
+
+### File Transfer Process4. **Click "View"** → See exactly what changed while offline1. Go to **[https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**
+
+1. **Device A connects** → Sends list of files it has
+
+2. **Device B compares** → Identifies missing files### Coming Back Online2. Share the URL with your team```bash
+
+3. **Device B requests** → "Send me files X, Y, Z"
+
+4. **Device A sends** → Transfers actual file data via WebRTC1. **Reconnect to internet** → App detects connection
+
+5. **Device B saves** → Files appear in IndexedDB and UI updates
+
+2. **Join team room** → Other contributors connect3. Start collaborating instantly!# Generate PWA icons (optional)
+
+### Storage Architecture
+
+```3. **Auto-sync** → All offline changes broadcast automatically  
+
+┌─ Phone Browser ────────────────┐    ┌─ Computer Browser ──────────┐
+
+│ • IndexedDB: photos, videos    │◄──►│ • IndexedDB: same files     │4. **Success notification** → "✅ Synced 3 offline changes with team"npm install
+
+│ • localStorage: metadata       │    │ • localStorage: metadata    │  
+
+│ • Real-time P2P connection ────┼────┤ • Real-time P2P connection  │5. **Clean state** → Pending indicator disappears
+
+└────────────────────────────────┘    └─────────────────────────────┘
+
+           ▲                                          ▲### Option 2: Run Locallynpm run icons
+
+           │                                          │
+
+           ▼                                          ▼### Team Member Perspective
+
+    📱 Upload files                           💻 Files appear
+
+    Camera, microphone                        Edit, organize1. **See live updates** → Offline changes appear in real-time```bash
+
+```
+
+2. **No conflicts** → Smart merging handles simultaneous edits
+
+## 🚀 Quick Start for File Sync
+
+3. **Full context** → All changes include timestamps and descriptions# Clone the repository# Deploy - just push to main branch
+
+### Option 1: Phone + Computer Setup
+
+1. **On phone** → Go to [https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)## 📖 How It Worksgit clone <https://github.com/taylordrew4u2/produce.gitgit> push origin main
+
+2. **Copy URL** → Note the full URL (includes room code)
+
+3. **On computer** → Open the exact same URL### Real-Time Sync + Offline Detectioncd produce```
+
+4. **Upload test file** → Try uploading a photo on phone
+
+5. **Watch magic** → File appears on computer automatically!- **PeerJS WebRTC** handles peer-to-peer connections
+
+### Option 2: Team File Sharing- **Automatic offline detection** using `navigator.onLine` + connection count
+
+1. **Share URL** → Send the same link to all team members
+
+2. **Everyone connects** → All devices join the same room- **Change tracking** stores what changed while disconnected
+
+3. **Upload anywhere** → Files uploaded by anyone appear for everyone
+
+4. **Manual sync** → Click "Sync Files with Team" if needed- **Smart sync** broadcasts pending changes when reconnected# Serve the single HTML fileGitHub Actions automatically deploys `index.html` to GitHub Pages.
+
+## 💾 Cross-Device File Management### Offline Change Detectionpython3 -m http.server 8080
+
+### 🔄 Automatic Sync (Recommended)```javascript
+
+- **Happens automatically** when devices connect
+
+- **No user action needed** - files just appear// Track changes when offline or no peers connected# OR use any web server (nginx, Apache, etc.)## 🔒 Privacy
+
+- **Background process** - doesn't interrupt workflow
+
+- **Smart detection** - only transfers missing filesfunction trackOfflineChange(type, itemId) {
+
+### 🎛️ Manual Sync Controls  if (!isOnline || connections.length === 0) {
+
+1. **"Sync Files with Team"** → Force immediate sync check
+
+2. **Status indicators** → See transfer progress in real-time      offlineChanges[changeKey] = {
+
+3. **Individual download** → Save specific files locally
+
+4. **Bulk export** → Download all files as backup      type: 'tasks',# Open in browserAll data stays in your browser's localStorage. P2P sync uses WebRTC relay servers only for connection establishment - no data is stored on servers.
+
+### 📱 Mobile-Specific Tips      itemId: '123'
+
+1. **Upload immediately** → Don't wait - files sync in background
+
+2. **Use camera button** → Quick photo uploads from mobile camera      timestamp: Date.now(),open <http://localhost:8080>
+
+3. **Check sync status** → Look for transfer indicators in header
+
+4. **Keep app open** → Sync works best when app stays active      description: 'Updated task 123'
+
+### 💻 Desktop-Specific Tips    }```## 📄 License
+
+1. **Drag and drop** → Bulk file uploads from computer folders
+
+2. **Right-click save** → Download files to local computer storage  }
+
+3. **File organization** → Use computer for detailed file management
+
+4. **Multiple monitors** → Keep app open while working with files}
+
+## 🛠️ Technical Architecture
+
+### Core Technologies// Auto-sync when reconnected## 📖 How It WorksMIT
+
+- **Vanilla JavaScript** - No frameworks, maximum compatibility
+
+- **PeerJS** - WebRTC peer-to-peer networking + file transferpeer.on('connection', () => {
+
+- **IndexedDB** - Client-side large file storage with cross-device sync
+
+- **localStorage** - Metadata and offline change persistence  if (Object.keys(offlineChanges).length > 0) {
+
+- **File API** - Reading uploads and handling file transfers
+
+- **Tailwind CSS** - Utility-first styling via CDN    broadcast(null, 'offline-sync')### Real-Time Sync
+
+### File Transfer Implementation    showSyncNotification()- **PeerJS WebRTC** handles peer-to-peer connections
+
+```javascript
+
+// Enhanced file sync system  }- **Room codes** stored in localStorage for persistence
+
+const fileTransferChunks = 64 * 1024 // 64KB chunks for large files
+
+const maxConcurrentTransfers = 3      // Prevent overwhelming connections})- **Metadata sync** - task updates broadcast to all peers
+
+
+
+// File transfer with progress tracking```- **File references** shared, not the files themselves
+
+async function transferFile(file, conn) {
+
+  const chunks = Math.ceil(file.data.length / fileTransferChunks)
+
+  
+
+  for (let i = 0; i < chunks; i++) {### Storage Architecture### Storage Architecture
+
+    const chunk = file.data.slice(
+
+      i * fileTransferChunks, ``````
+
+      (i + 1) * fileTransferChunks
+
+    )┌─ localStorage ─────────────────┐    ┌─ IndexedDB ──────────────┐
+
+    
+
+    conn.send({│ • Tasks & assignments          │    │ • Large files (>50KB)   │┌─ localStorage ─────────────────┐    ┌─ IndexedDB ──────────────┐
+
+      type: 'file-chunk',
+
+      fileId: file.id,│ • Lineup text & metadata       │    │ • Images, videos, audio  ││ • Tasks & assignments          │    │ • Large files (>50KB)   │
+
+      chunkIndex: i,
+
+      totalChunks: chunks,│ • Social media post refs       │    │ • File ID references     ││ • Lineup text & metadata       │    │ • Images, videos, audio  │
+
+      data: chunk
+
+    })│ • Room ID & peer info          │    │ • Up to 1GB+ capacity   ││ • Social media post refs       │    │ • File ID references     │
+
+    
+
+    // Small delay between chunks│ • Offline change tracking      │    │ • Offline file changes   ││ • Room ID & peer info          │    │ • Up to 1GB+ capacity   │
+
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+  }└────────────────────────────────┘    └──────────────────────────┘└────────────────────────────────┘    └──────────────────────────┘
 
 }
 
-
-
-// Auto-sync when reconnected## 📖 How It WorksMIT
-
-peer.on('connection', () => {
-
-  if (Object.keys(offlineChanges).length > 0) {
-
-    broadcast(null, 'offline-sync')### Real-Time Sync
-
-    showSyncNotification()- **PeerJS WebRTC** handles peer-to-peer connections
-
-  }- **Room codes** stored in localStorage for persistence
-
-})- **Metadata sync** - task updates broadcast to all peers
-
-```- **File references** shared, not the files themselves
-
-
-
-### Storage Architecture### Storage Architecture
-
 ``````
 
-┌─ localStorage ─────────────────┐    ┌─ IndexedDB ──────────────┐
+### Cross-Device Architecture```
 
-│ • Tasks & assignments          │    │ • Large files (>50KB)   │┌─ localStorage ─────────────────┐    ┌─ IndexedDB ──────────────┐
+- **Device discovery** via shared room URLs
 
-│ • Lineup text & metadata       │    │ • Images, videos, audio  ││ • Tasks & assignments          │    │ • Large files (>50KB)   │
+- **File inventory sync** - devices exchange file lists## 🚀 Quick Start
 
-│ • Social media post refs       │    │ • File ID references     ││ • Lineup text & metadata       │    │ • Images, videos, audio  │
+- **Smart transfer** - only send missing files
 
-│ • Room ID & peer info          │    │ • Up to 1GB+ capacity   ││ • Social media post refs       │    │ • File ID references     │
+- **Chunk-based transfer** - handle large files reliably### File Upload Flow
 
-│ • Offline change tracking      │    │ • Offline file changes   ││ • Room ID & peer info          │    │ • Up to 1GB+ capacity   │
+- **Progress tracking** - real-time transfer status
 
-└────────────────────────────────┘    └──────────────────────────┘└────────────────────────────────┘    └──────────────────────────┘
+- **Error recovery** - retry failed transfers automatically### Option 1: Use Live Version1. **Select file** → Read as Data URL
 
-```
+## 🎯 Usage Workflows1. Go to **[https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**2. **Size check** → >50KB goes to IndexedDB, smaller stays in localStorage  
 
-```
+### Content Creator Workflow2. Share the URL with your team3. **Generate ID** → Unique reference for the file
 
-## 🚀 Quick Start
+1. **Mobile capture** → Record videos, take photos on phone
 
-### File Upload Flow
+2. **Instant access** → Files appear on computer for editing3. Start collaborating instantly!4. **Store & sync** → File saved locally, ID broadcasted to peers
 
-### Option 1: Use Live Version1. **Select file** → Read as Data URL
+3. **Desktop editing** → Use full-screen tools to enhance content  
 
-1. Go to **[https://taylordrew4u2.github.io/produce/](https://taylordrew4u2.github.io/produce/)**2. **Size check** → >50KB goes to IndexedDB, smaller stays in localStorage  
+4. **Mobile sharing** → Final files sync back to phone for social posting4. **Offline changes sync automatically when reconnected**5. **Display** → Load file data when needed for preview
 
-2. Share the URL with your team3. **Generate ID** → Unique reference for the file
+### Event Documentation### Option 2: Run Locally## 💾 Local File Management Guide
 
-3. Start collaborating instantly!4. **Store & sync** → File saved locally, ID broadcasted to peers
+1. **Live capture** → Multiple team members upload from event
 
-4. **Offline changes sync automatically when reconnected**5. **Display** → Load file data when needed for preview
+2. **Real-time collection** → All files appear in central collection```bash
 
-### Option 2: Run Locally## 💾 Local File Management Guide
+3. **Immediate sorting** → Organize files while event continues
+
+4. **Quick sharing** → Best content ready for instant posting# Clone the repository### 🗂️ Storage Options
+
+### Remote Team Coordination  git clone <https://github.com/taylordrew4u2/produce.git|> Method | Capacity | Persistence | Use Case |
+
+1. **Distributed capture** → Team members in different locations
+
+2. **Centralized storage** → All files accessible to everyonecd produce|--------|----------|-------------|----------|
+
+3. **Version control** → Latest files always available
+
+4. **Backup redundancy** → Files stored on multiple devices| **IndexedDB** | ~1GB+ | High* | Large files, videos, bulk storage |
+
+## 🔐 Privacy & Security# Serve the single HTML file  | **localStorage** | ~10MB | Medium | Task data, small images, metadata |
+
+### Data Storage & Transferpython3 -m http.server 8080| **Export/Import** | Unlimited | Perfect | Backups, device transfers |
+
+- **All data stays local** - files stored in each device's browser
+
+- **P2P file transfer** - direct device-to-device, no server storage
+
+- **WebRTC encryption** - file transfers are encrypted in transit
+
+- **No cloud storage** - files never uploaded to external servers# Open in browser*\* Click "Request Persistent Storage" for maximum reliability*
+
+- **Room-based access** - only devices with same URL can sync
+
+open <http://localhost:8080>
+
+### File Transfer Security
+
+- **Direct connections** - WebRTC peer-to-peer encryption```### 📤 Export & Backup
+
+- **No intermediary** - files never pass through external servers
+
+- **Local control** - each device manages its own file storage1. **Download Backup File** → All tasks, lineup, social posts as JSON
+
+- **Access control** - room URLs provide basic sharing permissions
+
+- **No tracking** - no analytics or user behavior monitoring## 💾 Local File Management + Offline Sync2. **Download All Files as Zip** → Individual downloads of all stored media
+
+## 📱 Platform Support3. **Show File Inventory** → Browse and download specific files
+
+### Desktop Browsers### 🗂️ Storage Options
+
+- ✅ **Chrome 60+** - Full support with file sync
+
+- ✅ **Firefox 55+** - Full support with file sync| Method | Capacity | Persistence | Offline Sync |### 📥 Import & Restore
+
+- ✅ **Safari 11+** - Full support with file sync
+
+- ✅ **Edge 79+** - Full support with file sync|--------|----------|-------------|--------------|1. **Load Backup File** → Restore from exported JSON
+
+### Mobile Browsers| **IndexedDB** | ~1GB+ | High* | ✅ Tracked |2. **Drag & Drop** → Add individual files to storage
+
+- ✅ **iOS Safari** - Full file sync support (limited storage)
+
+- ✅ **Chrome Mobile** - Full support with file sync| **localStorage** | ~10MB | Medium | ✅ Tracked |3. **File uploads** → Via lineup or social media forms
+
+- ✅ **Samsung Internet** - Full support  
+
+- ⚠️ **Mobile limitations** - Some browsers limit storage quotas| **Export/Import** | Unlimited | Perfect | N/A |
+
+### File Type Support### 🔄 File Sync Behavior
+
+- ✅ **Images** - JPEG, PNG, GIF, WebP (up to 20MB)
+
+- ✅ **Videos** - MP4, WebM, MOV (up to 100MB) ### 🔄 Offline Sync Behavior- **File metadata** syncs between peers (names, IDs, captions)
+
+- ✅ **Audio** - MP3, WAV, AAC, OGG (up to 50MB)
+
+- ✅ **Documents** - PDF, TXT (up to 10MB)- **File metadata** syncs between peers (names, IDs, captions)- **Actual files** stay local to each device
+
+## 🔧 Development & Testing- **Actual files** stay local to each device- **Access model** → Each user manages their own file storage
+
+### Test File Sync Locally- **Offline changes** tracked and synced when reconnected- **Sharing tip** → Use export tools to share files between team members
 
 ```bash
 
-# Clone the repository### 🗂️ Storage Options
+# Start local server- **Change indicators** show pending sync status
 
-git clone https://github.com/taylordrew4u2/produce.git| Method | Capacity | Persistence | Use Case |
-
-cd produce|--------|----------|-------------|----------|
-
-| **IndexedDB** | ~1GB+ | High* | Large files, videos, bulk storage |
-
-# Serve the single HTML file  | **localStorage** | ~10MB | Medium | Task data, small images, metadata |
-
-python3 -m http.server 8080| **Export/Import** | Unlimited | Perfect | Backups, device transfers |
-
-
-
-# Open in browser*\* Click "Request Persistent Storage" for maximum reliability*
-
-open http://localhost:8080
-
-```### 📤 Export & Backup
-
-1. **Download Backup File** → All tasks, lineup, social posts as JSON
-
-## 💾 Local File Management + Offline Sync2. **Download All Files as Zip** → Individual downloads of all stored media
-
-3. **Show File Inventory** → Browse and download specific files
-
-### 🗂️ Storage Options
-
-| Method | Capacity | Persistence | Offline Sync |### 📥 Import & Restore
-
-|--------|----------|-------------|--------------|1. **Load Backup File** → Restore from exported JSON
-
-| **IndexedDB** | ~1GB+ | High* | ✅ Tracked |2. **Drag & Drop** → Add individual files to storage
-
-| **localStorage** | ~10MB | Medium | ✅ Tracked |3. **File uploads** → Via lineup or social media forms
-
-| **Export/Import** | Unlimited | Perfect | N/A |
-
-### 🔄 File Sync Behavior
-
-### 🔄 Offline Sync Behavior- **File metadata** syncs between peers (names, IDs, captions)
-
-- **File metadata** syncs between peers (names, IDs, captions)- **Actual files** stay local to each device
-
-- **Actual files** stay local to each device- **Access model** → Each user manages their own file storage
-
-- **Offline changes** tracked and synced when reconnected- **Sharing tip** → Use export tools to share files between team members
-
-- **Change indicators** show pending sync status
+python3 -m http.server 8080
 
 - **Smart merging** prevents conflicts on reconnection## 🎯 Usage Workflows
 
+# Test with multiple devices:
+
+# 1. Open http://localhost:8080 on computer
+
+# 2. Open same URL on phone (use computer's IP)
+
+# 3. Upload file on one device## 🛠️ Technical Architecture### Setting Up a New Show
+
+# 4. Check if it appears on other device
+
+```1. **Share room code** → Send app URL to team members
 
 
-## 🛠️ Technical Architecture### Setting Up a New Show
 
-1. **Share room code** → Send app URL to team members
+### Expected File Sync Behavior### Core Technologies2. **Create lineup** → Add comedians to positions 1-5
 
-### Core Technologies2. **Create lineup** → Add comedians to positions 1-5
+1. **Upload file** on Device A
 
-- **Vanilla JavaScript** - No frameworks, maximum compatibility3. **Upload materials** → Add bios, headshots, demo audio
+2. **Auto-detection** - Device B detects new file reference  - **Vanilla JavaScript** - No frameworks, maximum compatibility3. **Upload materials** → Add bios, headshots, demo audio
 
-- **PeerJS** - WebRTC peer-to-peer networking4. **Plan social media** → Use calendar to schedule posts
+3. **Transfer request** - Device B requests the actual file
 
-- **IndexedDB** - Client-side large file storage5. **Track tasks** → Assign production tasks to team members
+4. **File transfer** - Device A sends file data via WebRTC- **PeerJS** - WebRTC peer-to-peer networking4. **Plan social media** → Use calendar to schedule posts
 
-- **localStorage** - Metadata and offline change persistence
+5. **Storage & display** - Device B saves file and updates UI
 
-- **Tailwind CSS** - Utility-first styling via CDN### Social Media Campaign
+6. **Status notification** - "📥 Received: filename" appears- **IndexedDB** - Client-side large file storage5. **Track tasks** → Assign production tasks to team members
 
-1. **Click "📅 Load Instagram Schedule"** → Pre-loads 11 strategic posts
+
+
+### Debugging File Sync- **localStorage** - Metadata and offline change persistence
+
+```javascript
+
+// Check file sync status in browser console- **Tailwind CSS** - Utility-first styling via CDN### Social Media Campaign
+
+console.log('Connected peers:', connections.length)
+
+console.log('Our files:', await getAllFileIDs())1. **Click "📅 Load Instagram Schedule"** → Pre-loads 11 strategic posts
+
+console.log('IndexedDB status:', !!db)
 
 ### Browser APIs Used2. **Customize dates** → Adjust posting schedule for your show date
 
-- **File API** - Reading uploaded files3. **Add media** → Upload images/videos for each post
+// Monitor file transfer messages
 
-- **Storage Manager** - Persistent storage requests4. **Write captions** → Detailed copy for each social post
+peer.on('connection', (conn) => {- **File API** - Reading uploaded files3. **Add media** → Upload images/videos for each post
 
-- **WebRTC** - Real-time peer connections5. **Track engagement** → Use tasks to monitor performance
+  conn.on('data', (data) => {
 
-- **IndexedDB** - Structured client-side database
+    if (data.type.startsWith('file-')) {- **Storage Manager** - Persistent storage requests4. **Write captions** → Detailed copy for each social post
+
+      console.log('File sync message:', data.type)
+
+    }- **WebRTC** - Real-time peer connections5. **Track engagement** → Use tasks to monitor performance
+
+  })
+
+})- **IndexedDB** - Structured client-side database
+
+```
 
 - **Navigator.onLine** - Online/offline status detection### File Management Best Practices
 
+## 🚀 Deployment
+
 - **addEventListener('online/offline')** - Connection monitoring1. **Request persistent storage** → Click button in Storage panel
 
-2. **Regular backups** → Export data weekly
+### GitHub Pages (Recommended)
 
-### Offline Change Architecture3. **Compress videos** → Keep under 100MB for best performance
+1. **Fork this repository**2. **Regular backups** → Export data weekly
 
-```javascript4. **Use drag & drop** → Fastest way to add multiple files
+2. **Enable GitHub Pages** in settings  
 
-// Change tracking structure in localStorage5. **Clean up regularly** → Use "🧹 Cleanup" to remove unused files
+3. **Deploy from main branch**### Offline Change Architecture3. **Compress videos** → Keep under 100MB for best performance
 
-offlineChanges = {
+4. **File sync works automatically** - no server config needed
 
-  'tasks_123': {## 🛠️ Technical Architecture
+5. **Share URLs** include automatic room codes for file sync```javascript4. **Use drag & drop** → Fastest way to add multiple files
 
-    type: 'tasks',
+## 📄 License// Change tracking structure in localStorage5. **Clean up regularly** → Use "🧹 Cleanup" to remove unused files
 
-    itemId: '123',### Core Technologies
+**MIT License** - Use freely for personal or commercial projects.offlineChanges = {
 
-    timestamp: 1634567890123,- **Vanilla JavaScript** - No frameworks, maximum compatibility
+## 🎭 Built For Content Creators  'tasks_123': {## 🛠️ Technical Architecture
 
-    description: 'Updated task 123'- **PeerJS** - WebRTC peer-to-peer networking
+Perfect for comedy producers and content creators who need:    type: 'tasks',
 
-  },- **IndexedDB** - Client-side large file storage
+- **Mobile capture** → Phone camera/microphone to computer editing
+
+- **Team file sharing** → Direct device-to-device file transfer    itemId: '123',### Core Technologies
+
+- **Instant access** → No waiting for uploads/downloads
+
+- **No cloud costs** → Free peer-to-peer file sharing    timestamp: 1634567890123,- **Vanilla JavaScript** - No frameworks, maximum compatibility
+
+- **Privacy control** → Files never leave your devices
+
+- **Reliable sync** → Works on spotty internet connections    description: 'Updated task 123'- **PeerJS** - WebRTC peer-to-peer networking
+
+**Create anywhere, edit everywhere! 📱➡️💻**  },- **IndexedDB** - Client-side large file storage
 
   'lineup': {- **localStorage** - Metadata and small data persistence
 
