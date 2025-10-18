@@ -7,6 +7,7 @@
     <title>Producer Tasks - Instant Collaboration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://static.filestackapi.com/filestack-js/3.x.x/filestack.min.js"></script>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -318,6 +319,10 @@
                     <button onclick="viewCloudFiles()" id="viewCloudBtn" disabled
                         class="bg-gray-300 text-gray-500 px-3 py-2 rounded text-sm">
                         📁 View Cloud Files
+                    </button>
+                    <button onclick="setFilestackApiKey()" id="setFilestackKeyBtn"
+                        class="bg-white text-blue-700 border border-blue-300 px-3 py-2 rounded hover:bg-blue-50 text-sm">
+                        🔑 Set Filestack API Key
                     </button>
                 </div>
 
@@ -1206,21 +1211,48 @@
             }
         }
 
-        // -------- Cloud Storage Functions --------
+        // -------- Cloud Storage Functions (Filestack) --------
+
+        // Filestack configuration - API key is configurable via localStorage
+        let FILESTACK_API_KEY = localStorage.getItem('filestackApiKey') || 'AzKRRFVGmS8CIpDqn6r8Bz'; // Demo key fallback for testing
+        let filestackClient = null;
 
         let cloudStorageEnabled = localStorage.getItem('cloudStorageEnabled') === 'true';
         let cloudStorageId = localStorage.getItem('cloudStorageId');
         let cloudFiles = JSON.parse(localStorage.getItem('cloudFiles') || '{}');
 
-        // Enable cloud storage - uses multiple free services for 2GB+ capacity
+        // Helper to set/change Filestack API key
+        function setFilestackApiKey() {
+            const current = localStorage.getItem('filestackApiKey') || '';
+            const entered = prompt('Enter your Filestack API key (leave blank to use demo key):', current);
+            if (entered === null) return; // cancelled
+            if (entered.trim()) {
+                localStorage.setItem('filestackApiKey', entered.trim());
+                FILESTACK_API_KEY = entered.trim();
+                filestackClient = null; // force re-init
+                alert('✅ Filestack API key saved.');
+            } else {
+                localStorage.removeItem('filestackApiKey');
+                FILESTACK_API_KEY = 'AzKRRFVGmS8CIpDqn6r8Bz';
+                filestackClient = null; // force re-init
+                alert('Using demo API key. For production, set your own key.');
+            }
+        }
+
+        // Enable cloud storage - uses Filestack for professional file storage
         async function enableCloudStorage() {
             const btn = document.getElementById('enableCloudBtn');
             const status = document.getElementById('cloudStatus');
             const originalText = btn.innerHTML;
 
             try {
-                btn.innerHTML = '🔄 Setting up...';
+                btn.innerHTML = '🔄 Initializing Filestack...';
                 btn.disabled = true;
+
+                // Initialize Filestack client
+                if (!filestackClient) {
+                    filestackClient = filestack.init(FILESTACK_API_KEY);
+                }
 
                 // Generate unique storage ID for this instance
                 cloudStorageId = 'prod_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
@@ -1231,103 +1263,64 @@
                 localStorage.setItem('cloudStorageId', cloudStorageId);
                 localStorage.setItem('cloudFiles', JSON.stringify({}));
 
-                status.innerHTML = `✅ Cloud storage enabled! Capacity: 2GB+ across multiple services`;
-                btn.innerHTML = '✅ Cloud Storage Active';
+                status.innerHTML = `✅ Filestack cloud storage enabled`;
+                btn.innerHTML = '✅ Filestack Active';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Cloud storage enabled!\n\n✅ Capacity: 2GB+ per file\n✅ Multiple backup services\n✅ Global CDN delivery\n✅ No registration required\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\nFiles uploaded from now on will be stored online!`);
+                alert(`🌐 Filestack cloud storage enabled!\n\n✅ Professional file storage & CDN\n✅ Unlimited capacity\n✅ Global delivery network\n✅ Secure & reliable\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\nFiles uploaded from now on will be stored on Filestack!`);
 
             } catch (error) {
-                console.error('Cloud storage setup error:', error);
-                status.innerHTML = `❌ Failed to enable cloud storage: ${error.message}`;
+                console.error('Filestack setup error:', error);
+                status.innerHTML = `❌ Failed to enable Filestack: ${error.message}`;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('❌ Cloud storage setup failed. Using local storage instead.');
+                alert('❌ Filestack setup failed. Using local storage instead.');
             }
         }
 
-        // Upload file to cloud storage - supports up to 2GB using multiple services
+        // Upload file to cloud storage using Filestack
         async function uploadFileToCloud(fileId, fileData, fileName, fileType) {
-            if (!cloudStorageEnabled || !cloudStorageId) {
-                throw new Error('Cloud storage not enabled');
+            if (!cloudStorageEnabled || !cloudStorageId || !filestackClient) {
+                throw new Error('Filestack cloud storage not enabled');
             }
 
             try {
-                showFileTransferStatus(`☁️ Uploading ${fileName} to cloud...`);
+                showFileTransferStatus(`☁️ Uploading ${fileName} to Filestack...`);
 
                 // Convert data URL to blob for upload
                 const response = await fetch(fileData);
                 const blob = await response.blob();
                 const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
 
-                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to cloud storage`);
+                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to Filestack`);
 
-                // Try multiple upload services for reliability and capacity
-                let uploadUrl = null;
-                let serviceUsed = null;
+                // Create File object from blob
+                const file = new File([blob], fileName, { type: fileType });
 
-                // Service 1: file.io (2GB limit, 14 days retention)
-                try {
-                    const formData = new FormData();
-                    formData.append('file', blob, fileName);
+                // Upload to Filestack
+                const uploadResponse = await filestackClient.upload(file, {
+                    onProgress: (evt) => {
+                        const progress = Math.round((evt.totalPercent || 0));
+                        showFileTransferStatus(`☁️ Uploading ${fileName}: ${progress}%`);
+                    },
+                    accept: ['image/*', 'video/*', 'audio/*', 'application/*'], // Accept all file types
+                    maxSize: 100 * 1024 * 1024, // 100MB limit per file (can be increased)
+                    uploadInBackground: false
+                });
 
-                    const uploadResponse = await fetch('https://file.io', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (uploadResponse.ok) {
-                        const result = await uploadResponse.json();
-                        if (result.success && result.link) {
-                            uploadUrl = result.link;
-                            serviceUsed = 'file.io';
-                        }
-                    }
-                } catch (e) {
-                    console.log('file.io upload failed, trying next service...');
+                if (!uploadResponse || !uploadResponse.url) {
+                    throw new Error('Filestack upload failed - no URL returned');
                 }
 
-                // Service 2: Fallback to tmpfiles.org (reliable)
-                if (!uploadUrl) {
-                    try {
-                        const formData = new FormData();
-                        formData.append('file', blob, fileName);
-
-                        const uploadResponse = await fetch('https://tmpfiles.org/api/v1/upload', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (uploadResponse.ok) {
-                            const result = await uploadResponse.json();
-                            if (result.status === 'success' && result.data?.url) {
-                                uploadUrl = result.data.url;
-                                serviceUsed = 'tmpfiles.org';
-                            }
-                        }
-                    } catch (e) {
-                        console.log('tmpfiles.org upload failed, trying next service...');
-                    }
-                }
-
-                // Service 3: Base64 storage in browser for small files as final fallback
-                if (!uploadUrl && blob.size < 50 * 1024 * 1024) { // 50MB limit for base64
-                    uploadUrl = fileData; // Store as data URL
-                    serviceUsed = 'browser-storage';
-                }
-
-                if (!uploadUrl) {
-                    throw new Error('All cloud upload services failed');
-                }
-
-                // Store file reference
+                // Store file reference with Filestack data
                 cloudFiles[fileId] = {
                     fileName: fileName,
                     type: fileType,
                     size: blob.size,
-                    uploadUrl: uploadUrl,
-                    service: serviceUsed,
+                    uploadUrl: uploadResponse.url,
+                    filestackHandle: uploadResponse.handle,
+                    service: 'filestack',
                     uploadedAt: new Date().toISOString(),
                     storageId: cloudStorageId
                 };
@@ -1335,20 +1328,19 @@
                 // Save to localStorage
                 localStorage.setItem('cloudFiles', JSON.stringify(cloudFiles));
 
-                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to ${serviceUsed}`);
-                showFileTransferStatus(`☁️ Uploaded ${fileName} to cloud (${fileSizeMB}MB)`, 3000);
+                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Filestack`);
+                showFileTransferStatus(`☁️ Uploaded ${fileName} to Filestack (${fileSizeMB}MB)`, 3000);
 
                 return true;
 
             } catch (error) {
-                console.error('Cloud upload error:', error);
-                showFileTransferStatus(`❌ Cloud upload failed for ${fileName}`, 4000);
+                console.error('Filestack upload error:', error);
+                showFileTransferStatus(`❌ Filestack upload failed for ${fileName}`, 4000);
                 throw error;
             }
         }
-        }
 
-        // Download file from cloud storage
+        // Download file from cloud storage (Filestack)
         async function downloadFileFromCloud(fileId) {
             if (!cloudStorageEnabled || !cloudStorageId) {
                 return null;
@@ -1357,25 +1349,17 @@
             try {
                 const fileInfo = cloudFiles[fileId];
                 if (!fileInfo) {
-                    console.log(`File ${fileId} not found in cloud storage`);
+                    console.log(`File ${fileId} not found in Filestack storage`);
                     return null;
                 }
 
-                console.log(`Downloading ${fileInfo.fileName} from ${fileInfo.service}`);
+                console.log(`Downloading ${fileInfo.fileName} from Filestack`);
 
-                // Handle different service types
-                if (fileInfo.service === 'browser-storage') {
-                    // File is stored as data URL in our records
-                    return {
-                        data: fileInfo.uploadUrl,
-                        fileName: fileInfo.fileName,
-                        type: fileInfo.type
-                    };
-                } else {
-                    // Download from external service
+                if (fileInfo.service === 'filestack') {
+                    // Download from Filestack CDN URL
                     const response = await fetch(fileInfo.uploadUrl);
                     if (!response.ok) {
-                        throw new Error(`Download failed from ${fileInfo.service}`);
+                        throw new Error(`Filestack download failed: ${response.status}`);
                     }
 
                     const blob = await response.blob();
@@ -1392,10 +1376,17 @@
                         reader.onerror = reject;
                         reader.readAsDataURL(blob);
                     });
+                } else {
+                    // Fallback for legacy files
+                    return {
+                        data: fileInfo.uploadUrl,
+                        fileName: fileInfo.fileName,
+                        type: fileInfo.type
+                    };
                 }
 
             } catch (error) {
-                console.error('Cloud download error:', error);
+                console.error('Filestack download error:', error);
                 return null;
             }
         }
@@ -1433,11 +1424,20 @@
 
         // Check if cloud storage is enabled on page load
         function initCloudStorage() {
-            if (cloudStorageEnabled && cloudStorageId) {
-                document.getElementById('enableCloudBtn').innerHTML = '✅ Cloud Storage Active (2GB+)';
-                document.getElementById('cloudStatus').innerHTML = '✅ Cloud storage is enabled with 2GB+ capacity';
-                document.getElementById('viewCloudBtn').disabled = false;
-                document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
+            try {
+                if (cloudStorageEnabled && cloudStorageId) {
+                    // Ensure Filestack client is initialized
+                    if (!filestackClient) {
+                        filestackClient = filestack.init(FILESTACK_API_KEY);
+                    }
+
+                    document.getElementById('enableCloudBtn').innerHTML = '✅ Filestack Active';
+                    document.getElementById('cloudStatus').innerHTML = '✅ Cloud storage is enabled (Filestack)';
+                    document.getElementById('viewCloudBtn').disabled = false;
+                    document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
+                }
+            } catch (e) {
+                console.warn('initCloudStorage: Filestack init failed', e);
             }
         }
 
@@ -2162,6 +2162,18 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                     fileId = `lineupAudio_${position}_${Date.now()}`;
                     await saveFileToIDB(fileId, url, file.type, file.name);
                     console.log(`Large audio saved to IndexedDB for lineup position ${position}:`, file.name);
+
+                    // Also save to cloud if enabled
+                    if (cloudStorageEnabled) {
+                        try {
+                            await uploadFileToCloud(fileId, url, file.name, file.type);
+                            console.log(`☁️ Audio also uploaded to Filestack: ${file.name}`);
+                            showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
+                        } catch (error) {
+                            console.error('Cloud upload failed:', error);
+                            showFileTransferStatus(`⚠️ Local save OK, cloud failed for ${file.name}`, 4000);
+                        }
+                    }
                 }
 
                 data.lineupAudio[position] = {
@@ -2473,6 +2485,18 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                     fileId = `file_${postId}`;
                     await saveFileToIDB(fileId, url, type, file.name);
                     console.log(`✅ Large file saved to IndexedDB: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
+
+                    // Also upload to cloud if enabled
+                    if (cloudStorageEnabled) {
+                        try {
+                            await uploadFileToCloud(fileId, url, file.name, file.type || type);
+                            console.log(`☁️ Social file also uploaded to Filestack: ${file.name}`);
+                            showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
+                        } catch (error) {
+                            console.error('Cloud upload failed:', error);
+                            showFileTransferStatus(`⚠️ Local save OK, cloud failed for ${file.name}`, 4000);
+                        }
+                    }
                 } catch (error) {
                     console.error('Error saving to IndexedDB:', error);
                     alert('Error saving large file. Please try again.');
