@@ -738,7 +738,7 @@ python3 -m http.server 80801. **Fork this repository**
 
 ### Expected Offline Behavior# The app is just a static HTML file - works anywhere
 
-1. **Changes tracked** with timestamps and descriptionsnginx, Apache, Caddy, Firebase Hosting, Netlify, Vercel, etc.
+1. **Changes tracked** with timestamps and descriptions - works with any static hosting (nginx, Apache, Caddy, Firebase Hosting, Netlify, GitHub Pages, etc.)
 
 2. **Pending sync indicator** appears in header```
 
