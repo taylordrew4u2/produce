@@ -242,8 +242,8 @@
                                 <input type="file" id="socialFile" accept="image/*,video/*"
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                                 <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
-                                <p class="text-xs text-amber-600 mt-1">⚠️ Large files may hit browser storage limits.
-                                    Compress videos if needed.</p>
+                                <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Filestack CDN (permanent
+                                    cloud storage)</p>
                             </div>
 
                             <div id="filePreview" class="mb-3"></div>
@@ -271,14 +271,14 @@
             </div>
         </div>
 
-        <!-- Local File Management (Easy Alternative) -->
+        <!-- Cloud File Management -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex items-center justify-between mb-2">
-                <h2 class="text-xl font-semibold">💾 Local File Management</h2>
-                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">No setup required</span>
+                <h2 class="text-xl font-semibold">☁️ Cloud Storage</h2>
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">100% Cloud Only</span>
             </div>
-            <p class="text-sm text-gray-600 mb-4">Save/load your data directly to your computer. Works offline, no OAuth
-                needed! <strong>Files can be stored locally OR in the cloud for true cross-device access.</strong></p>
+            <p class="text-sm text-gray-600 mb-4">All data permanently stored on Filestack CDN. <strong>Accessible from
+                    any device instantly!</strong></p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Export/Import Data -->
@@ -734,131 +734,8 @@
         let connections = [];
         const roomId = 'producer-tasks-room'; // Fixed room for all users
 
-        // -------- Offline Change Tracking --------
-        let offlineChanges = JSON.parse(localStorage.getItem('offlineChanges') || '{}');
-        let lastSyncTime = parseInt(localStorage.getItem('lastSyncTime') || Date.now());
-        let isOnline = navigator.onLine;
-
-        // Track what changed while offline
-        function trackOfflineChange(type, itemId = null) {
-            if (!isOnline || connections.length === 0) {
-                const changeKey = itemId ? `${type}_${itemId}` : type;
-                offlineChanges[changeKey] = {
-                    type: type,
-                    itemId: itemId,
-                    timestamp: Date.now(),
-                    description: getChangeDescription(type, itemId)
-                };
-                localStorage.setItem('offlineChanges', JSON.stringify(offlineChanges));
-                updateOfflineIndicator();
-            }
-        }
-
-        function getChangeDescription(type, itemId) {
-            switch (type) {
-                case 'tasks': return itemId ? `Updated task ${itemId}` : 'Modified tasks';
-                case 'lineup': return itemId ? `Updated lineup position ${itemId}` : 'Modified lineup';
-                case 'socialPosts': return itemId ? `Updated social post` : 'Modified social posts';
-                case 'personalTasks': return 'Updated personal tasks';
-                default: return `Modified ${type}`;
-            }
-        }
-
-        // Clear offline changes after successful sync
-        function clearOfflineChanges() {
-            offlineChanges = {};
-            lastSyncTime = Date.now();
-            localStorage.setItem('offlineChanges', JSON.stringify(offlineChanges));
-            localStorage.setItem('lastSyncTime', lastSyncTime.toString());
-            updateOfflineIndicator();
-        }
-
-        // Update UI to show offline changes
-        function updateOfflineIndicator() {
-            const offlineCount = Object.keys(offlineChanges).length;
-            let indicator = document.getElementById('offline-indicator');
-
-            if (!indicator) {
-                // Create indicator in header
-                const header = document.querySelector('header .flex');
-                if (header) {
-                    indicator = document.createElement('div');
-                    indicator.id = 'offline-indicator';
-                    indicator.className = 'ml-4';
-                    header.appendChild(indicator);
-                }
-            }
-
-            if (indicator) {
-                if (offlineCount > 0) {
-                    indicator.innerHTML = `
-                        <div class="flex items-center gap-2 text-sm">
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                📝 ${offlineCount} pending sync${offlineCount !== 1 ? 's' : ''}
-                            </span>
-                            <button onclick="showOfflineChanges()" class="text-blue-600 hover:text-blue-800 underline text-xs">
-                                View
-                            </button>
-                        </div>
-                    `;
-                } else {
-                    indicator.innerHTML = '';
-                }
-            }
-        }
-
-        // Show what changed while offline
-        function showOfflineChanges() {
-            const changes = Object.values(offlineChanges);
-            if (changes.length === 0) {
-                alert('No pending changes to sync.');
-                return;
-            }
-
-            let message = `Changes made while offline (${changes.length}):\n\n`;
-            changes.forEach(change => {
-                const time = new Date(change.timestamp).toLocaleTimeString();
-                message += `• ${change.description} at ${time}\n`;
-            });
-            message += '\nThese will sync automatically when you reconnect with team members.';
-            alert(message);
-        }
-
-        // Show sync success notification
-        function showSyncNotification() {
-            const count = Object.keys(offlineChanges).length;
-            if (count > 0) {
-                // Create temporary notification
-                const notification = document.createElement('div');
-                notification.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
-                notification.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span>✅ Synced ${count} offline change${count !== 1 ? 's' : ''} with team</span>
-                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 font-bold">&times;</button>
-                    </div>
-                `;
-                document.body.appendChild(notification);
-
-                // Auto-remove after 5 seconds
-                setTimeout(() => {
-                    if (notification.parentElement) {
-                        notification.remove();
-                    }
-                }, 5000);
-            }
-        }        // Monitor online/offline status
-        window.addEventListener('online', () => {
-            isOnline = true;
-            console.log('Back online - will sync pending changes');
-            updateOfflineIndicator();
-            // Trigger sync when peers connect
-        });
-
-        window.addEventListener('offline', () => {
-            isOnline = false;
-            console.log('Gone offline - will track changes');
-            updateOfflineIndicator();
-        });
+        // 🚫 NO OFFLINE TRACKING - All changes saved directly to Filestack CDN
+        // Cloud storage handles all persistence automatically
 
         peer.on('open', (id) => {
             console.log('My peer ID:', id);
@@ -1345,53 +1222,8 @@
         }
 
         async function cleanupOldFiles() {
-            try {
-                if (!confirm('🧹 Remove unused files from IndexedDB? This cannot be undone.')) {
-                    return;
-                }
-
-                // Get all file references from current data
-                const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-                const lineup = JSON.parse(localStorage.getItem('lineup') || '[]');
-                const socialPosts = JSON.parse(localStorage.getItem('socialMediaPosts') || '[]');
-
-                const usedFileIds = new Set();
-
-                // Collect file IDs in use
-                socialPosts.forEach(post => {
-                    if (post.fileId) usedFileIds.add(post.fileId);
-                });
-
-                lineup.forEach(pos => {
-                    if (pos.fileId) usedFileIds.add(pos.fileId);
-                    if (pos.audioFileId) usedFileIds.add(pos.audioFileId);
-                });
-
-                // Get all files in IndexedDB
-                if (db) {
-                    const transaction = db.transaction(['files'], 'readwrite');
-                    const store = transaction.objectStore('files');
-                    const getAllRequest = store.getAll();
-
-                    getAllRequest.onsuccess = () => {
-                        const allFiles = getAllRequest.result;
-                        let deletedCount = 0;
-
-                        allFiles.forEach(file => {
-                            if (!usedFileIds.has(file.id)) {
-                                store.delete(file.id);
-                                deletedCount++;
-                            }
-                        });
-
-                        alert(`✅ Cleanup complete! Removed ${deletedCount} unused files.`);
-                        updateLocalStorageInfo(); // Refresh stats
-                    };
-                }
-            } catch (err) {
-                console.error('Cleanup error:', err);
-                alert('❌ Cleanup failed: ' + err.message);
-            }
+            // 🚫 NO LOCAL STORAGE - All files on Filestack CDN
+            alert('🌐 All files are stored on Filestack CDN.\n\nNo local cleanup needed!');
         }
 
         async function handleFileDrop(event) {
@@ -1683,13 +1515,7 @@ Refresh the page to see latest updates from cloud.`);
 
         window.deleteLineupFile = async (position) => {
             if (confirm('Delete this file?')) {
-                // Delete from IndexedDB if it exists
-                const fileData = data.lineupFiles[position];
-                if (fileData && fileData.fileId) {
-                    await deleteFileFromIDB(fileData.fileId);
-                    console.log('Deleted lineup file from IndexedDB:', fileData.fileId);
-                }
-
+                // Delete from cloud storage
                 delete data.lineupFiles[position];
                 document.getElementById(`lineupFile${position}`).value = '';
                 saveLocal();
@@ -1716,35 +1542,28 @@ Refresh the page to see latest updates from cloud.`);
                 return;
             }
 
+            // Upload directly to Filestack CDN only
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const url = e.target.result;
-                let fileId = null;
+                const fileId = `lineupAudio_${position}_${Date.now()}`;
 
-                // Save large files (>50KB) to IndexedDB
-                if (url.length > 50000) {
-                    fileId = `lineupAudio_${position}_${Date.now()}`;
-                    await saveFileToIDB(fileId, url, file.type, file.name);
-                    console.log(`Large audio saved to IndexedDB for lineup position ${position}:`, file.name);
-
-                    // Also save to cloud if enabled
-                    if (cloudStorageEnabled) {
-                        try {
-                            await uploadFileToCloud(fileId, url, file.name, file.type);
-                            console.log(`☁️ Audio also uploaded to Filestack: ${file.name}`);
-                            showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
-                        } catch (error) {
-                            console.error('Cloud upload failed:', error);
-                            showFileTransferStatus(`⚠️ Local save OK, cloud failed for ${file.name}`, 4000);
-                        }
-                    }
+                // Upload to Filestack CDN
+                try {
+                    await uploadFileToCloud(fileId, url, file.name, file.type);
+                    console.log(`☁️ Audio uploaded to Filestack CDN: ${file.name}`);
+                    showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
+                } catch (error) {
+                    console.error('Cloud upload failed:', error);
+                    alert('❌ Upload failed. Please try again.');
+                    return;
                 }
 
                 data.lineupAudio[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    url: (cloudStorageEnabled && cloudFiles[`lineupAudio_${position}_`]) ? (cloudFiles[`lineupAudio_${position}_`].uploadUrl || '') : (url || ''),
+                    url: data.cloudFiles[fileId]?.uploadUrl || '',
                 };
                 console.log(`MP3 uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
@@ -1756,13 +1575,7 @@ Refresh the page to see latest updates from cloud.`);
 
         window.deleteLineupAudio = async (position) => {
             if (confirm('Delete this MP3?')) {
-                // Delete from IndexedDB if it exists
-                const audioData = data.lineupAudio[position];
-                if (audioData && audioData.fileId) {
-                    await deleteFileFromIDB(audioData.fileId);
-                    console.log('Deleted lineup audio from IndexedDB:', audioData.fileId);
-                }
-
+                // Delete from cloud
                 delete data.lineupAudio[position];
                 document.getElementById(`lineupAudio${position}`).value = '';
                 saveLocal();
@@ -2042,27 +1855,16 @@ Refresh the page to see latest updates from cloud.`);
             const postId = Date.now().toString(36) + Math.random().toString(36).slice(2);
             let fileId = null;
 
-            // Save large files to IndexedDB
-            if (file && url.length > 50000) {
+            // Upload to Filestack CDN only
+            if (file) {
                 try {
                     fileId = `file_${postId}`;
-                    await saveFileToIDB(fileId, url, type, file.name);
-                    console.log(`✅ Large file saved to IndexedDB: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)}MB)`);
-
-                    // Also upload to cloud if enabled
-                    if (cloudStorageEnabled) {
-                        try {
-                            await uploadFileToCloud(fileId, url, file.name, file.type || type);
-                            console.log(`☁️ Social file also uploaded to Filestack: ${file.name}`);
-                            showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
-                        } catch (error) {
-                            console.error('Cloud upload failed:', error);
-                            showFileTransferStatus(`⚠️ Local save OK, cloud failed for ${file.name}`, 4000);
-                        }
-                    }
+                    await uploadFileToCloud(fileId, url, file.name, file.type || type);
+                    console.log(`☁️ Social file uploaded to Filestack CDN: ${file.name}`);
+                    showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
                 } catch (error) {
-                    console.error('Error saving to IndexedDB:', error);
-                    alert('Error saving large file. Please try again.');
+                    console.error('Cloud upload failed:', error);
+                    alert('❌ Upload failed. Please try again.');
                     return;
                 }
             }
@@ -2071,20 +1873,12 @@ Refresh the page to see latest updates from cloud.`);
                 id: postId,
                 date,
                 caption,
-                url: fileId ? '' : url, // Empty if in IndexedDB
-                fileId: fileId, // Reference to IndexedDB
+                url: fileId ? (data.cloudFiles[fileId]?.uploadUrl || '') : url,
+                fileId: fileId,
                 type,
                 fileName: file ? file.name : '',
                 createdAt: Date.now()
             };
-
-            // Load the URL from IndexedDB for display
-            if (fileId) {
-                const fileData = await getFileFromIDB(fileId);
-                if (fileData) {
-                    post.url = fileData.data;
-                }
-            }
 
             data.socialPosts.push(post);
             saveLocal();
@@ -2100,13 +1894,7 @@ Refresh the page to see latest updates from cloud.`);
         window.deleteSocialPost = async (id) => {
             if (!confirm('Delete this post?')) return;
 
-            // Find the post and delete its file from IndexedDB if it exists
-            const post = data.socialPosts.find(p => p.id === id);
-            if (post && post.fileId) {
-                await deleteFileFromIDB(post.fileId);
-                console.log('Deleted file from IndexedDB:', post.fileId);
-            }
-
+            // Remove from cloud state
             data.socialPosts = data.socialPosts.filter(p => p.id !== id);
             saveLocal();
             broadcast();
