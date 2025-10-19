@@ -11,6 +11,7 @@ https://taylordrew4u2.github.io/produce/
 ## First-Time Setup (One Person Does This)
 
 1. **Open the app**
+
    ```
    https://taylordrew4u2.github.io/produce/
    ```
@@ -18,7 +19,7 @@ https://taylordrew4u2.github.io/produce/
 2. **Configure Filestack security** (for permanent state)
    - Click "✅ Cloud Active - Configure Security"
    - Get credentials from Filestack dashboard:
-     - Go to https://dev.filestack.com/
+     - Go to <https://dev.filestack.com/>
      - Security → Policies
      - Create policy with: `["read", "store", "pick", "overwrite"]`
      - Copy Policy + Signature
@@ -37,6 +38,7 @@ https://taylordrew4u2.github.io/produce/
 ## Team Member Access (Everyone Else)
 
 1. **Open the link**
+
    ```
    https://taylordrew4u2.github.io/produce/
    ```
@@ -87,21 +89,25 @@ User adds task/file → data object updated → saveLocal() called
 ## Key Features
 
 ### ✅ One URL
+
 - Always share: `https://taylordrew4u2.github.io/produce/`
 - No query params, no hashes
 - Simple and memorable
 
 ### ✅ Permanent State
+
 - First setup creates permanent Filestack handle
 - All future saves overwrite same file
 - URL never changes: `https://cdn.filestackcontent.com/{handle}`
 
 ### ✅ Universal Storage
+
 - Tasks, lineup, files, audio, posts - all in one state
 - No separate systems or storage locations
 - One save, one load, one sync
 
 ### ✅ Instant Global Sync
+
 - Change on phone → Saved to Filestack
 - Open on computer → See latest state
 - All devices load from same cloud state
@@ -109,18 +115,21 @@ User adds task/file → data object updated → saveLocal() called
 ## Common Workflows
 
 ### Adding a Task
+
 1. Click "+ Producer Task"
 2. Enter details
 3. Click "Add"
 4. ✅ Saved to cloud automatically
 
 ### Uploading Lineup File
+
 1. Go to lineup position
 2. Click "📎 Upload File"
 3. Select file
 4. ✅ Uploaded to Filestack, state updated
 
 ### Creating Social Post
+
 1. Click "+ Social Post"
 2. Select date
 3. Add caption
@@ -129,6 +138,7 @@ User adds task/file → data object updated → saveLocal() called
 6. ✅ Saved to cloud automatically
 
 ### Viewing on Another Device
+
 1. Open: `https://taylordrew4u2.github.io/produce/`
 2. ✅ Loads latest state automatically
 3. See all tasks, files, posts
@@ -138,10 +148,12 @@ User adds task/file → data object updated → saveLocal() called
 ### "No universal cloud state found"
 
 **First time using app:**
+
 - Expected! Click "Configure Security" and add policy/signature
 - Make any change to create state
 
 **After setup:**
+
 - Check browser console for errors
 - Verify policy/signature are still valid
 - Try clearing browser cache and reloading
@@ -149,6 +161,7 @@ User adds task/file → data object updated → saveLocal() called
 ### Changes not syncing between devices
 
 **Solution:**
+
 - Refresh the page to load latest state
 - Check that all devices are using same URL
 - Verify network connection
@@ -158,6 +171,7 @@ User adds task/file → data object updated → saveLocal() called
 **Cause:** Policy/signature missing or expired
 
 **Fix:**
+
 1. Click "Configure Security"
 2. Enter valid policy + signature
 3. Make a change to create new permanent state
@@ -165,19 +179,22 @@ User adds task/file → data object updated → saveLocal() called
 ### Files not loading
 
 **Check:**
+
 - Are file URLs Filestack CDN links? (Should be `https://cdn.filestackcontent.com/...`)
 - Is network connected?
 - Are Filestack CDN links accessible?
 
 ## Best Practices
 
-### ✅ DO:
+### ✅ DO
+
 - Configure policy/signature on first setup
 - Share the simple URL: `https://taylordrew4u2.github.io/produce/`
 - Refresh page to see updates from others
 - Wait 1-2 seconds after making changes (debounced save)
 
-### ❌ DON'T:
+### ❌ DON'T
+
 - Share URLs with query params or hashes
 - Expect real-time sync (need to refresh for updates)
 - Make rapid changes without waiting for saves
@@ -186,7 +203,9 @@ User adds task/file → data object updated → saveLocal() called
 ## Data Storage Locations
 
 ### Cloud (Filestack CDN)
+
 **Everything stored here:**
+
 - Tasks
 - Personal lists
 - Lineup
@@ -197,7 +216,9 @@ User adds task/file → data object updated → saveLocal() called
 - File registry
 
 ### Local (Browser localStorage)
+
 **Config only - NOT synced:**
+
 - Filestack API key
 - Filestack policy
 - Filestack signature
@@ -207,17 +228,20 @@ User adds task/file → data object updated → saveLocal() called
 ## Technical Details
 
 ### State File
+
 - **Location**: `https://cdn.filestackcontent.com/{handle}`
 - **Format**: JSON
 - **Size**: Typically < 1 MB
 - **Updates**: Overwritten on every change (with policy/signature)
 
 ### File Assets
+
 - **Storage**: Filestack CDN
 - **URLs**: Stored in state.json
 - **Access**: Direct CDN links (globally cached)
 
 ### Save Timing
+
 - **Debounce**: 1.5 seconds
 - **Purpose**: Prevent excessive uploads
 - **Behavior**: Last change in 1.5s window is saved
@@ -225,6 +249,7 @@ User adds task/file → data object updated → saveLocal() called
 ## Support
 
 ### Check Console
+
 ```javascript
 // Open browser DevTools (F12) → Console
 // Look for messages:
@@ -233,12 +258,14 @@ User adds task/file → data object updated → saveLocal() called
 ```
 
 ### View Current State
+
 ```javascript
 // In browser console:
 console.log(JSON.stringify(data, null, 2))
 ```
 
 ### Check Storage Config
+
 ```javascript
 // In browser console:
 console.log({
@@ -251,7 +278,9 @@ console.log({
 ## Advanced
 
 ### Manual State URL Override
+
 If you need to load a specific state (migration, testing):
+
 ```
 https://taylordrew4u2.github.io/produce/?state=<url>
 ```
@@ -259,13 +288,16 @@ https://taylordrew4u2.github.io/produce/?state=<url>
 App will load from URL param if no permanent handle exists.
 
 ### Force New State
+
 To start fresh:
+
 1. Open browser DevTools (F12) → Console
 2. Run: `localStorage.clear()`
 3. Reload page
 4. Configure security and create new state
 
 ### Export State
+
 ```javascript
 // In browser console:
 const json = JSON.stringify(data, null, 2)
@@ -280,6 +312,7 @@ a.click()
 ## Summary
 
 **One URL to rule them all:**
+
 ```
 https://taylordrew4u2.github.io/produce/
 ```

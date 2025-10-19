@@ -634,20 +634,23 @@
             cloudFiles: {}          // All uploaded files registry - Filestack URLs
         };
 
-        // Load from cloud ONLY - no local storage fallback
+        // Load from PERMANENT CLOUD STORAGE ONLY - no local storage fallback
         async function loadLocal() {
             // This function is now a no-op - all loading happens via loadStateFromCloudIfAvailable
-            console.log('🌐 Cloud-only mode: skipping local load, waiting for cloud state...');
+            // ALL data comes from Filestack CDN (permanent cloud storage)
+            console.log('🌐 PERMANENT CLOUD MODE: No local data, loading from Filestack CDN...');
         }
 
-        // Save to cloud ONLY - immediately overwrites permanent cloud state
+        // Save to PERMANENT CLOUD STORAGE ONLY - overwrites Filestack CDN state
+        // NOTE: localStorage is NEVER used for data storage, only for config/pointers
         function saveLocal() {
             if (!cloudStorageEnabled || !filestackClient) {
-                console.warn('⚠️ Cloud storage not enabled - changes will not be saved!');
+                console.warn('⚠️ Cloud storage not enabled - changes will NOT be saved to permanent storage!');
                 return;
             }
 
-            // Immediately save to cloud (debounced to avoid excessive uploads)
+            // Trigger permanent cloud save (debounced to avoid excessive uploads)
+            // Data is uploaded to Filestack CDN, accessible globally
             debouncedSaveStateToCloud();
         }
 
@@ -664,26 +667,27 @@
                 const existingHandle = localStorage.getItem('stateHandle');
 
                 if (policy && signature && existingHandle) {
-                    // Overwrite existing state file to keep a permanent URL
+                    // PERMANENT CLOUD STORAGE: Overwrite existing state file on Filestack CDN
+                    // This keeps the SAME cloud URL forever, no local storage of data
                     const overwriteUrl = `https://cdn.filestackcontent.com/overwrite/${existingHandle}?policy=${encodeURIComponent(policy)}&signature=${encodeURIComponent(signature)}`;
                     const resp = await fetch(overwriteUrl, { method: 'POST', body: blob, headers: { 'Content-Type': 'application/json' } });
                     if (resp.ok) {
                         const stableUrl = `https://cdn.filestackcontent.com/${existingHandle}`;
-                        localStorage.setItem('stateCloudUrl', stableUrl);
-                        console.log('☁️ Universal state overwritten at permanent URL');
+                        localStorage.setItem('stateCloudUrl', stableUrl); // Only storing the URL pointer, NOT the data
+                        console.log('☁️ Universal state PERMANENTLY stored in cloud at:', stableUrl);
                         return;
                     } else {
                         console.warn('Overwrite failed, falling back to new upload');
                     }
                 }
 
-                // Fallback: upload a new file and remember handle
+                // Fallback: upload NEW file to Filestack cloud (permanent cloud storage)
                 const file = new File([blob], `state-${Date.now()}.json`, { type: 'application/json' });
                 const res = await filestackClient.upload(file);
                 if (res && res.url) {
-                    localStorage.setItem('stateCloudUrl', res.url);
-                    if (res.handle) localStorage.setItem('stateHandle', res.handle);
-                    console.log('☁️ Universal state mirrored to cloud:', res.url);
+                    localStorage.setItem('stateCloudUrl', res.url); // Only storing the URL pointer, NOT the data
+                    if (res.handle) localStorage.setItem('stateHandle', res.handle); // Handle for future overwrites
+                    console.log('☁️ Universal state PERMANENTLY uploaded to cloud:', res.url);
                 }
             } catch (err) {
                 console.warn('Universal cloud state save skipped/failed:', err.message);
@@ -696,7 +700,7 @@
                 // Always load from permanent handle (universal state)
                 const handle = localStorage.getItem('stateHandle');
                 const stableUrl = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
-                
+
                 // Fallback to URL param only for initial setup/migration
                 const params = new URLSearchParams(location.search);
                 const urlParam = params.get('state');
@@ -1160,14 +1164,23 @@
             }
         }
 
-        // -------- Cloud Storage Functions (Filestack) --------
+        // -------- PERMANENT CLOUD STORAGE (Filestack CDN) --------
+        // 
+        // CRITICAL: ALL data is stored PERMANENTLY on Filestack CDN
+        // - Tasks, lineup, files, audio, posts → Filestack state.json
+        // - File assets → Filestack CDN (globally distributed)
+        // - localStorage is ONLY used for config (API keys, credentials, URL pointers)
+        // - NO data is stored locally - everything in cloud
+        // - State URL: https://cdn.filestackcontent.com/{handle}
+        // - Permanent overwrite with policy/signature keeps same URL forever
+        //
 
-        // Filestack configuration - API key is configurable via localStorage
+        // Filestack configuration - API key is configurable via localStorage (config only, not data)
         let FILESTACK_API_KEY = localStorage.getItem('filestackApiKey') || 'AzKRRFVGmS8CIpDqn6r8Bz'; // Demo key fallback for testing
         let filestackClient = null;
 
         // Cloud storage is ALWAYS enabled - no local-only mode
-        let cloudStorageEnabled = true; // Always on
+        let cloudStorageEnabled = true; // Always on - permanent cloud storage required
         let cloudStorageId = localStorage.getItem('cloudStorageId') || `prod_${Math.random().toString(36).substr(2, 12)}_${Date.now()}`;
 
         // Helper to set/change Filestack API key
@@ -2426,22 +2439,25 @@ IndexedDB is required for file sync. Try refreshing the page.`);
             }
         };
 
-        // Initialize - Cloud-first mode: auto-enable Filestack, load everything from cloud
+        // Initialize - PERMANENT CLOUD STORAGE MODE
         (async () => {
-            console.log('🌐 Starting in UNIVERSAL CLOUD-ONLY mode - all data in Filestack');
+            console.log('🌐 PERMANENT CLOUD STORAGE MODE');
+            console.log('📦 ALL data stored on Filestack CDN (https://cdn.filestackcontent.com/)');
+            console.log('🚫 NO local data storage - cloud only');
+            console.log('🔒 localStorage used ONLY for config (API keys, credentials, pointers)');
 
-            // Initialize Filestack client immediately
+            // Initialize Filestack client for permanent cloud storage
             if (!filestackClient) {
                 try {
                     filestackClient = filestack.init(FILESTACK_API_KEY);
-                    console.log('✅ Filestack client initialized');
+                    console.log('✅ Filestack CDN client initialized - ready for permanent storage');
                 } catch (err) {
-                    console.error('❌ Filestack init failed:', err);
-                    alert('⚠️ Cloud storage initialization failed! The app requires Filestack to function.\n\nError: ' + err.message);
+                    console.error('❌ Filestack CDN init failed:', err);
+                    alert('⚠️ PERMANENT CLOUD STORAGE initialization failed!\n\nThe app requires Filestack CDN for all data storage.\n\nError: ' + err.message);
                 }
             }
 
-            // Load everything from cloud (no local fallback)
+            // Load everything from permanent cloud storage (Filestack CDN)
             await loadStateFromCloudIfAvailable();
             await render();
 
