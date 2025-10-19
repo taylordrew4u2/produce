@@ -308,22 +308,22 @@
                     <h3 class="font-medium text-sm text-blue-800">☁️ Cloud File Storage (NEW!)</h3>
                     <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">No signup required</span>
                 </div>
-                <p class="text-xs text-blue-700 mb-3">Store files online so they're accessible from any device,
-                    anywhere!</p>
+                <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Filestack CDN, accessible
+                    from any device!</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <button onclick="enableCloudStorage()" id="enableCloudBtn"
-                        class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
-                        🌐 Enable Cloud Storage
+                        class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
+                        ✅ Cloud Active - Configure Security
                     </button>
-                    <button onclick="viewCloudFiles()" id="viewCloudBtn" disabled
-                        class="bg-gray-300 text-gray-500 px-3 py-2 rounded text-sm">
+                    <button onclick="viewCloudFiles()" id="viewCloudBtn"
+                        class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
                         📁 View Cloud Files
                     </button>
                 </div>
 
                 <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
-                    Click "Enable Cloud Storage" to store files online
+                    ⚠️ Add policy/signature for permanent URLs
                 </div>
             </div>
 
@@ -632,49 +632,98 @@
             socialPosts: [] // Now stores references to IndexedDB files
         };
 
-        // Load from localStorage
+        // Load from cloud ONLY - no local storage fallback
         async function loadLocal() {
-            try {
-                const saved = localStorage.getItem('producerTasks');
-                if (saved) {
-                    const loaded = JSON.parse(saved);
-                    data = {
-                        tasks: loaded.tasks || [],
-                        personalTasks: loaded.personalTasks || [],
-                        lineup: loaded.lineup || {},
-                        lineupFiles: loaded.lineupFiles || {},
-                        lineupAudio: loaded.lineupAudio || {},
-                        staff: loaded.staff || {},
-                        socialPosts: loaded.socialPosts || []
-                    };
-                }
-            } catch (e) {
-                console.error('Error loading data:', e);
-            }
+            // This function is now a no-op - all loading happens via loadStateFromCloudIfAvailable
+            console.log('🌐 Cloud-only mode: skipping local load, waiting for cloud state...');
         }
 
-        // Save to localStorage (metadata) and IndexedDB (large files)
+        // Save to cloud ONLY - immediately overwrites permanent cloud state
         function saveLocal() {
+            if (!cloudStorageEnabled || !filestackClient) {
+                console.warn('⚠️ Cloud storage not enabled - changes will not be saved!');
+                return;
+            }
+
+            // Immediately save to cloud (debounced to avoid excessive uploads)
+            debouncedSaveStateToCloud();
+        }
+
+        // --- Cloud state mirror (Filestack) ---
+        function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; }
+
+        async function saveStateToCloud() {
             try {
-                // Save metadata to localStorage (without large file data)
-                const dataToSave = JSON.parse(JSON.stringify(data));
+                const json = JSON.stringify(data);
+                const blob = new Blob([json], { type: 'application/json' });
+                const policy = localStorage.getItem('filestackPolicy');
+                const signature = localStorage.getItem('filestackSignature');
+                const existingHandle = localStorage.getItem('stateHandle');
 
-                // Remove large file URLs from socialPosts before saving to localStorage
-                dataToSave.socialPosts = dataToSave.socialPosts.map(post => {
-                    if (post.url && post.url.length > 10000) {
-                        // Large file - reference only
-                        return { ...post, url: '' }; // URL will be loaded from IndexedDB
+                if (policy && signature && existingHandle) {
+                    // Overwrite existing state file to keep a permanent URL
+                    const overwriteUrl = `https://cdn.filestackcontent.com/overwrite/${existingHandle}?policy=${encodeURIComponent(policy)}&signature=${encodeURIComponent(signature)}`;
+                    const resp = await fetch(overwriteUrl, { method: 'POST', body: blob, headers: { 'Content-Type': 'application/json' } });
+                    if (resp.ok) {
+                        const stableUrl = `https://cdn.filestackcontent.com/${existingHandle}`;
+                        localStorage.setItem('stateCloudUrl', stableUrl);
+                        console.log('☁️ State overwritten at permanent URL');
+                        return;
+                    } else {
+                        console.warn('Overwrite failed, falling back to new upload');
                     }
-                    return post;
-                });
+                }
 
-                const jsonData = JSON.stringify(dataToSave);
-                const sizeMB = (new Blob([jsonData]).size / (1024 * 1024)).toFixed(2);
-                console.log(`Saving metadata: ${sizeMB}MB to localStorage`);
-                localStorage.setItem('producerTasks', jsonData);
+                // Fallback: upload a new file and remember handle
+                const file = new File([blob], `state-${Date.now()}.json`, { type: 'application/json' });
+                const res = await filestackClient.upload(file);
+                if (res && res.url) {
+                    localStorage.setItem('stateCloudUrl', res.url);
+                    if (res.handle) localStorage.setItem('stateHandle', res.handle);
+                    console.log('☁️ State mirrored to cloud:', res.url);
+                }
+            } catch (err) {
+                console.warn('Cloud state save skipped/failed:', err.message);
+            }
+        }
+        const debouncedSaveStateToCloud = debounce(saveStateToCloud, 1500);
+
+        async function loadStateFromCloudIfAvailable() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const urlParam = params.get('state');
+                const handle = localStorage.getItem('stateHandle');
+                const stableUrl = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
+                const knownUrl = urlParam || stableUrl;
+
+                if (!knownUrl) {
+                    console.log('🌐 No cloud state URL found - starting with empty state');
+                    console.log('💡 Enable cloud storage and make a change to create your permanent cloud state');
+                    return;
+                }
+
+                console.log('☁️ Loading app state from cloud:', knownUrl.substring(0, 60) + '...');
+                const cacheBust = `cb=${Date.now()}`;
+                const sep = knownUrl.includes('?') ? '&' : '?';
+                const fetchUrl = `${knownUrl}${sep}${cacheBust}`;
+                const res = await fetch(fetchUrl);
+                if (!res.ok) throw new Error('Cloud state fetch failed');
+                const remote = await res.json();
+                if (remote && typeof remote === 'object') {
+                    data = {
+                        tasks: remote.tasks || [],
+                        personalTasks: remote.personalTasks || [],
+                        lineup: remote.lineup || {},
+                        lineupFiles: remote.lineupFiles || {},
+                        lineupAudio: remote.lineupAudio || {},
+                        staff: remote.staff || {},
+                        socialPosts: remote.socialPosts || []
+                    };
+                    console.log('✅ Loaded app state from cloud');
+                }
             } catch (e) {
-                console.error('Error saving data:', e);
-                alert('Error saving data. Please try again.');
+                console.warn('⚠️ No cloud state loaded:', e.message);
+                console.log('💡 Enable cloud storage to create your permanent cloud state');
             }
         }
 
@@ -1110,8 +1159,9 @@
         let FILESTACK_API_KEY = localStorage.getItem('filestackApiKey') || 'AzKRRFVGmS8CIpDqn6r8Bz'; // Demo key fallback for testing
         let filestackClient = null;
 
-        let cloudStorageEnabled = localStorage.getItem('cloudStorageEnabled') === 'true';
-        let cloudStorageId = localStorage.getItem('cloudStorageId');
+        // Cloud storage is ALWAYS enabled - no local-only mode
+        let cloudStorageEnabled = true; // Always on
+        let cloudStorageId = localStorage.getItem('cloudStorageId') || `prod_${Math.random().toString(36).substr(2, 12)}_${Date.now()}`;
         let cloudFiles = JSON.parse(localStorage.getItem('cloudFiles') || '{}');
 
         // Helper to set/change Filestack API key
@@ -1132,7 +1182,7 @@
             }
         }
 
-        // Enable cloud storage - uses Filestack for professional file storage
+        // Enable cloud storage - auto-initializes on first use, prompts for security config
         async function enableCloudStorage() {
             const btn = document.getElementById('enableCloudBtn');
             const status = document.getElementById('cloudStatus');
@@ -1147,28 +1197,39 @@
                     filestackClient = filestack.init(FILESTACK_API_KEY);
                 }
 
-                // Generate unique storage ID for this instance
-                cloudStorageId = 'prod_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
-                cloudStorageEnabled = true;
+                // Ensure storage ID is persisted
+                if (!localStorage.getItem('cloudStorageId')) {
+                    localStorage.setItem('cloudStorageId', cloudStorageId);
+                }
+                localStorage.setItem('cloudFiles', JSON.stringify(cloudFiles));
 
-                // Save to localStorage
-                localStorage.setItem('cloudStorageEnabled', 'true');
-                localStorage.setItem('cloudStorageId', cloudStorageId);
-                localStorage.setItem('cloudFiles', JSON.stringify({}));
+                // CRITICAL: capture Filestack policy/signature for permanent state overwrites
+                if (!localStorage.getItem('filestackPolicy') || !localStorage.getItem('filestackSignature')) {
+                    alert('🔐 To enable permanent cloud storage, you need Filestack security credentials.\n\n1. Go to Filestack Dashboard → Security\n2. Generate a policy with "overwrite" permission\n3. Copy the policy and signature\n\nWithout these, each save creates a new file URL.');
+                    const policy = prompt('Paste Filestack policy (REQUIRED for permanent URLs):', localStorage.getItem('filestackPolicy') || '');
+                    const signature = prompt('Paste Filestack signature (REQUIRED for permanent URLs):', localStorage.getItem('filestackSignature') || '');
+                    if (policy && signature) {
+                        localStorage.setItem('filestackPolicy', policy);
+                        localStorage.setItem('filestackSignature', signature);
+                        console.log('✅ Filestack security policy saved - permanent state overwrites enabled');
+                    } else {
+                        alert('⚠️ Warning: Without policy/signature, each save will create a new URL instead of overwriting.\n\nYou can add them later via browser console:\nlocalStorage.setItem("filestackPolicy", "YOUR_POLICY")\nlocalStorage.setItem("filestackSignature", "YOUR_SIGNATURE")');
+                    }
+                }
 
-                status.innerHTML = `✅ Filestack cloud storage enabled`;
-                btn.innerHTML = '✅ Filestack Active';
+                status.innerHTML = `✅ Filestack cloud storage active`;
+                btn.innerHTML = '✅ Cloud Active';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Filestack cloud storage enabled!\n\n✅ Professional file storage & CDN\n✅ Unlimited capacity\n✅ Global delivery network\n✅ Secure & reliable\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\nFiles uploaded from now on will be stored on Filestack!`);
+                alert(`🌐 Cloud storage initialized!\n\n✅ All files stored on Filestack CDN\n✅ Global availability across devices\n✅ No local storage used\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\n⚠️ Everything you save will be uploaded to the cloud immediately!`);
 
             } catch (error) {
                 console.error('Filestack setup error:', error);
                 status.innerHTML = `❌ Failed to enable Filestack: ${error.message}`;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('❌ Filestack setup failed. Using local storage instead.');
+                alert('❌ Filestack setup failed. Cannot save without cloud storage!');
             }
         }
 
@@ -1497,8 +1558,8 @@
             if (files.length === 0) return;
 
             try {
-                if (!cloudStorageEnabled || !filestackClient) {
-                    alert('Enable Cloud Storage first to upload files.');
+                if (!filestackClient) {
+                    alert('⚠️ Filestack not initialized. Click "Cloud Active - Configure Security" to set up.');
                     return;
                 }
                 for (const file of files) {
@@ -1802,8 +1863,8 @@ IndexedDB is required for file sync. Try refreshing the page.`);
             }
 
             try {
-                if (!cloudStorageEnabled || !filestackClient) {
-                    alert('Enable Cloud Storage first to upload files.');
+                if (!filestackClient) {
+                    alert('⚠️ Filestack not initialized. Click "Cloud Active - Configure Security" to set up.');
                     event.target.value = '';
                     return;
                 }
@@ -2308,7 +2369,12 @@ IndexedDB is required for file sync. Try refreshing the page.`);
 
         // Copy share link
         window.copyShareLink = () => {
-            const url = window.location.href.split('#')[0] + '#' + peer.id;
+            const base = window.location.origin + window.location.pathname;
+            const handle = localStorage.getItem('stateHandle');
+            const stable = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
+            const known = stable || localStorage.getItem('stateCloudUrl') || '';
+            const query = known ? `?state=${encodeURIComponent(known)}` : '';
+            const url = `${base}${query}#${peer?.id || ''}`;
             navigator.clipboard.writeText(url).then(() => {
                 alert('Share link copied! Send this to your team.');
             });
@@ -2371,14 +2437,37 @@ IndexedDB is required for file sync. Try refreshing the page.`);
             }
         };
 
-        // Initialize
+        // Initialize - Cloud-first mode: auto-enable Filestack, load everything from cloud
         (async () => {
-            await initDB();
-            await loadLocal();
+            console.log('🌐 Starting in CLOUD-ONLY mode - no local storage fallback');
+
+            // Initialize Filestack client immediately
+            if (!filestackClient) {
+                try {
+                    filestackClient = filestack.init(FILESTACK_API_KEY);
+                    console.log('✅ Filestack client initialized');
+                } catch (err) {
+                    console.error('❌ Filestack init failed:', err);
+                    alert('⚠️ Cloud storage initialization failed! The app requires Filestack to function.\n\nError: ' + err.message);
+                }
+            }
+
+            // Load everything from cloud (no local fallback)
+            await loadStateFromCloudIfAvailable();
             await render();
+
             // Initialize storage UI once DOM is ready
             updateStorageUI();
             updateLocalStorageInfo();
+
+            // Show cloud status
+            const status = document.getElementById('cloudStatus');
+            if (status) {
+                const hasCredentials = localStorage.getItem('filestackPolicy') && localStorage.getItem('filestackSignature');
+                status.innerHTML = hasCredentials
+                    ? '✅ Cloud active (permanent URLs)'
+                    : '⚠️ Cloud active (rotating URLs - add policy/signature for permanent)';
+            }
         })();
 
         // -------- Google Drive (Client-side PKCE) helpers --------
