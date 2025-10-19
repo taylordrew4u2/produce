@@ -621,15 +621,17 @@
         async function getFileFromIDB() { return null; }
         async function deleteFileFromIDB() { return; }
 
-        // Shared state
+        // Shared state - UNIVERSAL CLOUD STORAGE
+        // Everything stored in this single object, synced to Filestack
         let data = {
-            tasks: [],
-            personalTasks: [],
-            lineup: {},
-            lineupFiles: {},
-            lineupAudio: {},
-            staff: {},
-            socialPosts: [] // Now stores references to IndexedDB files
+            tasks: [],              // Producer tasks
+            personalTasks: [],      // Taylor/Jay personal lists
+            lineup: {},             // Show lineup (positions 1-5)
+            lineupFiles: {},        // Lineup files (images/PDFs) - Filestack URLs
+            lineupAudio: {},        // Lineup audio (MP3s) - Filestack URLs
+            staff: {},              // Staff assignments
+            socialPosts: [],        // Social media calendar - Filestack URLs
+            cloudFiles: {}          // All uploaded files registry - Filestack URLs
         };
 
         // Load from cloud ONLY - no local storage fallback
@@ -649,7 +651,8 @@
             debouncedSaveStateToCloud();
         }
 
-        // --- Cloud state mirror (Filestack) ---
+        // --- Universal Cloud Storage (Filestack) ---
+        // ALL data (tasks, files, audio, posts) stored in single `data` object, synced to Filestack
         function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; }
 
         async function saveStateToCloud() {
@@ -667,7 +670,7 @@
                     if (resp.ok) {
                         const stableUrl = `https://cdn.filestackcontent.com/${existingHandle}`;
                         localStorage.setItem('stateCloudUrl', stableUrl);
-                        console.log('☁️ State overwritten at permanent URL');
+                        console.log('☁️ Universal state overwritten at permanent URL');
                         return;
                     } else {
                         console.warn('Overwrite failed, falling back to new upload');
@@ -680,10 +683,10 @@
                 if (res && res.url) {
                     localStorage.setItem('stateCloudUrl', res.url);
                     if (res.handle) localStorage.setItem('stateHandle', res.handle);
-                    console.log('☁️ State mirrored to cloud:', res.url);
+                    console.log('☁️ Universal state mirrored to cloud:', res.url);
                 }
             } catch (err) {
-                console.warn('Cloud state save skipped/failed:', err.message);
+                console.warn('Universal cloud state save skipped/failed:', err.message);
             }
         }
         const debouncedSaveStateToCloud = debounce(saveStateToCloud, 1500);
@@ -697,12 +700,12 @@
                 const knownUrl = urlParam || stableUrl;
 
                 if (!knownUrl) {
-                    console.log('🌐 No cloud state URL found - starting with empty state');
-                    console.log('💡 Enable cloud storage and make a change to create your permanent cloud state');
+                    console.log('🌐 No cloud state URL found - starting with empty universal state');
+                    console.log('💡 Make a change to create your permanent universal cloud state');
                     return;
                 }
 
-                console.log('☁️ Loading app state from cloud:', knownUrl.substring(0, 60) + '...');
+                console.log('☁️ Loading universal app state from cloud:', knownUrl.substring(0, 60) + '...');
                 const cacheBust = `cb=${Date.now()}`;
                 const sep = knownUrl.includes('?') ? '&' : '?';
                 const fetchUrl = `${knownUrl}${sep}${cacheBust}`;
@@ -717,13 +720,14 @@
                         lineupFiles: remote.lineupFiles || {},
                         lineupAudio: remote.lineupAudio || {},
                         staff: remote.staff || {},
-                        socialPosts: remote.socialPosts || []
+                        socialPosts: remote.socialPosts || [],
+                        cloudFiles: remote.cloudFiles || {}
                     };
-                    console.log('✅ Loaded app state from cloud');
+                    console.log('✅ Loaded universal cloud state from Filestack');
                 }
             } catch (e) {
-                console.warn('⚠️ No cloud state loaded:', e.message);
-                console.log('💡 Enable cloud storage to create your permanent cloud state');
+                console.warn('⚠️ No universal cloud state loaded:', e.message);
+                console.log('💡 Make a change to create your permanent universal cloud state');
             }
         }
 
@@ -1162,7 +1166,6 @@
         // Cloud storage is ALWAYS enabled - no local-only mode
         let cloudStorageEnabled = true; // Always on
         let cloudStorageId = localStorage.getItem('cloudStorageId') || `prod_${Math.random().toString(36).substr(2, 12)}_${Date.now()}`;
-        let cloudFiles = JSON.parse(localStorage.getItem('cloudFiles') || '{}');
 
         // Helper to set/change Filestack API key
         function setFilestackApiKey() {
@@ -1201,7 +1204,6 @@
                 if (!localStorage.getItem('cloudStorageId')) {
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
-                localStorage.setItem('cloudFiles', JSON.stringify(cloudFiles));
 
                 // CRITICAL: capture Filestack policy/signature for permanent state overwrites
                 if (!localStorage.getItem('filestackPolicy') || !localStorage.getItem('filestackSignature')) {
@@ -1222,7 +1224,7 @@
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Cloud storage initialized!\n\n✅ All files stored on Filestack CDN\n✅ Global availability across devices\n✅ No local storage used\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\n⚠️ Everything you save will be uploaded to the cloud immediately!`);
+                alert(`🌐 Universal cloud storage initialized!\n\n✅ ALL data stored on Filestack CDN\n✅ Tasks, files, audio, posts - ONE system\n✅ Global availability across devices\n✅ No local storage used\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\n⚠️ Everything you save is instantly uploaded to cloud!`);
 
             } catch (error) {
                 console.error('Filestack setup error:', error);
@@ -1267,8 +1269,8 @@
                     throw new Error('Filestack upload failed - no URL returned');
                 }
 
-                // Store file reference with Filestack data
-                cloudFiles[fileId] = {
+                // Store file reference in universal cloud state
+                data.cloudFiles[fileId] = {
                     fileName: fileName,
                     type: fileType,
                     size: blob.size,
@@ -1279,8 +1281,8 @@
                     storageId: cloudStorageId
                 };
 
-                // Save to localStorage
-                localStorage.setItem('cloudFiles', JSON.stringify(cloudFiles));
+                // Save to cloud immediately
+                saveLocal();
 
                 console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Filestack`);
                 showFileTransferStatus(`☁️ Uploaded ${fileName} to Filestack (${fileSizeMB}MB)`, 3000);
@@ -1301,7 +1303,7 @@
             }
 
             try {
-                const fileInfo = cloudFiles[fileId];
+                const fileInfo = data.cloudFiles[fileId];
                 if (!fileInfo) {
                     console.log(`File ${fileId} not found in Filestack storage`);
                     return null;
@@ -1345,7 +1347,7 @@
             }
         }
 
-        // View all cloud files
+        // View all cloud files from universal storage
         async function viewCloudFiles() {
             if (!cloudStorageEnabled || !cloudStorageId) {
                 alert('Cloud storage not enabled');
@@ -1353,14 +1355,14 @@
             }
 
             try {
-                const files = Object.values(cloudFiles);
+                const files = Object.values(data.cloudFiles || {});
 
                 if (files.length === 0) {
                     alert('No files in cloud storage yet.');
                     return;
                 }
 
-                let message = `Cloud Storage Files (${files.length}):\n\n`;
+                let message = `☁️ Universal Cloud Storage Files (${files.length}):\n\n`;
                 files.forEach((file, index) => {
                     const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
                     message += `${index + 1}. ${file.fileName} (${sizeMB}MB)\n`;
@@ -1395,35 +1397,24 @@
             }
         }
 
-        // -------- Storage (Persistent) UI --------
+        // -------- Storage UI (now shows cloud state size) --------
         async function updateStorageUI() {
             try {
                 const infoEl = document.getElementById('storageInfo');
                 const badgeEl = document.getElementById('storagePersistBadge');
 
-                let persisted = false;
-                if (navigator.storage && navigator.storage.persisted) {
-                    persisted = await navigator.storage.persisted();
-                }
-
                 if (badgeEl) {
-                    if (persisted) {
-                        badgeEl.textContent = 'persistent';
-                        badgeEl.className = 'text-xs px-2 py-1 rounded bg-green-100 text-green-700';
-                    } else {
-                        badgeEl.textContent = 'not persistent';
-                        badgeEl.className = 'text-xs px-2 py-1 rounded bg-amber-100 text-amber-700';
-                    }
+                    badgeEl.textContent = '☁️ cloud-only';
+                    badgeEl.className = 'text-xs px-2 py-1 rounded bg-blue-100 text-blue-700';
                 }
 
-                if (navigator.storage && navigator.storage.estimate) {
-                    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
-                    const usedMB = (usage / 1024 / 1024).toFixed(2);
-                    const quotaMB = (quota / 1024 / 1024).toFixed(2);
-                    const pct = quota ? ((usage / quota) * 100).toFixed(2) : '0.00';
-                    if (infoEl) infoEl.textContent = `Using ${usedMB} MB of ${quotaMB} MB (${pct}%)`;
-                } else {
-                    if (infoEl) infoEl.textContent = 'Storage estimate API not available in this browser.';
+                // Calculate cloud state size
+                const stateSize = new Blob([JSON.stringify(data)]).size;
+                const stateMB = (stateSize / 1024 / 1024).toFixed(2);
+                const fileCount = Object.keys(data.cloudFiles || {}).length;
+
+                if (infoEl) {
+                    infoEl.textContent = `Universal cloud state: ${stateMB} MB (${fileCount} files tracked)`;
                 }
             } catch (err) {
                 console.error('updateStorageUI error:', err);
@@ -2439,7 +2430,7 @@ IndexedDB is required for file sync. Try refreshing the page.`);
 
         // Initialize - Cloud-first mode: auto-enable Filestack, load everything from cloud
         (async () => {
-            console.log('🌐 Starting in CLOUD-ONLY mode - no local storage fallback');
+            console.log('🌐 Starting in UNIVERSAL CLOUD-ONLY mode - all data in Filestack');
 
             // Initialize Filestack client immediately
             if (!filestackClient) {
