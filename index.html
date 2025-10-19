@@ -320,10 +320,6 @@
                         class="bg-gray-300 text-gray-500 px-3 py-2 rounded text-sm">
                         📁 View Cloud Files
                     </button>
-                    <button onclick="setFilestackApiKey()" id="setFilestackKeyBtn"
-                        class="bg-white text-blue-700 border border-blue-300 px-3 py-2 rounded hover:bg-blue-50 text-sm">
-                        🔑 Set Filestack API Key
-                    </button>
                 </div>
 
                 <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
@@ -382,25 +378,26 @@
                 <div class="text-gray-500">
                     <span class="text-2xl">📎</span>
                     <p class="text-sm mt-2">Drag & drop files here to save them locally</p>
-                    <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - stores in IndexedDB</p>
+                    <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - stored via Filestack
+                    </p>
                 </div>
             </div>
 
             <div class="mt-4 p-3 bg-gray-50 rounded">
-                <h3 class="font-medium text-sm mb-2">📊 Storage Status</h3>
+                <h3 class="font-medium text-sm mb-2">📊 Storage Status (Filestack)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                     <div>
-                        <span class="text-gray-600">IndexedDB Usage:</span>
-                        <div id="localStorageUsage" class="font-mono text-green-600">Calculating...</div>
+                        <span class="text-gray-600">Cloud Service:</span>
+                        <div class="font-mono text-green-600">Filestack</div>
                     </div>
                     <div>
-                        <span class="text-gray-600">Files Stored:</span>
-                        <div id="fileCount" class="font-mono text-blue-600">Calculating...</div>
+                        <span class="text-gray-600">Cloud Status:</span>
+                        <div id="cloudStatusMini" class="font-mono text-blue-600">Disabled</div>
                     </div>
                     <div>
-                        <button onclick="cleanupOldFiles()"
-                            class="bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200">
-                            🧹 Cleanup
+                        <button onclick="viewCloudFiles()"
+                            class="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
+                            📁 View Cloud Files
                         </button>
                     </div>
                 </div>
@@ -617,106 +614,12 @@
     </div>
 
     <script>
-        // IndexedDB setup for large file storage (up to 1GB+)
-        let db;
-        const DB_NAME = 'producerTasksDB';
-        const DB_VERSION = 1;
-
-        function initDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-                request.onerror = () => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    console.log('IndexedDB initialized for large file storage');
-                    resolve(db);
-                };
-
-                request.onupgradeneeded = (event) => {
-                    db = event.target.result;
-
-                    // Create object store for large files
-                    if (!db.objectStoreNames.contains('files')) {
-                        const fileStore = db.createObjectStore('files', { keyPath: 'id' });
-                        fileStore.createIndex('type', 'type', { unique: false });
-                        console.log('Created IndexedDB files store');
-                    }
-                };
-            });
-        }
-
-        // Save large file to IndexedDB
-        async function saveFileToIDB(id, data, type, fileName) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['files'], 'readwrite');
-                const store = transaction.objectStore('files');
-                const file = { id, data, type, fileName, timestamp: Date.now() };
-
-                const request = store.put(file);
-                request.onsuccess = () => resolve(id);
-                request.onerror = () => reject(request.error);
-            });
-        }
-
-        // Get large file from IndexedDB with cloud storage fallback
-        async function getFileFromIDB(id) {
-            try {
-                // First try IndexedDB (local storage)
-                const localFile = await new Promise((resolve, reject) => {
-                    const transaction = db.transaction(['files'], 'readonly');
-                    const store = transaction.objectStore('files');
-                    const request = store.get(id);
-
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-
-                if (localFile) {
-                    return localFile;
-                }
-
-                // If not found locally and cloud storage is enabled, try cloud
-                if (cloudStorageEnabled && cloudStorageId) {
-                    console.log(`🔍 File ${id} not found locally, checking cloud storage...`);
-                    const cloudFile = await downloadFileFromCloud(id);
-
-                    if (cloudFile) {
-                        console.log(`☁️ Found ${cloudFile.fileName} in cloud storage, downloading...`);
-
-                        // Save to local IndexedDB for faster future access
-                        await saveFileToIDB(id, cloudFile.data, cloudFile.type, cloudFile.fileName);
-
-                        showFileTransferStatus(`☁️ Downloaded ${cloudFile.fileName} from cloud`, 3000);
-                        return {
-                            id: id,
-                            data: cloudFile.data,
-                            type: cloudFile.type,
-                            fileName: cloudFile.fileName,
-                            timestamp: Date.now()
-                        };
-                    }
-                }
-
-                return null;
-
-            } catch (error) {
-                console.error('Error getting file:', error);
-                return null;
-            }
-        }
-
-        // Delete file from IndexedDB
-        async function deleteFileFromIDB(id) {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['files'], 'readwrite');
-                const store = transaction.objectStore('files');
-                const request = store.delete(id);
-
-                request.onsuccess = () => resolve();
-                request.onerror = () => reject(request.error);
-            });
-        }
+        // IndexedDB disabled: all file storage uses Filestack
+        let db = null;
+        function initDB() { return Promise.resolve(null); }
+        async function saveFileToIDB() { return null; }
+        async function getFileFromIDB() { return null; }
+        async function deleteFileFromIDB() { return; }
 
         // Shared state
         let data = {
@@ -729,7 +632,7 @@
             socialPosts: [] // Now stores references to IndexedDB files
         };
 
-        // Load from localStorage (metadata only, files in IndexedDB)
+        // Load from localStorage
         async function loadLocal() {
             try {
                 const saved = localStorage.getItem('producerTasks');
@@ -744,16 +647,6 @@
                         staff: loaded.staff || {},
                         socialPosts: loaded.socialPosts || []
                     };
-
-                    // Load actual file data from IndexedDB for social posts
-                    for (let post of data.socialPosts) {
-                        if (post.fileId) {
-                            const fileData = await getFileFromIDB(post.fileId);
-                            if (fileData) {
-                                post.url = fileData.data;
-                            }
-                        }
-                    }
                 }
             } catch (e) {
                 console.error('Error loading data:', e);
@@ -1542,37 +1435,9 @@
         }
 
         async function updateLocalStorageInfo() {
-            try {
-                // Count files in IndexedDB
-                let fileCount = 0;
-                let totalSize = 0;
-
-                if (db) {
-                    const transaction = db.transaction(['files'], 'readonly');
-                    const store = transaction.objectStore('files');
-                    const request = store.getAll();
-
-                    request.onsuccess = () => {
-                        const files = request.result;
-                        fileCount = files.length;
-                        totalSize = files.reduce((sum, file) => {
-                            return sum + (file.data ? file.data.length : 0);
-                        }, 0);
-
-                        // Update display
-                        const usageMB = (totalSize / 1024 / 1024).toFixed(2);
-                        document.getElementById('localStorageUsage').textContent = `${usageMB} MB`;
-                        document.getElementById('fileCount').textContent = `${fileCount} files`;
-                    };
-                } else {
-                    document.getElementById('localStorageUsage').textContent = 'Not available';
-                    document.getElementById('fileCount').textContent = '0 files';
-                }
-            } catch (err) {
-                console.error('Local storage info error:', err);
-                document.getElementById('localStorageUsage').textContent = 'Error';
-                document.getElementById('fileCount').textContent = 'Error';
-            }
+            // Show Filestack cloud status only
+            const mini = document.getElementById('cloudStatusMini');
+            if (mini) mini.textContent = cloudStorageEnabled ? 'Enabled' : 'Disabled';
         }
 
         async function cleanupOldFiles() {
@@ -1632,26 +1497,17 @@
             if (files.length === 0) return;
 
             try {
-                for (const file of files) {
-                    // Generate a unique file ID
-                    const fileId = 'drop_' + Date.now() + '_' + Math.random().toString(36).substring(2);
-
-                    // Read file as data URL
-                    const reader = new FileReader();
-                    const dataUrl = await new Promise((resolve, reject) => {
-                        reader.onload = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(file);
-                    });
-
-                    // Save to IndexedDB
-                    await saveFileToIDB(fileId, dataUrl, file.type, file.name);
-
-                    console.log(`✅ Saved dropped file: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+                if (!cloudStorageEnabled || !filestackClient) {
+                    alert('Enable Cloud Storage first to upload files.');
+                    return;
                 }
-
-                alert(`✅ Saved ${files.length} file(s) to local storage!`);
-                updateLocalStorageInfo(); // Refresh storage stats
+                for (const file of files) {
+                    showFileTransferStatus(`☁️ Uploading ${file.name}...`);
+                    const res = await filestackClient.upload(file);
+                    if (!res || !res.url) throw new Error('Upload failed');
+                    console.log(`☁️ Uploaded dropped file to Filestack: ${file.name}`);
+                }
+                alert(`✅ Uploaded ${files.length} file(s) to Filestack!`);
 
             } catch (err) {
                 console.error('File drop error:', err);
@@ -1660,61 +1516,7 @@
         }
 
         async function exportAllFiles() {
-            try {
-                if (!db) {
-                    alert('IndexedDB not available');
-                    return;
-                }
-
-                const transaction = db.transaction(['files'], 'readonly');
-                const store = transaction.objectStore('files');
-                const request = store.getAll();
-
-                request.onsuccess = async () => {
-                    const files = request.result;
-                    if (files.length === 0) {
-                        alert('No files stored to export');
-                        return;
-                    }
-
-                    // For simplicity, we'll download files individually
-                    // A full zip implementation would require JSZip library
-                    alert(`Found ${files.length} files. They will download individually.`);
-
-                    for (const fileObj of files) {
-                        try {
-                            // Convert data URL to blob
-                            const response = await fetch(fileObj.data);
-                            const blob = await response.blob();
-
-                            // Download file
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = fileObj.name || `file_${fileObj.id}`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-
-                            // Small delay between downloads
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        } catch (err) {
-                            console.error(`Failed to export file ${fileObj.name}:`, err);
-                        }
-                    }
-
-                    alert('✅ File export complete!');
-                };
-
-                request.onerror = () => {
-                    console.error('Failed to get files from IndexedDB');
-                    alert('❌ Failed to access stored files');
-                };
-            } catch (err) {
-                console.error('Export files error:', err);
-                alert('❌ Export failed: ' + err.message);
-            }
+            alert('Use "📁 View Cloud Files" to access your Filestack uploads and download as needed.');
         }
 
         // Sync files with connected team members
@@ -1795,83 +1597,14 @@ IndexedDB is required for file sync. Try refreshing the page.`);
         }
 
         async function listAllFiles() {
-            try {
-                if (!db) {
-                    alert('IndexedDB not available');
-                    return;
-                }
-
-                const transaction = db.transaction(['files'], 'readonly');
-                const store = transaction.objectStore('files');
-                const request = store.getAll();
-
-                request.onsuccess = () => {
-                    const files = request.result;
-                    const modal = document.getElementById('fileListModal');
-                    const content = document.getElementById('fileListContent');
-
-                    if (files.length === 0) {
-                        content.innerHTML = '<p class="text-gray-500 text-center">No files stored</p>';
-                    } else {
-                        const html = files.map(fileObj => {
-                            const sizeKB = fileObj.data ? Math.round(fileObj.data.length / 1024) : 0;
-                            const timestamp = new Date(fileObj.timestamp).toLocaleDateString();
-                            return `
-                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <div class="flex-1">
-                                        <div class="font-medium text-sm">${fileObj.name || fileObj.id}</div>
-                                        <div class="text-xs text-gray-500">${fileObj.type} • ${sizeKB} KB • ${timestamp}</div>
-                                    </div>
-                                    <button onclick="downloadSingleFile('${fileObj.id}')" 
-                                        class="bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700">
-                                        📥 Download
-                                    </button>
-                                </div>
-                            `;
-                        }).join('');
-                        content.innerHTML = html;
-                    }
-
-                    modal.classList.remove('hidden');
-                };
-
-                request.onerror = () => {
-                    alert('❌ Failed to load file list');
-                };
-            } catch (err) {
-                console.error('List files error:', err);
-                alert('❌ Failed to list files: ' + err.message);
-            }
+            await viewCloudFiles();
         }
 
         function closeFileList() {
             document.getElementById('fileListModal').classList.add('hidden');
         }
 
-        async function downloadSingleFile(fileId) {
-            try {
-                const fileData = await getFileFromIDB(fileId);
-                if (!fileData) {
-                    alert('File not found');
-                    return;
-                }
-
-                const response = await fetch(fileData.data);
-                const blob = await response.blob();
-
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileData.name || `file_${fileId}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            } catch (err) {
-                console.error('Download file error:', err);
-                alert('❌ Failed to download file: ' + err.message);
-            }
-        }
+        async function downloadSingleFile(fileId) { alert('Use View Cloud Files for downloads.'); }
 
         async function requestPersistentStorage() {
             try {
@@ -2029,14 +1762,10 @@ IndexedDB is required for file sync. Try refreshing the page.`);
             const deleteBtn = document.getElementById(`lineupFileDelete${position}`);
 
             if (fileData) {
-                let url = fileData.data;
-                // Load from IndexedDB if needed
-                if (fileData.fileId && !url) {
-                    const fileObj = await getFileFromIDB(fileData.fileId);
-                    if (fileObj) url = fileObj.data;
-                }
-
-                fileNameSpan.innerHTML = `<a href="${url}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`;
+                const url = fileData.url || fileData.data || '';
+                fileNameSpan.innerHTML = url
+                    ? `<a href="${url}" download="${fileData.name}" class="text-blue-600 hover:underline">${fileData.name}</a>`
+                    : `${fileData.name}`;
                 deleteBtn.classList.remove('hidden');
             } else {
                 fileNameSpan.textContent = '';
@@ -2050,14 +1779,10 @@ IndexedDB is required for file sync. Try refreshing the page.`);
             const deleteBtn = document.getElementById(`lineupAudioDelete${position}`);
 
             if (audioData) {
-                let url = audioData.data;
-                // Load from IndexedDB if needed
-                if (audioData.fileId && !url) {
-                    const fileObj = await getFileFromIDB(audioData.fileId);
-                    if (fileObj) url = fileObj.data;
-                }
-
-                audioNameSpan.innerHTML = `<a href="${url}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`;
+                const url = audioData.url || audioData.data || '';
+                audioNameSpan.innerHTML = url
+                    ? `<a href="${url}" download="${audioData.name}" class="text-purple-600 hover:underline">🎵 ${audioData.name}</a>`
+                    : `🎵 ${audioData.name}`;
                 deleteBtn.classList.remove('hidden');
             } else {
                 audioNameSpan.textContent = '';
@@ -2076,45 +1801,36 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const url = e.target.result;
-                let fileId = null;
-
-                // Save large files (>50KB) to IndexedDB and/or cloud
-                if (url.length > 50000) {
-                    fileId = `lineupFile_${position}_${Date.now()}`;
-
-                    // Save to IndexedDB (local backup)
-                    await saveFileToIDB(fileId, url, file.type, file.name);
-                    console.log(`Large file saved to IndexedDB for lineup position ${position}:`, file.name);
-
-                    // Also save to cloud if enabled
-                    if (cloudStorageEnabled) {
-                        try {
-                            await uploadFileToCloud(fileId, url, file.name, file.type);
-                            console.log(`☁️ File also uploaded to cloud storage: ${file.name}`);
-                            showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
-                        } catch (error) {
-                            console.error('Cloud upload failed:', error);
-                            showFileTransferStatus(`⚠️ Local save OK, cloud failed for ${file.name}`, 4000);
-                        }
-                    }
+            try {
+                if (!cloudStorageEnabled || !filestackClient) {
+                    alert('Enable Cloud Storage first to upload files.');
+                    event.target.value = '';
+                    return;
                 }
+                showFileTransferStatus(`☁️ Uploading ${file.name} to Filestack...`);
+                const uploadResponse = await filestackClient.upload(file, {
+                    onProgress: (evt) => {
+                        const progress = Math.round(evt.totalPercent || 0);
+                        showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
+                    }
+                });
+                if (!uploadResponse || !uploadResponse.url) throw new Error('Upload failed');
 
                 data.lineupFiles[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: fileId ? '' : url,
-                    fileId: fileId
+                    url: uploadResponse.url,
+                    filestackHandle: uploadResponse.handle
                 };
-                console.log(`File uploaded for lineup position ${position}:`, file.name);
+                console.log(`☁️ Uploaded lineup file to Filestack:`, file.name);
                 saveLocal();
                 broadcast();
                 updateLineupFileDisplay(position);
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('Lineup file upload error:', err);
+                alert('Upload failed. Please try again.');
+            }
         };
 
         window.deleteLineupFile = async (position) => {
@@ -2180,8 +1896,7 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    data: fileId ? '' : url,
-                    fileId: fileId
+                    url: (cloudStorageEnabled && cloudFiles[`lineupAudio_${position}_`]) ? (cloudFiles[`lineupAudio_${position}_`].uploadUrl || '') : (url || ''),
                 };
                 console.log(`MP3 uploaded for lineup position ${position}:`, file.name);
                 saveLocal();
