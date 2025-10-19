@@ -328,27 +328,14 @@
             </div>
 
             <!-- File Export Tools -->
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">🔄 Sync Files</h3>
-                    <button onclick="syncFilesWithTeam()" id="syncFilesBtn"
-                        class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-1">
-                        Sync Files with Team
-                    </button>
-                    <button onclick="debugFileSync()"
-                        class="w-full bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-600 text-xs mb-2">
-                        🔍 Debug File Sync
-                    </button>
-                    <p class="text-xs text-gray-500">Share files between your phone and computer</p>
-                </div>
-
-                <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">🗂️ Export Files</h3>
+                    <h3 class="font-medium text-sm mb-2">�️ Export Data</h3>
                     <button onclick="exportAllFiles()"
                         class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
                         Download All Files as Zip
                     </button>
-                    <p class="text-xs text-gray-500">Downloads all stored images, videos, and audio files</p>
+                    <p class="text-xs text-gray-500">📦 All files stored on Filestack CDN</p>
                 </div>
 
                 <div class="border rounded p-3">
@@ -357,7 +344,7 @@
                         class="w-full bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm mb-2">
                         Show File Inventory
                     </button>
-                    <p class="text-xs text-gray-500">View all stored files and download individually</p>
+                    <p class="text-xs text-gray-500">View all cloud files and download individually</p>
                 </div>
             </div>
 
@@ -614,12 +601,10 @@
     </div>
 
     <script>
-        // IndexedDB disabled: all file storage uses Filestack
-        let db = null;
-        function initDB() { return Promise.resolve(null); }
-        async function saveFileToIDB() { return null; }
-        async function getFileFromIDB() { return null; }
-        async function deleteFileFromIDB() { return; }
+        // 🚫 NO LOCAL FILE STORAGE - 100% Cloud Only
+        // All files stored permanently on Filestack CDN
+        // IndexedDB removed, localStorage removed for data
+        let db = null; // Deprecated - kept for compatibility only
 
         // Shared state - UNIVERSAL CLOUD STORAGE
         // Everything stored in this single object, synced to Filestack
@@ -923,22 +908,9 @@
                     }, 1000); // Small delay to ensure connection is stable
                 }
 
-                // Start file sync process after data sync
-                setTimeout(async () => {
-                    // Wait for IndexedDB to be ready
-                    let attempts = 0;
-                    while (!db && attempts < 10) {
-                        console.log(`⏳ Waiting for IndexedDB... (attempt ${attempts + 1})`);
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        attempts++;
-                    }
-
-                    if (db) {
-                        await requestMissingFiles(conn);
-                    } else {
-                        console.log('❌ IndexedDB not ready after 5 seconds, skipping file sync');
-                    }
-                }, 3000); // Increased delay
+                // 🚫 P2P file sync DISABLED - all files stored permanently in Filestack CDN
+                // No local file storage, no need to sync files between devices
+                // All devices load from same cloud state
             });
 
             conn.on('data', async (received) => {
@@ -952,25 +924,9 @@
                     data = received.data;
                     saveLocal();
                     await render();
-                } else if (received.type === 'file-request') {
-                    // Another device is requesting files they're missing
-                    await handleFileRequest(received.ourFiles, conn);
-                } else if (received.type === 'file-data') {
-                    // Receiving file data from another device
-                    await handleIncomingFile(received);
-                } else if (received.type === 'file-list') {
-                    // Receiving list of files another device has
-                    await compareAndRequestFiles(received.files, conn);
                 }
-
-                // Relay non-file messages to other peers
-                if (!received.type.startsWith('file-')) {
-                    connections.forEach(c => {
-                        if (c !== conn && c.open) {
-                            c.send(received);
-                        }
-                    });
-                }
+                // 🚫 File sync messages DISABLED - all files on Filestack CDN
+                // No P2P file transfer needed, everything loads from cloud
             });
 
             conn.on('close', () => {
@@ -1013,126 +969,10 @@
             document.getElementById('peerCount').textContent = count === 0 ? 'Solo' : `${count} other${count > 1 ? 's' : ''}`;
         }
 
-        // -------- File Sync Between Devices --------
-
-        // Request files that we're missing from a newly connected peer
-        async function requestMissingFiles(conn) {
-            try {
-                console.log('🔄 Starting file sync request...');
-
-                // Check if IndexedDB is ready
-                if (!db) {
-                    console.log('⚠️ IndexedDB not ready yet, skipping file sync');
-                    return;
-                }
-
-                // Get list of all files we currently have
-                const ourFiles = await getAllFileIDs();
-                console.log(`📋 We have ${ourFiles.length} files:`, ourFiles);
-
-                // Ask the other device what files they have
-                conn.send({
-                    type: 'file-request',
-                    ourFiles: ourFiles
-                });
-
-                console.log(`📤 Requested file sync from peer (we have ${ourFiles.length} files)`);
-                showFileTransferStatus(`🔄 Requesting file sync...`);
-            } catch (error) {
-                console.error('❌ Error requesting missing files:', error);
-                showFileTransferStatus('❌ File sync request failed', 3000);
-            }
-        }
-
-        // Handle file request from another device
-        async function handleFileRequest(theirFiles, conn) {
-            try {
-                console.log(`📥 Received file request from peer. They have ${theirFiles.length} files:`, theirFiles);
-
-                if (!db) {
-                    console.log('⚠️ IndexedDB not ready, cannot process file request');
-                    return;
-                }
-
-                const ourFiles = await getAllFileIDs();
-                console.log(`📋 We have ${ourFiles.length} files:`, ourFiles);
-
-                const filesToSend = [];
-
-                // Find files we have that they don't
-                for (let fileId of ourFiles) {
-                    if (!theirFiles.includes(fileId)) {
-                        console.log(`📤 They're missing file: ${fileId}`);
-                        const fileData = await getFileFromIDB(fileId);
-                        if (fileData) {
-                            filesToSend.push({
-                                id: fileId,
-                                data: fileData.data,
-                                fileName: fileData.fileName,
-                                type: fileData.type,
-                                timestamp: fileData.timestamp
-                            });
-                        }
-                    }
-                }
-
-                if (filesToSend.length > 0) {
-                    console.log(`Sending ${filesToSend.length} files to peer`);
-                    showFileTransferStatus(`📤 Sending ${filesToSend.length} files...`);
-
-                    // Send files one by one to avoid overwhelming the connection
-                    for (let file of filesToSend) {
-                        conn.send({
-                            type: 'file-data',
-                            file: file
-                        });
-                        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between files
-                    }
-
-                    showFileTransferStatus(`✅ Sent ${filesToSend.length} files!`, 3000);
-                }
-            } catch (error) {
-                console.error('Error handling file request:', error);
-                showFileTransferStatus('❌ File send failed', 3000);
-            }
-        }
-
-        // Handle incoming file data from another device
-        async function handleIncomingFile(message) {
-            try {
-                const { file } = message;
-
-                // Check if we already have this file
-                const existingFile = await getFileFromIDB(file.id);
-                if (existingFile) {
-                    return; // Skip if we already have it
-                }
-
-                // Save the received file
-                await saveFileToIDB(file.id, file.data, file.type, file.fileName, file.timestamp);
-                console.log(`Received file: ${file.fileName} (${file.id})`);
-
-                // Update UI to show the new file
-                await render();
-
-                showFileTransferStatus(`📥 Received: ${file.fileName}`, 3000);
-            } catch (error) {
-                console.error('Error handling incoming file:', error);
-                showFileTransferStatus('❌ File receive failed', 3000);
-            }
-        }
-
-        // Get all file IDs from IndexedDB
-        async function getAllFileIDs() {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['files'], 'readonly');
-                const store = transaction.objectStore('files');
-                const request = store.getAllKeys();
-
-                request.onsuccess = () => resolve(request.result || []);
-                request.onerror = () => reject(request.error);
-            });
-        }
+        // -------- P2P File Sync REMOVED --------
+        // � NO LOCAL FILE STORAGE - All files on Filestack CDN
+        // P2P file transfer is unnecessary - all devices load from same cloud state
+        // Files are permanently stored on Filestack and referenced by URL in state.json
 
         // Show file transfer status
         function showFileTransferStatus(message, autoClear = 0) {
@@ -1437,20 +1277,16 @@
             }
         }
 
-        // -------- Local File Management Functions --------
+        // -------- Cloud Data Export Functions --------
         async function exportAllData() {
             try {
-                // Gather all data
-                const data = {
-                    version: '1.0',
+                // Export from universal cloud state
+                const exportData = {
+                    version: '2.0',
                     timestamp: new Date().toISOString(),
-                    tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
-                    personalTasks: JSON.parse(localStorage.getItem('personalTasks') || '[]'),
-                    lineup: JSON.parse(localStorage.getItem('lineup') || '[]'),
-                    socialMediaPosts: JSON.parse(localStorage.getItem('socialMediaPosts') || '[]'),
-                    roomId: localStorage.getItem('roomId'),
-                    // Note: IndexedDB files are referenced but not exported (too large)
-                    note: 'Large files in IndexedDB are not included in this backup. Use "Download files separately" option if needed.'
+                    storageMode: 'Filestack CDN (100% Cloud)',
+                    ...data, // All data from universal cloud state
+                    note: 'All files are stored on Filestack CDN. File URLs are included in this export.'
                 };
 
                 // Create downloadable file
@@ -1587,81 +1423,25 @@
             alert('Use "📁 View Cloud Files" to access your Filestack uploads and download as needed.');
         }
 
-        // Sync files with connected team members
+        // 🚫 P2P FILE SYNC REMOVED - All files permanently stored on Filestack CDN
+        // No local storage, no device-to-device transfer needed
         async function syncFilesWithTeam() {
-            if (connections.length === 0) {
-                alert('⚠️ No team members connected. Share your URL with team members first, then click sync.');
-                return;
-            }
-
-            const btn = document.getElementById('syncFilesBtn');
-            const originalText = btn.innerHTML;
-
-            try {
-                btn.innerHTML = '🔄 Syncing...';
-                btn.disabled = true;
-
-                let totalSynced = 0;
-
-                // Request missing files from each connected peer
-                for (let conn of connections) {
-                    if (conn.open) {
-                        await requestMissingFiles(conn);
-                        totalSynced++;
-                    }
-                }
-
-                if (totalSynced > 0) {
-                    showFileTransferStatus(`🔄 Syncing files with ${totalSynced} team member${totalSynced > 1 ? 's' : ''}...`, 5000);
-                    alert(`📤 Requested file sync with ${totalSynced} team member${totalSynced > 1 ? 's' : ''}. Files will appear automatically as they're received.`);
-                } else {
-                    alert('❌ No active connections available for sync.');
-                }
-
-            } catch (error) {
-                console.error('File sync error:', error);
-                alert('❌ File sync failed: ' + error.message);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+            alert('🌐 File sync not needed!\n\nAll files are permanently stored on Filestack CDN.\n\nJust refresh the page to see latest updates from other devices.');
         }
 
-        // Debug function to check file sync status
         async function debugFileSync() {
-            console.log('🔍 File Sync Debug Info:');
-            console.log('- IndexedDB ready:', !!db);
-            console.log('- Connected peers:', connections.length);
-            console.log('- Connections:', connections.map(c => ({ open: c.open, peer: c.peer })));
+            const fileCount = Object.keys(data.cloudFiles || {}).length;
+            alert(`🌐 Storage Info:
 
-            if (db) {
-                try {
-                    const fileIds = await getAllFileIDs();
-                    console.log('- Our files:', fileIds);
-                    console.log('- File count:', fileIds.length);
+Storage Mode: 100% Cloud Only
+Local Storage: DISABLED
+File Location: Filestack CDN
+Cloud Files: ${fileCount}
 
-                    // Show summary
-                    alert(`Debug Info:
-                    
-IndexedDB: ${db ? 'Ready ✅' : 'Not Ready ❌'}
-Connected Peers: ${connections.length}
-Our Files: ${fileIds.length}
+All files are permanently stored on Filestack CDN.
+No local file storage or device-to-device sync needed.
 
-${fileIds.length > 0 ? 'Files: ' + fileIds.slice(0, 3).join(', ') + (fileIds.length > 3 ? '...' : '') : 'No files stored'}
-
-Check browser console for full details.`);
-                } catch (error) {
-                    console.error('Error getting file list:', error);
-                    alert('Debug Error: ' + error.message);
-                }
-            } else {
-                alert(`Debug Info:
-                
-IndexedDB: Not Ready ❌
-Connected Peers: ${connections.length}
-
-IndexedDB is required for file sync. Try refreshing the page.`);
-            }
+Refresh the page to see latest updates from cloud.`);
         }
 
         async function listAllFiles() {
