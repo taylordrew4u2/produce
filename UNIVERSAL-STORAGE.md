@@ -107,16 +107,19 @@ let data = {
 ## Key Benefits
 
 ### 1. Single Source of Truth
+
 - **No conflicts** between multiple storage systems
 - **No sync issues** between localStorage and cloud
 - **No orphaned files** - everything in one JSON state
 
 ### 2. Instant Global Sync
+
 - Change on phone → Saved to Filestack → Load on computer
 - All devices read from same `state.json` URL
 - File URLs are permanent Filestack CDN links
 
 ### 3. Simple Architecture
+
 ```javascript
 // OLD (before universal storage):
 localStorage.setItem('tasks', JSON.stringify(tasks))
@@ -133,6 +136,7 @@ saveLocal() // → uploads entire `data` to Filestack
 ```
 
 ### 4. File + Metadata Together
+
 ```javascript
 // Upload lineup audio
 const res = await filestackClient.upload(file)
@@ -152,7 +156,9 @@ audioEl.src = audio.url  // Load from Filestack CDN
 ## Storage Locations
 
 ### Config Only (localStorage)
+
 These are NOT synced, device-specific:
+
 - `filestackApiKey` - User's Filestack key
 - `filestackPolicy` - Security policy for overwrites
 - `filestackSignature` - Security signature
@@ -161,7 +167,9 @@ These are NOT synced, device-specific:
 - `cloudStorageId` - Device identifier
 
 ### Universal State (Filestack CDN)
+
 Everything else stored in `data` object:
+
 - All tasks, lineup, posts, staff
 - All file URLs (lineup files, audio, social media)
 - All file metadata (names, sizes, handles)
@@ -169,6 +177,7 @@ Everything else stored in `data` object:
 ## Code Patterns
 
 ### Adding a Task
+
 ```javascript
 data.tasks.push({
     id: Date.now(),
@@ -180,6 +189,7 @@ saveLocal() // → Cloud upload triggered
 ```
 
 ### Uploading Lineup File
+
 ```javascript
 const res = await filestackClient.upload(file)
 data.lineupFiles[position] = {
@@ -192,6 +202,7 @@ saveLocal() // → Cloud upload triggered
 ```
 
 ### Creating Social Post with Image
+
 ```javascript
 const res = await filestackClient.upload(imageFile)
 data.socialPosts.push({
@@ -205,6 +216,7 @@ saveLocal() // → Cloud upload triggered
 ```
 
 ### Viewing All Files
+
 ```javascript
 // All files tracked in data.cloudFiles
 const files = Object.values(data.cloudFiles || {})
@@ -216,6 +228,7 @@ files.forEach(file => {
 ## Migration from Multiple Storage Systems
 
 **Before (fragmented):**
+
 - Tasks → localStorage
 - Lineup metadata → localStorage
 - Lineup files → IndexedDB
@@ -223,6 +236,7 @@ files.forEach(file => {
 - Cloud files → separate `cloudFiles` object in localStorage
 
 **After (unified):**
+
 - **Everything** → `data` object → Filestack `state.json`
 - File assets → Filestack CDN (URLs in state)
 - No IndexedDB, no fragmented localStorage
@@ -230,11 +244,13 @@ files.forEach(file => {
 ## Performance
 
 ### Upload Sizes
+
 - **State JSON**: Typically < 1 MB (metadata + URLs)
 - **File assets**: Stored separately on Filestack CDN
 - **Debounced saves**: 1.5s delay prevents excessive uploads
 
 ### Load Times
+
 - **Initial load**: One fetch for `state.json` (~100-500 KB)
 - **File display**: Direct Filestack CDN links (globally cached)
 - **No IndexedDB queries**: Instant rendering from memory
@@ -242,50 +258,62 @@ files.forEach(file => {
 ## Troubleshooting
 
 ### "No cloud state URL found"
+
 **Cause**: First time opening app, no state created yet  
 **Fix**: Make any change (add task, upload file) to create state
 
 ### "Overwrite failed, falling back to new upload"
+
 **Cause**: Policy/signature missing or expired  
 **Fix**: Click "Cloud Active - Configure Security", enter valid policy/signature
 
 ### Files not syncing between devices
+
 **Cause**: Different state URLs on each device  
 **Fix**: Use "Share link" to copy URL with `?state=...`, open on all devices
 
 ### State size too large
+
 **Cause**: Embedding large files in state (should never happen now)  
 **Fix**: Verify files are uploaded to Filestack CDN, not embedded as data URLs
 
 ## API Reference
 
 ### `data` (global object)
+
 Universal state object containing all app data
 
 ### `saveLocal()`
+
 Triggers debounced cloud save (no local storage)
 
 ### `saveStateToCloud()`
+
 Uploads `data` to Filestack as JSON, overwrites if policy/signature exist
 
 ### `loadStateFromCloudIfAvailable()`
+
 Loads `data` from Filestack on app startup
 
 ### `uploadFileToCloud(fileId, fileData, fileName, fileType)`
+
 Uploads file to Filestack, stores reference in `data.cloudFiles[fileId]`
 
 ### `viewCloudFiles()`
+
 Shows all files tracked in `data.cloudFiles`
 
 ## Best Practices
 
 1. **Always use `saveLocal()` after changing `data`**
+
    ```javascript
    data.tasks.push(newTask)
    saveLocal() // ✅ Cloud save triggered
    ```
 
 2. **Store file URLs, not data URLs**
+
    ```javascript
    // ❌ BAD
    data.lineupFiles[1] = { url: 'data:image/jpeg;base64,...' }
@@ -301,6 +329,7 @@ Shows all files tracked in `data.cloudFiles`
    - Share link always points to latest state
 
 4. **Check `data` structure on load**
+
    ```javascript
    if (!data.cloudFiles) data.cloudFiles = {}
    if (!data.tasks) data.tasks = []

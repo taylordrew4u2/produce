@@ -693,19 +693,22 @@
 
         async function loadStateFromCloudIfAvailable() {
             try {
-                const params = new URLSearchParams(location.search);
-                const urlParam = params.get('state');
+                // Always load from permanent handle (universal state)
                 const handle = localStorage.getItem('stateHandle');
                 const stableUrl = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
-                const knownUrl = urlParam || stableUrl;
+                
+                // Fallback to URL param only for initial setup/migration
+                const params = new URLSearchParams(location.search);
+                const urlParam = params.get('state');
+                const knownUrl = stableUrl || urlParam;
 
                 if (!knownUrl) {
-                    console.log('🌐 No cloud state URL found - starting with empty universal state');
-                    console.log('💡 Make a change to create your permanent universal cloud state');
+                    console.log('🌐 No universal cloud state found - starting fresh');
+                    console.log('💡 Configure security credentials and make a change to create permanent state');
                     return;
                 }
 
-                console.log('☁️ Loading universal app state from cloud:', knownUrl.substring(0, 60) + '...');
+                console.log('☁️ Loading universal state from:', stableUrl ? 'permanent handle' : 'URL param');
                 const cacheBust = `cb=${Date.now()}`;
                 const sep = knownUrl.includes('?') ? '&' : '?';
                 const fetchUrl = `${knownUrl}${sep}${cacheBust}`;
@@ -2358,16 +2361,11 @@ IndexedDB is required for file sync. Try refreshing the page.`);
                 : `<img src="${url}" class="max-h-40 rounded border">`;
         });
 
-        // Copy share link
+        // Copy share link - always use base URL (universal cloud state auto-loads)
         window.copyShareLink = () => {
-            const base = window.location.origin + window.location.pathname;
-            const handle = localStorage.getItem('stateHandle');
-            const stable = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
-            const known = stable || localStorage.getItem('stateCloudUrl') || '';
-            const query = known ? `?state=${encodeURIComponent(known)}` : '';
-            const url = `${base}${query}#${peer?.id || ''}`;
+            const url = 'https://taylordrew4u2.github.io/produce/';
             navigator.clipboard.writeText(url).then(() => {
-                alert('Share link copied! Send this to your team.');
+                alert('🌐 Share link copied!\n\nSend this to your team:\nhttps://taylordrew4u2.github.io/produce/\n\nEveryone will see the same universal cloud state.');
             });
         };
 
