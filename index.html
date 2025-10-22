@@ -788,6 +788,23 @@
         let FILESTACK_API_KEY = localStorage.getItem('filestackApiKey') || 'AzKRRFVGmS8CIpDqn6r8Bz'; // Demo key fallback for testing
         let filestackClient = null;
 
+        // Centralized initializer so we always include security if present
+        function ensureFilestackClient() {
+            if (filestackClient) return filestackClient;
+            if (typeof filestack === 'undefined') {
+                throw new Error('Filestack SDK not loaded');
+            }
+            const policy = localStorage.getItem('filestackPolicy');
+            const signature = localStorage.getItem('filestackSignature');
+            const options = (policy && signature) ? { security: { policy, signature } } : {};
+            // Gentle nudge if running on demo key
+            if (FILESTACK_API_KEY === 'AzKRRFVGmS8CIpDqn6r8Bz') {
+                console.warn('Using demo Filestack API key. For reliability, set your own in Cloud Configure.');
+            }
+            filestackClient = filestack.init(FILESTACK_API_KEY, options);
+            return filestackClient;
+        }
+
         // Cloud storage is ALWAYS enabled - no local-only mode
         let cloudStorageEnabled = true; // Always on - permanent cloud storage required
         let cloudStorageId = localStorage.getItem('cloudStorageId') || `prod_${Math.random().toString(36).substr(2, 12)}_${Date.now()}`;
@@ -822,7 +839,7 @@
 
                 // Initialize Filestack client
                 if (!filestackClient) {
-                    filestackClient = filestack.init(FILESTACK_API_KEY);
+                    filestackClient = ensureFilestackClient();
                 }
 
                 // Ensure storage ID is persisted
@@ -866,7 +883,7 @@
             if (!filestackClient) {
                 try {
                     console.log('Auto-initializing Filestack for uploadFileToCloud...');
-                    filestackClient = filestack.init(FILESTACK_API_KEY);
+                    filestackClient = ensureFilestackClient();
                 } catch (initError) {
                     console.error('Filestack initialization failed:', initError);
                     throw new Error('Failed to initialize Filestack: ' + initError.message);
@@ -901,8 +918,12 @@
                     uploadInBackground: false
                 });
 
-                if (!uploadResponse || !uploadResponse.url) {
-                    throw new Error('Filestack upload failed - no URL returned');
+                if (!uploadResponse) {
+                    throw new Error('Filestack upload failed - empty response');
+                }
+                const uploadedUrl2 = uploadResponse.url || (uploadResponse.handle ? `https://cdn.filestackcontent.com/${uploadResponse.handle}` : '');
+                if (!uploadedUrl2) {
+                    throw new Error('Filestack upload failed - no URL/handle returned');
                 }
 
                 // Store file reference in universal cloud state
@@ -910,7 +931,7 @@
                     fileName: fileName,
                     type: fileType,
                     size: blob.size,
-                    uploadUrl: uploadResponse.url,
+                    uploadUrl: uploadedUrl2,
                     filestackHandle: uploadResponse.handle,
                     service: 'filestack',
                     uploadedAt: new Date().toISOString(),
@@ -1020,7 +1041,7 @@
                 if (cloudStorageEnabled && cloudStorageId) {
                     // Ensure Filestack client is initialized
                     if (!filestackClient) {
-                        filestackClient = filestack.init(FILESTACK_API_KEY);
+                        filestackClient = ensureFilestackClient();
                     }
 
                     document.getElementById('enableCloudBtn').innerHTML = '✅ Filestack Active';
@@ -1356,7 +1377,7 @@ Refresh the page to see latest updates from cloud.`);
                             throw new Error('Filestack SDK not loaded. Please refresh the page.');
                         }
                         console.log('Filestack API Key:', FILESTACK_API_KEY);
-                        filestackClient = filestack.init(FILESTACK_API_KEY);
+                        filestackClient = ensureFilestackClient();
                         console.log('Filestack client initialized successfully');
                     } catch (initError) {
                         console.error('Filestack initialization failed:', initError);
@@ -1366,27 +1387,32 @@ Refresh the page to see latest updates from cloud.`);
                     }
                 }
                 showFileTransferStatus(`☁️ Uploading ${file.name} to Filestack...`);
-                
+
                 console.log('Starting Filestack upload...');
                 console.log('File:', file.name, 'Size:', file.size, 'Type:', file.type);
                 console.log('Filestack client:', filestackClient);
-                
+
                 const uploadResponse = await filestackClient.upload(file, {
                     onProgress: (evt) => {
                         const progress = Math.round(evt.totalPercent || 0);
                         showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
-                    }
+                    },
+                    // Restrict to images and PDFs for lineup uploads
+                    accept: ['image/*', 'application/pdf']
                 });
-                
+
                 console.log('Upload response:', uploadResponse);
-                
-                if (!uploadResponse || !uploadResponse.url) throw new Error('Upload failed - no URL returned');
+
+                // Some SDK versions return only handle; construct URL if needed
+                if (!uploadResponse) throw new Error('Upload failed - empty response');
+                const uploadedUrl = uploadResponse.url || (uploadResponse.handle ? `https://cdn.filestackcontent.com/${uploadResponse.handle}` : '');
+                if (!uploadedUrl) throw new Error('Upload failed - no URL/handle returned');
 
                 data.lineupFiles[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    url: uploadResponse.url,
+                    url: uploadedUrl,
                     filestackHandle: uploadResponse.handle
                 };
                 console.log(`☁️ Uploaded lineup file to Filestack:`, file.name);
@@ -1396,7 +1422,7 @@ Refresh the page to see latest updates from cloud.`);
             } catch (err) {
                 console.error('Lineup file upload error:', err);
                 console.error('Error details:', JSON.stringify(err, null, 2));
-                
+
                 // Extract meaningful error message
                 let errorMsg = 'Unknown error';
                 if (err.message) {
@@ -1408,7 +1434,7 @@ Refresh the page to see latest updates from cloud.`);
                 } else if (typeof err === 'string') {
                     errorMsg = err;
                 }
-                
+
                 // Check for specific Filestack API errors
                 if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
                     errorMsg = 'Invalid API key. Please get a valid Filestack API key from https://dev.filestack.com/';
@@ -1417,7 +1443,7 @@ Refresh the page to see latest updates from cloud.`);
                 } else if (errorMsg.includes('429')) {
                     errorMsg = 'Rate limit exceeded. Try again later or upgrade your Filestack plan.';
                 }
-                
+
                 alert(`❌ Upload failed: ${errorMsg}\n\nDebugging info logged to console (F12).\n\nTo fix:\n1. Get a FREE API key: https://dev.filestack.com/signup/free\n2. Click "Cloud Active - Configure Security" to enter it`);
                 event.target.value = ''; // Reset file input
             }
