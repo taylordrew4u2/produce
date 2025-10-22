@@ -7,7 +7,7 @@
     <title>Producer Tasks - Instant Collaboration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://static.filestackapi.com/filestack-js/3.x.x/filestack.min.js"></script>
+    <!-- Removed Filestack SDK: switching to Blomp (WebDAV) -->
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -154,8 +154,7 @@
                             <input type="file" id="socialFile" accept="image/*,video/*"
                                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                             <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
-                            <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Filestack CDN (permanent
-                                cloud storage)</p>
+                            <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Blomp (WebDAV)</p>
                         </div>
 
                         <div id="filePreview" class="mb-3"></div>
@@ -189,8 +188,8 @@
             <h2 class="text-xl font-semibold">☁️ Cloud Storage</h2>
             <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">100% Cloud Only</span>
         </div>
-        <p class="text-sm text-gray-600 mb-4">All data permanently stored on Filestack CDN. <strong>Accessible from
-                any device instantly!</strong></p>
+        <p class="text-sm text-gray-600 mb-4">All data stored on Blomp via WebDAV. <strong>Access requires your Blomp
+                credentials.</strong></p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Export/Import Data -->
@@ -220,13 +219,13 @@
                 <h3 class="font-medium text-sm text-blue-800">☁️ Cloud File Storage (NEW!)</h3>
                 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">No signup required</span>
             </div>
-            <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Filestack CDN, accessible
-                from any device!</p>
+            <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Blomp via WebDAV. Note: access
+                requires your Blomp credentials.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <button onclick="enableCloudStorage()" id="enableCloudBtn"
                     class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
-                    ✅ Cloud Active - Configure Security
+                    ✅ Blomp Active - Configure
                 </button>
                 <button onclick="viewCloudFiles()" id="viewCloudBtn"
                     class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
@@ -235,7 +234,22 @@
             </div>
 
             <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
-                ⚠️ Add policy/signature for permanent URLs
+                ⚠️ Enter your Blomp WebDAV credentials to enable uploads
+            </div>
+            <div id="errorBanner" class="mt-2 hidden">
+                <div class="rounded-md bg-red-50 p-3 border border-red-200">
+                    <div class="flex">
+                        <div class="flex-shrink-0">🚫</div>
+                        <div class="ml-2">
+                            <h4 class="text-sm font-medium text-red-800" id="errorBannerTitle">Upload error</h4>
+                            <div class="mt-1 text-xs text-red-700" id="errorBannerMessage"></div>
+                            <pre class="mt-2 text-[10px] bg-red-100 text-red-800 p-2 rounded overflow-auto hidden"
+                                id="errorBannerDetails"></pre>
+                            <button onclick="document.getElementById('errorBanner').classList.add('hidden')"
+                                class="mt-2 text-xs text-red-700 underline">Dismiss</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -247,7 +261,7 @@
                     class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
                     Download All Files as Zip
                 </button>
-                <p class="text-xs text-gray-500">📦 All files stored on Filestack CDN</p>
+                <p class="text-xs text-gray-500">📦 All files stored on Blomp</p>
             </div>
 
             <div class="border rounded p-3">
@@ -277,7 +291,7 @@
             <div class="text-gray-500">
                 <span class="text-2xl">📎</span>
                 <p class="text-sm mt-2">Drag & drop files here to upload them to the cloud</p>
-                <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - uploaded to Filestack CDN
+                <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - uploaded to Blomp
                 </p>
             </div>
         </div>
@@ -494,108 +508,70 @@
 
     <script>
         // 🚫 NO LOCAL FILE STORAGE - 100% Cloud Only
-        // All files stored permanently on Filestack CDN
+        // All files stored on Blomp via WebDAV
         // IndexedDB removed, localStorage removed for data
         let db = null; // Deprecated - kept for compatibility only
 
         // Shared state - UNIVERSAL CLOUD STORAGE
-        // Everything stored in this single object, synced to Filestack
+        // Everything stored in this single object, synced to Blomp
         let data = {
             tasks: [],              // Producer tasks
             personalTasks: [],      // Taylor/Jay personal lists
             lineup: {},             // Show lineup (positions 1-5)
-            lineupFiles: {},        // Lineup files (images/PDFs) - Filestack URLs
-            lineupAudio: {},        // Lineup audio (MP3s) - Filestack URLs
+            lineupFiles: {},        // Lineup files (images/PDFs) - Blomp URLs (WebDAV)
+            lineupAudio: {},        // Lineup audio (MP3s) - Blomp URLs (WebDAV)
             staff: {},              // Staff assignments
-            socialPosts: [],        // Social media calendar - Filestack URLs
-            cloudFiles: {}          // All uploaded files registry - Filestack URLs
+            socialPosts: [],        // Social media calendar - Blomp URLs
+            cloudFiles: {}          // All uploaded files registry - Blomp URLs
         };
 
         // Load from PERMANENT CLOUD STORAGE ONLY - no local storage fallback
         async function loadLocal() {
             // This function is now a no-op - all loading happens via loadStateFromCloudIfAvailable
-            // ALL data comes from Filestack CDN (permanent cloud storage)
-            console.log('🌐 PERMANENT CLOUD MODE: No local data, loading from Filestack CDN...');
+            // ALL data comes from Blomp (WebDAV)
+            console.log('🌐 PERMANENT CLOUD MODE: No local data, loading from Blomp...');
         }
 
-        // Save to PERMANENT CLOUD STORAGE ONLY - overwrites Filestack CDN state
+        // Save to PERMANENT CLOUD STORAGE ONLY - overwrites Blomp state.json
         // NOTE: localStorage is NEVER used for data storage, only for config/pointers
         function saveLocal() {
-            if (!cloudStorageEnabled || !filestackClient) {
+            if (!cloudStorageEnabled) {
                 console.warn('⚠️ Cloud storage not enabled - changes will NOT be saved to permanent storage!');
                 return;
             }
 
             // Trigger permanent cloud save (debounced to avoid excessive uploads)
-            // Data is uploaded to Filestack CDN, accessible globally
+            // Data is uploaded to Blomp via WebDAV
             debouncedSaveStateToCloud();
         }
 
-        // --- Universal Cloud Storage (Filestack) ---
-        // ALL data (tasks, files, audio, posts) stored in single `data` object, synced to Filestack
+        // --- Universal Cloud Storage (Blomp) ---
+        // ALL data (tasks, files, audio, posts) stored in single `data` object, synced to Blomp via WebDAV
         function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; }
 
         async function saveStateToCloud() {
             try {
                 const json = JSON.stringify(data);
                 const blob = new Blob([json], { type: 'application/json' });
-                const policy = localStorage.getItem('filestackPolicy');
-                const signature = localStorage.getItem('filestackSignature');
-                const existingHandle = localStorage.getItem('stateHandle');
-
-                if (policy && signature && existingHandle) {
-                    // PERMANENT CLOUD STORAGE: Overwrite existing state file on Filestack CDN
-                    // This keeps the SAME cloud URL forever, no local storage of data
-                    const overwriteUrl = `https://cdn.filestackcontent.com/overwrite/${existingHandle}?policy=${encodeURIComponent(policy)}&signature=${encodeURIComponent(signature)}`;
-                    const resp = await fetch(overwriteUrl, { method: 'POST', body: blob, headers: { 'Content-Type': 'application/json' } });
-                    if (resp.ok) {
-                        const stableUrl = `https://cdn.filestackcontent.com/${existingHandle}`;
-                        localStorage.setItem('stateCloudUrl', stableUrl); // Only storing the URL pointer, NOT the data
-                        console.log('☁️ Universal state PERMANENTLY stored in cloud at:', stableUrl);
-                        return;
-                    } else {
-                        console.warn('Overwrite failed, falling back to new upload');
-                    }
-                }
-
-                // Fallback: upload NEW file to Filestack cloud (permanent cloud storage)
-                const file = new File([blob], `state-${Date.now()}.json`, { type: 'application/json' });
-                const res = await filestackClient.upload(file);
-                if (res && res.url) {
-                    localStorage.setItem('stateCloudUrl', res.url); // Only storing the URL pointer, NOT the data
-                    if (res.handle) localStorage.setItem('stateHandle', res.handle); // Handle for future overwrites
-                    console.log('☁️ Universal state PERMANENTLY uploaded to cloud:', res.url);
-                }
+                // Blomp: write to /Apps/produce/{cloudStorageId}/state.json
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId);
+                const path = blompJoinPath(dir, 'state.json');
+                await blompEnsureDirs(dir);
+                const url = await blompPut(path, blob, 'application/json');
+                localStorage.setItem('stateCloudUrl', url);
+                console.log('☁️ Universal state stored in Blomp:', url);
             } catch (err) {
                 console.warn('Universal cloud state save skipped/failed:', err.message);
+                showGlobalError('Save failed', err.message);
             }
         }
         const debouncedSaveStateToCloud = debounce(saveStateToCloud, 1500);
 
         async function loadStateFromCloudIfAvailable() {
             try {
-                // Always load from permanent handle (universal state)
-                const handle = localStorage.getItem('stateHandle');
-                const stableUrl = handle ? `https://cdn.filestackcontent.com/${handle}` : '';
-
-                // Fallback to URL param only for initial setup/migration
-                const params = new URLSearchParams(location.search);
-                const urlParam = params.get('state');
-                const knownUrl = stableUrl || urlParam;
-
-                if (!knownUrl) {
-                    console.log('🌐 No universal cloud state found - starting fresh');
-                    console.log('💡 Configure security credentials and make a change to create permanent state');
-                    return;
-                }
-
-                console.log('☁️ Loading universal state from:', stableUrl ? 'permanent handle' : 'URL param');
-                const cacheBust = `cb=${Date.now()}`;
-                const sep = knownUrl.includes('?') ? '&' : '?';
-                const fetchUrl = `${knownUrl}${sep}${cacheBust}`;
-                const res = await fetch(fetchUrl);
-                if (!res.ok) throw new Error('Cloud state fetch failed');
-                const remote = await res.json();
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId);
+                const path = blompJoinPath(dir, 'state.json');
+                const remote = await blompGetJSON(path);
                 if (remote && typeof remote === 'object') {
                     data = {
                         tasks: remote.tasks || [],
@@ -607,11 +583,12 @@
                         socialPosts: remote.socialPosts || [],
                         cloudFiles: remote.cloudFiles || {}
                     };
-                    console.log('✅ Loaded universal cloud state from Filestack');
+                    console.log('✅ Loaded universal cloud state from Blomp');
                 }
             } catch (e) {
                 console.warn('⚠️ No universal cloud state loaded:', e.message);
                 console.log('💡 Make a change to create your permanent universal cloud state');
+                // Don't block if not found; start with defaults
             }
         }
 
@@ -773,36 +750,95 @@
             }
         }
 
-        // -------- PERMANENT CLOUD STORAGE (Filestack CDN) --------
+        // -------- PERMANENT CLOUD STORAGE (Blomp WebDAV) --------
         // 
         // CRITICAL: ALL data is stored PERMANENTLY on Filestack CDN
-        // - Tasks, lineup, files, audio, posts → Filestack state.json
-        // - File assets → Filestack CDN (globally distributed)
+        // - Tasks, lineup, files, audio, posts → Blomp state.json via WebDAV
+        // - File assets → Blomp storage (WebDAV paths)
         // - localStorage is ONLY used for config (API keys, credentials, URL pointers)
         // - NO data is stored locally - everything in cloud
         // - State URL: https://cdn.filestackcontent.com/{handle}
         // - Permanent overwrite with policy/signature keeps same URL forever
         //
 
-        // Filestack configuration - API key is configurable via localStorage (config only, not data)
-        let FILESTACK_API_KEY = localStorage.getItem('filestackApiKey') || 'AzKRRFVGmS8CIpDqn6r8Bz'; // Demo key fallback for testing
-        let filestackClient = null;
+        // Blomp configuration - stored in localStorage (config only)
+        let BLOMP_WEBDAV_URL = (localStorage.getItem('blompWebdavUrl') || 'https://webdav.blomp.com').replace(/\/$/, '');
+        let BLOMP_USERNAME = localStorage.getItem('blompUsername') || '';
+        let BLOMP_PASSWORD = localStorage.getItem('blompPassword') || '';
+        let BLOMP_BASE_DIR = localStorage.getItem('blompBaseDir') || '/Apps/produce';
 
-        // Centralized initializer so we always include security if present
-        function ensureFilestackClient() {
-            if (filestackClient) return filestackClient;
-            if (typeof filestack === 'undefined') {
-                throw new Error('Filestack SDK not loaded');
+        // Show a global error banner in the UI (no DevTools needed)
+        function showGlobalError(title, message, details = '') {
+            const banner = document.getElementById('errorBanner');
+            const titleEl = document.getElementById('errorBannerTitle');
+            const msgEl = document.getElementById('errorBannerMessage');
+            const detailsEl = document.getElementById('errorBannerDetails');
+            if (!banner || !titleEl || !msgEl || !detailsEl) return alert(`${title}: ${message}`);
+            titleEl.textContent = title || 'Error';
+            msgEl.textContent = message || '';
+            if (details) {
+                detailsEl.textContent = details;
+                detailsEl.classList.remove('hidden');
+            } else {
+                detailsEl.textContent = '';
+                detailsEl.classList.add('hidden');
             }
-            const policy = localStorage.getItem('filestackPolicy');
-            const signature = localStorage.getItem('filestackSignature');
-            const options = (policy && signature) ? { security: { policy, signature } } : {};
-            // Gentle nudge if running on demo key
-            if (FILESTACK_API_KEY === 'AzKRRFVGmS8CIpDqn6r8Bz') {
-                console.warn('Using demo Filestack API key. For reliability, set your own in Cloud Configure.');
+            banner.classList.remove('hidden');
+        }
+
+        function blompAuthHeader() {
+            if (!BLOMP_USERNAME || !BLOMP_PASSWORD) throw new Error('Blomp credentials not set');
+            return 'Basic ' + btoa(`${BLOMP_USERNAME}:${BLOMP_PASSWORD}`);
+        }
+
+        function blompJoinPath(...segments) {
+            const parts = segments
+                .map(s => String(s || '').trim())
+                .filter(Boolean)
+                .map(s => s.replace(/^\/+|\/+$/g, ''));
+            return '/' + parts.join('/');
+        }
+
+        async function blompMkcol(path) {
+            const url = BLOMP_WEBDAV_URL + path;
+            const res = await fetch(url, { method: 'MKCOL', headers: { 'Authorization': blompAuthHeader() } });
+            // 201 Created or 405 Method Not Allowed (already exists) are fine
+            if (!(res.status === 201 || res.status === 405 || res.status === 200)) {
+                throw new Error(`MKCOL failed ${res.status} ${res.statusText}`);
             }
-            filestackClient = filestack.init(FILESTACK_API_KEY, options);
-            return filestackClient;
+        }
+
+        async function blompEnsureDirs(path) {
+            const parts = path.split('/').filter(Boolean);
+            let accum = '';
+            for (let i = 0; i < parts.length; i++) {
+                accum += '/' + parts[i];
+                try {
+                    await blompMkcol(accum);
+                } catch (e) {
+                    // ignore if it's a file (last segment has dot) or already exists
+                    if (i < parts.length - 1) console.debug('MKCOL', accum, e.message);
+                }
+            }
+        }
+
+        async function blompPut(path, data, contentType = 'application/octet-stream') {
+            const url = BLOMP_WEBDAV_URL + path;
+            const headers = { 'Authorization': blompAuthHeader(), 'Content-Type': contentType };
+            const res = await fetch(url, { method: 'PUT', headers, body: data });
+            if (!res.ok) {
+                let msg = `${res.status} ${res.statusText}`;
+                try { const t = await res.text(); if (t) msg += `: ${t}`; } catch { }
+                throw new Error(`PUT failed: ${msg}`);
+            }
+            return url; // returns the WebDAV URL
+        }
+
+        async function blompGetJSON(path) {
+            const url = BLOMP_WEBDAV_URL + path + `?cb=${Date.now()}`;
+            const res = await fetch(url, { headers: { 'Authorization': blompAuthHeader() } });
+            if (!res.ok) throw new Error(`GET failed: ${res.status}`);
+            return await res.json();
         }
 
         // Cloud storage is ALWAYS enabled - no local-only mode
@@ -827,119 +863,80 @@
             }
         }
 
-        // Enable cloud storage - auto-initializes on first use, prompts for security config
+        // Enable cloud storage - set Blomp credentials
         async function enableCloudStorage() {
             const btn = document.getElementById('enableCloudBtn');
             const status = document.getElementById('cloudStatus');
             const originalText = btn.innerHTML;
 
             try {
-                btn.innerHTML = '🔄 Initializing Filestack...';
+                btn.innerHTML = '🔄 Configuring Blomp...';
                 btn.disabled = true;
 
-                // Initialize Filestack client
-                if (!filestackClient) {
-                    filestackClient = ensureFilestackClient();
-                }
+                // Prompt for Blomp credentials
+                const currentUrl = BLOMP_WEBDAV_URL;
+                const url = prompt('Blomp WebDAV URL:', currentUrl) || currentUrl;
+                const user = prompt('Blomp username (email):', BLOMP_USERNAME || '');
+                const pass = user !== null ? prompt('Blomp password (stored locally):', BLOMP_PASSWORD || '') : null;
+                if (user === null || pass === null) throw new Error('Cancelled');
+
+                BLOMP_WEBDAV_URL = url.replace(/\/$/, '');
+                BLOMP_USERNAME = user || '';
+                BLOMP_PASSWORD = pass || '';
+                localStorage.setItem('blompWebdavUrl', BLOMP_WEBDAV_URL);
+                localStorage.setItem('blompUsername', BLOMP_USERNAME);
+                localStorage.setItem('blompPassword', BLOMP_PASSWORD);
 
                 // Ensure storage ID is persisted
                 if (!localStorage.getItem('cloudStorageId')) {
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
 
-                // CRITICAL: capture Filestack policy/signature for permanent state overwrites
-                if (!localStorage.getItem('filestackPolicy') || !localStorage.getItem('filestackSignature')) {
-                    alert('🔐 To enable permanent cloud storage, you need Filestack security credentials.\n\n1. Go to Filestack Dashboard → Security\n2. Generate a policy with "overwrite" permission\n3. Copy the policy and signature\n\nWithout these, each save creates a new file URL.');
-                    const policy = prompt('Paste Filestack policy (REQUIRED for permanent URLs):', localStorage.getItem('filestackPolicy') || '');
-                    const signature = prompt('Paste Filestack signature (REQUIRED for permanent URLs):', localStorage.getItem('filestackSignature') || '');
-                    if (policy && signature) {
-                        localStorage.setItem('filestackPolicy', policy);
-                        localStorage.setItem('filestackSignature', signature);
-                        console.log('✅ Filestack security policy saved - permanent state overwrites enabled');
-                    } else {
-                        alert('⚠️ Warning: Without policy/signature, each save will create a new URL instead of overwriting.\n\nYou can add them later via browser console:\nlocalStorage.setItem("filestackPolicy", "YOUR_POLICY")\nlocalStorage.setItem("filestackSignature", "YOUR_SIGNATURE")');
-                    }
-                }
-
-                status.innerHTML = `✅ Filestack cloud storage active`;
-                btn.innerHTML = '✅ Cloud Active';
+                status.innerHTML = `✅ Blomp WebDAV active for ${BLOMP_USERNAME}`;
+                btn.innerHTML = '✅ Blomp Active';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Universal cloud storage initialized!\n\n✅ ALL data stored on Filestack CDN\n✅ Tasks, files, audio, posts - ONE system\n✅ Global availability across devices\n✅ No local storage used\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...\n\n⚠️ Everything you save is instantly uploaded to cloud!`);
+                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Blomp via WebDAV\n✅ Tasks, files, audio, posts - ONE system\n⚠️ Requires your Blomp credentials to access\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
 
             } catch (error) {
-                console.error('Filestack setup error:', error);
-                status.innerHTML = `❌ Failed to enable Filestack: ${error.message}`;
+                console.error('Blomp setup error:', error);
+                status.innerHTML = `❌ Failed to enable Blomp: ${error.message}`;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('❌ Filestack setup failed. Cannot save without cloud storage!');
+                alert('❌ Blomp setup failed. Cannot save without cloud storage!');
             }
         }
 
-        // Upload file to cloud storage using Filestack
+        // Upload file to cloud storage using Blomp WebDAV
         async function uploadFileToCloud(fileId, fileData, fileName, fileType) {
-            // Auto-initialize Filestack client if needed
-            if (!filestackClient) {
-                try {
-                    console.log('Auto-initializing Filestack for uploadFileToCloud...');
-                    filestackClient = ensureFilestackClient();
-                } catch (initError) {
-                    console.error('Filestack initialization failed:', initError);
-                    throw new Error('Failed to initialize Filestack: ' + initError.message);
-                }
-            }
-
             if (!cloudStorageEnabled || !cloudStorageId) {
                 throw new Error('Cloud storage not properly configured');
             }
 
             try {
-                showFileTransferStatus(`☁️ Uploading ${fileName} to Filestack...`);
+                showFileTransferStatus(`☁️ Uploading ${fileName} to Blomp...`);
 
                 // Convert data URL to blob for upload
                 const response = await fetch(fileData);
                 const blob = await response.blob();
                 const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
 
-                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to Filestack`);
+                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to Blomp`);
 
-                // Create File object from blob
-                const file = new File([blob], fileName, { type: fileType });
-
-                // Upload to Filestack
-                let uploadResponse;
-                try {
-                    uploadResponse = await filestackClient.upload(file, {
-                        onProgress: (evt) => {
-                            const progress = Math.round((evt.totalPercent || 0));
-                            showFileTransferStatus(`☁️ Uploading ${fileName}: ${progress}%`);
-                        },
-                        accept: ['image/*', 'video/*', 'audio/*', 'application/*'], // Accept all file types
-                        maxSize: 100 * 1024 * 1024, // 100MB limit per file (can be increased)
-                        uploadInBackground: false
-                    });
-                } catch (sdkErr) {
-                    console.warn('Filestack SDK upload failed, trying direct upload fallback...', sdkErr);
-                    uploadResponse = await filestackDirectUpload(file);
-                }
-
-                if (!uploadResponse) {
-                    throw new Error('Filestack upload failed - empty response');
-                }
-                const uploadedUrl2 = uploadResponse.url || (uploadResponse.handle ? `https://cdn.filestackcontent.com/${uploadResponse.handle}` : '');
-                if (!uploadedUrl2) {
-                    throw new Error('Filestack upload failed - no URL/handle returned');
-                }
+                // Compute remote path and ensure directories
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId, 'files');
+                const remotePath = blompJoinPath(dir, `${Date.now()}_${fileName}`);
+                await blompEnsureDirs(dir);
+                const url = await blompPut(remotePath, blob, fileType || 'application/octet-stream');
 
                 // Store file reference in universal cloud state
                 data.cloudFiles[fileId] = {
                     fileName: fileName,
                     type: fileType,
                     size: blob.size,
-                    uploadUrl: uploadedUrl2,
-                    filestackHandle: uploadResponse.handle,
-                    service: 'filestack',
+                    uploadUrl: url,
+                    service: 'blomp-webdav',
                     uploadedAt: new Date().toISOString(),
                     storageId: cloudStorageId
                 };
@@ -947,36 +944,19 @@
                 // Save to cloud immediately
                 saveLocal();
 
-                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Filestack`);
-                showFileTransferStatus(`☁️ Uploaded ${fileName} to Filestack (${fileSizeMB}MB)`, 3000);
+                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Blomp`);
+                showFileTransferStatus(`☁️ Uploaded ${fileName} to Blomp (${fileSizeMB}MB)`, 3000);
 
                 return true;
 
             } catch (error) {
-                console.error('Filestack upload error:', error);
-                showFileTransferStatus(`❌ Filestack upload failed for ${fileName}`, 4000);
+                console.error('Blomp upload error:', error);
+                const msg = (error && (error.message || error.toString())) || 'Unknown error';
+                const detail = (() => { try { return JSON.stringify(error, null, 2); } catch { return ''; } })();
+                showGlobalError('Upload failed', msg, detail);
+                showFileTransferStatus(`❌ Blomp upload failed for ${fileName}`, 4000);
                 throw error;
             }
-        }
-
-        // Direct Filestack upload fallback (bypasses SDK) using legacy S3 store endpoint
-        async function filestackDirectUpload(file) {
-            if (!FILESTACK_API_KEY) throw new Error('Missing Filestack API key');
-            const endpoint = `https://upload.filestackapi.com/api/store/S3?key=${encodeURIComponent(FILESTACK_API_KEY)}`;
-            const form = new FormData();
-            form.append('file', file, file.name);
-            const res = await fetch(endpoint, { method: 'POST', body: form });
-            const json = await res.json().catch(() => null);
-            if (!res.ok) {
-                const msg = (json && (json.error || json.message)) || `${res.status} ${res.statusText}`;
-                throw new Error(`Direct upload failed: ${msg}`);
-            }
-            if (!json) throw new Error('Direct upload failed: no JSON');
-            // Expected JSON: { url, filename, type, size, key, container } or { handle }
-            return {
-                url: json.url || (json.handle ? `https://cdn.filestackcontent.com/${json.handle}` : ''),
-                handle: json.handle || undefined
-            };
         }
 
         // Download file from cloud storage (Filestack)
@@ -1025,7 +1005,7 @@
                 }
 
             } catch (error) {
-                console.error('Filestack download error:', error);
+                console.error('Download error:', error);
                 return null;
             }
         }
@@ -1065,18 +1045,13 @@
         function initCloudStorage() {
             try {
                 if (cloudStorageEnabled && cloudStorageId) {
-                    // Ensure Filestack client is initialized
-                    if (!filestackClient) {
-                        filestackClient = ensureFilestackClient();
-                    }
-
-                    document.getElementById('enableCloudBtn').innerHTML = '✅ Filestack Active';
-                    document.getElementById('cloudStatus').innerHTML = '✅ Cloud storage is enabled (Filestack)';
+                    document.getElementById('enableCloudBtn').innerHTML = '✅ Blomp Active';
+                    document.getElementById('cloudStatus').innerHTML = BLOMP_USERNAME ? `✅ Blomp configured for ${BLOMP_USERNAME}` : '⚠️ Enter Blomp credentials to enable uploads';
                     document.getElementById('viewCloudBtn').disabled = false;
                     document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
                 }
             } catch (e) {
-                console.warn('initCloudStorage: Filestack init failed', e);
+                console.warn('initCloudStorage: Blomp init failed', e);
             }
         }
 
@@ -1162,17 +1137,14 @@
             if (files.length === 0) return;
 
             try {
-                if (!filestackClient) {
-                    alert('⚠️ Filestack not initialized. Click "Cloud Active - Configure Security" to set up.');
-                    return;
-                }
                 for (const file of files) {
                     showFileTransferStatus(`☁️ Uploading ${file.name}...`);
-                    const res = await filestackClient.upload(file);
-                    if (!res || !res.url) throw new Error('Upload failed');
-                    console.log(`☁️ Uploaded dropped file to Filestack: ${file.name}`);
+                    const reader = new FileReader();
+                    const dataUrl = await new Promise((resolve) => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
+                    await uploadFileToCloud(`drop_${Date.now()}_${file.name}`, dataUrl, file.name, file.type);
+                    console.log(`☁️ Uploaded dropped file to Blomp: ${file.name}`);
                 }
-                alert(`✅ Uploaded ${files.length} file(s) to Filestack!`);
+                alert(`✅ Uploaded ${files.length} file(s) to Blomp!`);
 
             } catch (err) {
                 console.error('File drop error:', err);
@@ -1181,13 +1153,13 @@
         }
 
         async function exportAllFiles() {
-            alert('Use "📁 View Cloud Files" to access your Filestack uploads and download as needed.');
+            alert('Use "📁 View Cloud Files" to see uploaded files. Download requires Blomp credentials.');
         }
 
-        // 🚫 P2P FILE SYNC REMOVED - All files permanently stored on Filestack CDN
+        // 🚫 P2P FILE SYNC REMOVED - All files stored on Blomp
         // No local storage, no device-to-device transfer needed
         async function syncFilesWithTeam() {
-            alert('🌐 File sync not needed!\n\nAll files are permanently stored on Filestack CDN.\n\nJust refresh the page to see latest updates from other devices.');
+            alert('🌐 File sync not needed!\n\nAll files are stored on Blomp.\n\nJust refresh the page to see latest updates from other devices.');
         }
 
         async function debugFileSync() {
@@ -1196,10 +1168,10 @@
 
 Storage Mode: 100% Cloud Only
 Local Storage: DISABLED
-File Location: Filestack CDN
+File Location: Blomp (WebDAV)
 Cloud Files: ${fileCount}
 
-All files are permanently stored on Filestack CDN.
+All files are stored on Blomp via WebDAV.
 No local file storage or device-to-device sync needed.
 
 Refresh the page to see latest updates from cloud.`);
@@ -1394,60 +1366,25 @@ Refresh the page to see latest updates from cloud.`);
             }
 
             try {
-                // Auto-initialize Filestack client if needed
-                if (!filestackClient) {
-                    try {
-                        console.log('Auto-initializing Filestack for upload...');
-                        // Check if Filestack SDK is loaded
-                        if (typeof filestack === 'undefined') {
-                            throw new Error('Filestack SDK not loaded. Please refresh the page.');
-                        }
-                        console.log('Filestack API Key:', FILESTACK_API_KEY);
-                        filestackClient = ensureFilestackClient();
-                        console.log('Filestack client initialized successfully');
-                    } catch (initError) {
-                        console.error('Filestack initialization failed:', initError);
-                        alert('⚠️ Failed to initialize Filestack uploader.\n\nPlease check:\n1. Internet connection\n2. API key is valid\n3. Try refreshing the page\n\nError: ' + initError.message);
-                        event.target.value = '';
-                        return;
-                    }
-                }
-                showFileTransferStatus(`☁️ Uploading ${file.name} to Filestack...`);
+                showFileTransferStatus(`☁️ Uploading ${file.name} to Blomp...`);
 
-                console.log('Starting Filestack upload...');
-                console.log('File:', file.name, 'Size:', file.size, 'Type:', file.type);
-                console.log('Filestack client:', filestackClient);
+                // Upload using generic cloud uploader (to files folder)
+                const fileId = `lineup_${position}_${Date.now()}`;
+                const reader = new FileReader();
+                const dataUrl = await new Promise((resolve) => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
+                await uploadFileToCloud(fileId, dataUrl, file.name, file.type);
 
-                let uploadResponse;
-                try {
-                    uploadResponse = await filestackClient.upload(file, {
-                        onProgress: (evt) => {
-                            const progress = Math.round(evt.totalPercent || 0);
-                            showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
-                        },
-                        // Restrict to images and PDFs for lineup uploads
-                        accept: ['image/*', 'application/pdf']
-                    });
-                } catch (sdkErr) {
-                    console.warn('Filestack SDK upload failed for lineup, trying direct upload fallback...', sdkErr);
-                    uploadResponse = await filestackDirectUpload(file);
-                }
-
-                console.log('Upload response:', uploadResponse);
-
-                // Some SDK versions return only handle; construct URL if needed
-                if (!uploadResponse) throw new Error('Upload failed - empty response');
-                const uploadedUrl = uploadResponse.url || (uploadResponse.handle ? `https://cdn.filestackcontent.com/${uploadResponse.handle}` : '');
-                if (!uploadedUrl) throw new Error('Upload failed - no URL/handle returned');
+                // Use recorded URL from cloudFiles
+                const uploaded = data.cloudFiles[fileId];
+                if (!uploaded || !uploaded.uploadUrl) throw new Error('Upload failed - no URL recorded');
 
                 data.lineupFiles[position] = {
                     name: file.name,
                     type: file.type,
                     size: file.size,
-                    url: uploadedUrl,
-                    filestackHandle: uploadResponse.handle
+                    url: uploaded.uploadUrl
                 };
-                console.log(`☁️ Uploaded lineup file to Filestack:`, file.name);
+                console.log(`☁️ Uploaded lineup file to Blomp:`, file.name);
                 saveLocal();
                 broadcast();
                 updateLineupFileDisplay(position);
@@ -1467,16 +1404,17 @@ Refresh the page to see latest updates from cloud.`);
                     errorMsg = err;
                 }
 
-                // Check for specific Filestack API errors
+                // Check for specific WebDAV/API errors
                 if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
-                    errorMsg = 'Invalid API key. Please get a valid Filestack API key from https://dev.filestack.com/';
+                    errorMsg = 'Unauthorized. Check Blomp username/password in Cloud Configure.';
                 } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
-                    errorMsg = 'API key lacks permissions. Check your Filestack security settings.';
-                } else if (errorMsg.includes('429')) {
-                    errorMsg = 'Rate limit exceeded. Try again later or upgrade your Filestack plan.';
+                    errorMsg = 'Forbidden. Your account may not allow WebDAV or the path is restricted.';
+                } else if (errorMsg.includes('CORS')) {
+                    errorMsg = 'CORS blocked by Blomp. Try another browser or configure a proxy.';
                 }
 
-                alert(`❌ Upload failed: ${errorMsg}\n\nDebugging info logged to console (F12).\n\nTo fix:\n1. Get a FREE API key: https://dev.filestack.com/signup/free\n2. Click "Cloud Active - Configure Security" to enter it`);
+                showGlobalError('Upload failed', errorMsg, (() => { try { return JSON.stringify(err, null, 2); } catch { return ''; } })());
+                alert(`❌ Upload failed: ${errorMsg}\n\nA detailed error banner is now visible near the Cloud section.\n\nTo fix:\n1. Click \"Blomp Active - Configure\" and verify credentials\n2. Ensure WebDAV is enabled for your Blomp account`);
                 event.target.value = ''; // Reset file input
             }
         };
@@ -1510,16 +1448,16 @@ Refresh the page to see latest updates from cloud.`);
                 return;
             }
 
-            // Upload directly to Filestack CDN only
+            // Upload to Blomp via WebDAV
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const url = e.target.result;
                 const fileId = `lineupAudio_${position}_${Date.now()}`;
 
-                // Upload to Filestack CDN
+                // Upload to Blomp
                 try {
                     await uploadFileToCloud(fileId, url, file.name, file.type);
-                    console.log(`☁️ Audio uploaded to Filestack CDN: ${file.name}`);
+                    console.log(`☁️ Audio uploaded to Blomp: ${file.name}`);
                     showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
                 } catch (error) {
                     console.error('Cloud upload failed:', error);
