@@ -8,9 +8,7 @@ Successfully integrated **optional Google Drive storage** into the Producer Task
 
 ### 1. Storage Panel
 
-- "Make storage persistent" button (one-click to request persistent storage from browser)
-- Real-time usage/quota display (MB and percentage)
-- Refresh button to update stats
+ Cloud storage integration available (Filestack / Google Drive options)
 
 ### 2. Google Drive Panel
 

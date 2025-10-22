@@ -410,7 +410,7 @@ async function transferFile(file, conn) {
 
 - **WebRTC encryption** - file transfers are encrypted in transit
 
-- **No cloud storage** - files never uploaded to external servers# Open in browser*\* Click "Request Persistent Storage" for maximum reliability*
+- **No cloud storage** - files never uploaded to external servers# Open in browser*\* Configure the Cloud Storage panel (Filestack) for permanent cloud storage*
 
 - **Room-based access** - only devices with same URL can sync
 

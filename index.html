@@ -54,28 +54,6 @@
             </button>
         </header>
 
-        <!-- Storage (Persistent) -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex items-center justify-between mb-2">
-                <h2 class="text-xl font-semibold">Storage</h2>
-                <div id="storagePersistBadge" class="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">checking…
-                </div>
-            </div>
-            <p id="storageInfo" class="text-sm text-gray-600 mb-3">Estimating storage…</p>
-            <div class="flex gap-2">
-                <button type="button" onclick="requestPersistentStorage()"
-                    class="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 text-sm">
-                    📦 Request persistent storage (optional)
-                </button>
-                <button type="button" onclick="updateStorageUI()"
-                    class="px-3 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 text-sm">
-                    ↻ Refresh
-                </button>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">ℹ️ Files work fine without persistent storage! This is just an
-                optimization that may provide larger quotas and better protection from cleanup.</p>
-        </div>
-
         <!-- Add Task -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Add New Task</h2>
@@ -105,499 +83,413 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Taylor</h3>
-                    <div class="flex gap-2 mb-3">
-                        <input type="text" id="taylorInput" placeholder="Add task"
-                            class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="addPersonalTask('Taylor')"
-                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
-                    </div>
-                    <div id="taylorTasks" class="space-y-2"></div>
+                    <!-- Cloud File Management removed: UI handled in other areas (cloud-only mode) -->
+                    class="w-full border rounded px-2 py-1">
                 </div>
-                <div class="border rounded p-4">
-                    <h3 class="font-medium mb-3">Jay</h3>
-                    <div class="flex gap-2 mb-3">
-                        <input type="text" id="jayInput" placeholder="Add task" class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="addPersonalTask('Jay')"
-                            class="bg-black text-white px-3 py-1 rounded hover:bg-gray-800">Add</button>
+                <button type="button" onclick="saveStaff(event)"
+                    class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
+                    💾 Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Media Calendar -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold">Social Media Calendar</h2>
+            <button onclick="loadScheduleHelper()"
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+                📅 Load Instagram Schedule
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Calendar Section (Left - More Compact) -->
+            <div class="lg:col-span-3">
+                <!-- Month Navigation -->
+                <div class="flex items-center justify-between mb-4">
+                    <button type="button" onclick="changeMonth(-1)"
+                        class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
+                        Prev</button>
+                    <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
+                    <button type="button" onclick="changeMonth(1)"
+                        class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
+                        →</button>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+                    <!-- Day Headers -->
+                    <div class="grid grid-cols-7 bg-gray-50 border-b">
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Sun</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Mon</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Tue</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Wed</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Thu</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Fri</div>
+                        <div class="text-center text-xs font-semibold text-gray-600 py-3">Sat</div>
                     </div>
-                    <div id="jayTasks" class="space-y-2"></div>
+                    <!-- Calendar Days Container -->
+                    <div id="calendarDays" class="grid grid-cols-7"></div>
+                </div>
+
+                <!-- Selected Day Details (hidden until day is clicked) -->
+                <div id="dayDetails" class="hidden border-t pt-4">
+                    <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
+
+                    <!-- Add Post Form -->
+                    <div class="mb-4 bg-gray-50 p-4 rounded">
+                        <h4 class="font-medium mb-3">Add Post</h4>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Caption</label>
+                            <textarea id="socialCaption" placeholder="Enter your post caption here..."
+                                class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Media (Image/Video)</label>
+                            <input type="file" id="socialFile" accept="image/*,video/*"
+                                class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
+                            <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Filestack CDN (permanent
+                                cloud storage)</p>
+                        </div>
+
+                        <div id="filePreview" class="mb-3"></div>
+
+                        <button type="button" onclick="addSocialPost()"
+                            class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium">
+                            ➕ Add Post
+                        </button>
+                    </div>
+
+                    <!-- Posts for Selected Day -->
+                    <div id="socialPosts" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Operations Notes Sidebar (Right) -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
+                    <h3 class="font-semibold text-gray-800 mb-3">� Quick Notes</h3>
+                    <div class="text-sm space-y-3">
+                        <p class="text-gray-600">Use this space for show notes, reminders, or quick references.</p>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Tasks List -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Tasks</h2>
-            <div id="tasksList"></div>
+    <!-- Cloud File Management -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xl font-semibold">☁️ Cloud Storage</h2>
+            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">100% Cloud Only</span>
         </div>
+        <p class="text-sm text-gray-600 mb-4">All data permanently stored on Filestack CDN. <strong>Accessible from
+                any device instantly!</strong></p>
 
-        <!-- Staff Assignments -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-semibold mb-4">Staff Assignments</h2>
-            <div class="space-y-3">
-                <div class="flex gap-2 items-end">
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-600 mb-1">DJ</label>
-                        <input type="text" id="staff-dj" placeholder="Enter DJ name"
-                            class="w-full border rounded px-2 py-1">
-                    </div>
-                    <button type="button" onclick="saveStaff(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
-                        💾 Save
-                    </button>
-                </div>
-                <div class="flex gap-2 items-end">
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-600 mb-1">Door</label>
-                        <input type="text" id="staff-door" placeholder="Enter door person"
-                            class="w-full border rounded px-2 py-1">
-                    </div>
-                    <button type="button" onclick="saveStaff(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
-                        💾 Save
-                    </button>
-                </div>
-                <div class="flex gap-2 items-end">
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-600 mb-1">AV Tech</label>
-                        <input type="text" id="staff-av" placeholder="Enter AV tech"
-                            class="w-full border rounded px-2 py-1">
-                    </div>
-                    <button type="button" onclick="saveStaff(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
-                        💾 Save
-                    </button>
-                </div>
-                <div class="flex gap-2 items-end">
-                    <div class="flex-1">
-                        <label class="block text-sm text-gray-600 mb-1">Photographer</label>
-                        <input type="text" id="staff-photo" placeholder="Enter photographer"
-                            class="w-full border rounded px-2 py-1">
-                    </div>
-                    <button type="button" onclick="saveStaff(event)"
-                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
-                        💾 Save
-                    </button>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Export/Import Data -->
+            <div class="border rounded p-3">
+                <h3 class="font-medium text-sm mb-2">📤 Export All Data</h3>
+                <button onclick="exportAllData()"
+                    class="w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm mb-2">
+                    Download Backup File
+                </button>
+                <p class="text-xs text-gray-500">Saves all tasks, lineup, social posts + file references</p>
+            </div>
+
+            <div class="border rounded p-3">
+                <h3 class="font-medium text-sm mb-2">📥 Import Data</h3>
+                <input type="file" id="importFile" accept=".json" class="hidden" onchange="importAllData(event)">
+                <button onclick="document.getElementById('importFile').click()"
+                    class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-2">
+                    Load Backup File
+                </button>
+                <p class="text-xs text-gray-500">Restores from previously exported backup</p>
             </div>
         </div>
 
-        <!-- Social Media Calendar -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold">Social Media Calendar</h2>
-                <button onclick="loadScheduleHelper()"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                    📅 Load Instagram Schedule
+        <!-- Cloud Storage Option -->
+        <div class="mt-4 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="font-medium text-sm text-blue-800">☁️ Cloud File Storage (NEW!)</h3>
+                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">No signup required</span>
+            </div>
+            <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Filestack CDN, accessible
+                from any device!</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button onclick="enableCloudStorage()" id="enableCloudBtn"
+                    class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
+                    ✅ Cloud Active - Configure Security
+                </button>
+                <button onclick="viewCloudFiles()" id="viewCloudBtn"
+                    class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
+                    📁 View Cloud Files
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                <!-- Calendar Section (Left - More Compact) -->
-                <div class="lg:col-span-3">
-                    <!-- Month Navigation -->
-                    <div class="flex items-center justify-between mb-4">
-                        <button type="button" onclick="changeMonth(-1)"
-                            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">←
-                            Prev</button>
-                        <h3 id="calendarMonth" class="text-lg font-semibold"></h3>
-                        <button type="button" onclick="changeMonth(1)"
-                            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next
-                            →</button>
-                    </div>
-
-                    <!-- Calendar Grid -->
-                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
-                        <!-- Day Headers -->
-                        <div class="grid grid-cols-7 bg-gray-50 border-b">
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Sun</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Mon</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Tue</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Wed</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Thu</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3 border-r">Fri</div>
-                            <div class="text-center text-xs font-semibold text-gray-600 py-3">Sat</div>
-                        </div>
-                        <!-- Calendar Days Container -->
-                        <div id="calendarDays" class="grid grid-cols-7"></div>
-                    </div>
-
-                    <!-- Selected Day Details (hidden until day is clicked) -->
-                    <div id="dayDetails" class="hidden border-t pt-4">
-                        <h3 class="font-semibold mb-3" id="selectedDayTitle"></h3>
-
-                        <!-- Add Post Form -->
-                        <div class="mb-4 bg-gray-50 p-4 rounded">
-                            <h4 class="font-medium mb-3">Add Post</h4>
-
-                            <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Caption</label>
-                                <textarea id="socialCaption" placeholder="Enter your post caption here..."
-                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    rows="3"></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Media (Image/Video)</label>
-                                <input type="file" id="socialFile" accept="image/*,video/*"
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
-                                <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Filestack CDN (permanent
-                                    cloud storage)</p>
-                            </div>
-
-                            <div id="filePreview" class="mb-3"></div>
-
-                            <button type="button" onclick="addSocialPost()"
-                                class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium">
-                                ➕ Add Post
-                            </button>
-                        </div>
-
-                        <!-- Posts for Selected Day -->
-                        <div id="socialPosts" class="space-y-3"></div>
-                    </div>
-                </div>
-
-                <!-- Operations Notes Sidebar (Right) -->
-                <div class="lg:col-span-1">
-                    <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
-                        <h3 class="font-semibold text-gray-800 mb-3">� Quick Notes</h3>
-                        <div class="text-sm space-y-3">
-                            <p class="text-gray-600">Use this space for show notes, reminders, or quick references.</p>
-                        </div>
-                    </div>
-                </div>
+            <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
+                ⚠️ Add policy/signature for permanent URLs
             </div>
         </div>
 
-        <!-- Cloud File Management -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="flex items-center justify-between mb-2">
-                <h2 class="text-xl font-semibold">☁️ Cloud Storage</h2>
-                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">100% Cloud Only</span>
-            </div>
-            <p class="text-sm text-gray-600 mb-4">All data permanently stored on Filestack CDN. <strong>Accessible from
-                    any device instantly!</strong></p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Export/Import Data -->
-                <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">📤 Export All Data</h3>
-                    <button onclick="exportAllData()"
-                        class="w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm mb-2">
-                        Download Backup File
-                    </button>
-                    <p class="text-xs text-gray-500">Saves all tasks, lineup, social posts + file references</p>
-                </div>
-
-                <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">📥 Import Data</h3>
-                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importAllData(event)">
-                    <button onclick="document.getElementById('importFile').click()"
-                        class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm mb-2">
-                        Load Backup File
-                    </button>
-                    <p class="text-xs text-gray-500">Restores from previously exported backup</p>
-                </div>
+        <!-- File Export Tools -->
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="border rounded p-3">
+                <h3 class="font-medium text-sm mb-2">�️ Export Data</h3>
+                <button onclick="exportAllFiles()"
+                    class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
+                    Download All Files as Zip
+                </button>
+                <p class="text-xs text-gray-500">📦 All files stored on Filestack CDN</p>
             </div>
 
-            <!-- Cloud Storage Option -->
-            <div class="mt-4 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-medium text-sm text-blue-800">☁️ Cloud File Storage (NEW!)</h3>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">No signup required</span>
-                </div>
-                <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Filestack CDN, accessible
-                    from any device!</p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <button onclick="enableCloudStorage()" id="enableCloudBtn"
-                        class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
-                        ✅ Cloud Active - Configure Security
-                    </button>
-                    <button onclick="viewCloudFiles()" id="viewCloudBtn"
-                        class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
-                        📁 View Cloud Files
-                    </button>
-                </div>
-
-                <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
-                    ⚠️ Add policy/signature for permanent URLs
-                </div>
-            </div>
-
-            <!-- File Export Tools -->
-            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">�️ Export Data</h3>
-                    <button onclick="exportAllFiles()"
-                        class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
-                        Download All Files as Zip
-                    </button>
-                    <p class="text-xs text-gray-500">📦 All files stored on Filestack CDN</p>
-                </div>
-
-                <div class="border rounded p-3">
-                    <h3 class="font-medium text-sm mb-2">📋 List Files</h3>
-                    <button onclick="listAllFiles()"
-                        class="w-full bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm mb-2">
-                        Show File Inventory
-                    </button>
-                    <p class="text-xs text-gray-500">View all cloud files and download individually</p>
-                </div>
-            </div>
-
-            <div id="fileListModal"
-                class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 max-w-2xl max-h-96 overflow-auto w-full mx-4">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold">📂 Stored Files</h3>
-                        <button onclick="closeFileList()" class="text-gray-500 hover:text-gray-700">✕</button>
-                    </div>
-                    <div id="fileListContent" class="space-y-2"></div>
-                </div>
-            </div>
-
-            <!-- Drag & Drop Zone -->
-            <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone"
-                ondrop="handleFileDrop(event)" ondragover="event.preventDefault()" ondragenter="event.preventDefault()">
-                <div class="text-gray-500">
-                    <span class="text-2xl">📎</span>
-                    <p class="text-sm mt-2">Drag & drop files here to save them locally</p>
-                    <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - stored via Filestack
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-4 p-3 bg-gray-50 rounded">
-                <h3 class="font-medium text-sm mb-2">📊 Storage Status (Filestack)</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <span class="text-gray-600">Cloud Service:</span>
-                        <div class="font-mono text-green-600">Filestack</div>
-                    </div>
-                    <div>
-                        <span class="text-gray-600">Cloud Status:</span>
-                        <div id="cloudStatusMini" class="font-mono text-blue-600">Disabled</div>
-                    </div>
-                    <div>
-                        <button onclick="viewCloudFiles()"
-                            class="bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
-                            📁 View Cloud Files
-                        </button>
-                    </div>
-                </div>
+            <div class="border rounded p-3">
+                <h3 class="font-medium text-sm mb-2">📋 List Files</h3>
+                <button onclick="listAllFiles()"
+                    class="w-full bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm mb-2">
+                    Show File Inventory
+                </button>
+                <p class="text-xs text-gray-500">View all cloud files and download individually</p>
             </div>
         </div>
 
-        <!-- Lineup -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">Comedy Show Lineup</h2>
-            <div class="space-y-4">
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex gap-2 items-center mb-2">
-                        <span class="w-28 text-sm font-medium text-gray-700">Headliner</span>
-                        <input type="text" id="lineup1" placeholder="Enter headliner"
-                            class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="saveLineup(event)"
-                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                            💾 Save
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center mb-2">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupFile1" onchange="uploadLineupFile(1, event)" class="hidden"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <button type="button" onclick="document.getElementById('lineupFile1').click()"
-                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
-                                📎 Upload File
-                            </button>
-                            <span id="lineupFileName1" class="text-xs text-gray-600"></span>
-                        </label>
-                        <button type="button" id="lineupFileDelete1" onclick="deleteLineupFile(1)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupAudio1" onchange="uploadLineupAudio(1, event)" class="hidden"
-                                accept="audio/mpeg,audio/mp3,.mp3">
-                            <button type="button" onclick="document.getElementById('lineupAudio1').click()"
-                                class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
-                                🎵 Upload MP3
-                            </button>
-                            <span id="lineupAudioName1" class="text-xs text-gray-600"></span>
-                        </label>
-                        <button type="button" id="lineupAudioDelete1" onclick="deleteLineupAudio(1)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
-                        </button>
-                    </div>
+        <div id="fileListModal"
+            class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-2xl max-h-96 overflow-auto w-full mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">📂 Stored Files</h3>
+                    <button onclick="closeFileList()" class="text-gray-500 hover:text-gray-700">✕</button>
                 </div>
+                <div id="fileListContent" class="space-y-2"></div>
+            </div>
+        </div>
 
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex gap-2 items-center mb-2">
-                        <span class="w-28 text-sm font-medium text-gray-700">Comic 2</span>
-                        <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="saveLineup(event)"
-                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                            💾 Save
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center mb-2">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupFile2" onchange="uploadLineupFile(2, event)" class="hidden"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <button type="button" onclick="document.getElementById('lineupFile2').click()"
-                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
-                                📎 Upload File
-                            </button>
-                            <span id="lineupFileName2" class="text-xs text-gray-600"></span>
-                        </label>
-                        🗑️
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupAudio2" onchange="uploadLineupAudio(2, event)" class="hidden"
-                                accept="audio/mpeg,audio/mp3,.mp3">
-                            <button type="button" onclick="document.getElementById('lineupAudio2').click()"
-                                class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
-                                🎵 Upload MP3
-                            </button>
-                            <span id="lineupAudioName2" class="text-xs text-gray-600"></span>
-                        </label>
-                        </label>
-                        <button type="button" id="lineupAudioDelete2" onclick="deleteLineupAudio(2)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
-                        </button>
-                    </div>
+        <!-- Drag & Drop Zone -->
+        <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone"
+            ondrop="handleFileDrop(event)" ondragover="event.preventDefault()" ondragenter="event.preventDefault()">
+            <div class="text-gray-500">
+                <span class="text-2xl">📎</span>
+                <p class="text-sm mt-2">Drag & drop files here to upload them to the cloud</p>
+                <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - uploaded to Filestack CDN
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lineup -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">Comedy Show Lineup</h2>
+        <div class="space-y-4">
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="flex gap-2 items-center mb-2">
+                    <span class="w-28 text-sm font-medium text-gray-700">Headliner</span>
+                    <input type="text" id="lineup1" placeholder="Enter headliner"
+                        class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
                 </div>
-
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex gap-2 items-center mb-2">
-                        <span class="w-28 text-sm font-medium text-gray-700">Comic 3</span>
-                        <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="saveLineup(event)"
-                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                            💾 Save
+                <div class="flex gap-2 items-center mb-2">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupFile1" onchange="uploadLineupFile(1, event)" class="hidden"
+                            accept="image/*,.pdf,.doc,.docx">
+                        <button type="button" onclick="document.getElementById('lineupFile1').click()"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                            📎 Upload File
                         </button>
-                    </div>
-                    <div class="flex gap-2 items-center mb-2">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupFile3" onchange="uploadLineupFile(3, event)" class="hidden"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <button type="button" onclick="document.getElementById('lineupFile3').click()"
-                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
-                                📎 Upload File
-                            </button>
-                            <span id="lineupFileName3" class="text-xs text-gray-600"></span>
-                        </label>
+                        <span id="lineupFileName1" class="text-xs text-gray-600"></span>
+                    </label>
+                    <button type="button" id="lineupFileDelete1" onclick="deleteLineupFile(1)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
                         🗑️
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupAudio3" onchange="uploadLineupAudio(3, event)" class="hidden"
-                                accept="audio/mpeg,audio/mp3,.mp3">
-                            <button type="button" onclick="document.getElementById('lineupAudio3').click()"
-                                class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
-                                🎵 Upload MP3
-                            </button>
-                            <span id="lineupAudioName3" class="text-xs text-gray-600"></span>
-                        </label>
-                        </label>
-                        <button type="button" id="lineupAudioDelete3" onclick="deleteLineupAudio(3)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
-                        </button>
-                    </div>
+                    </button>
                 </div>
-
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex gap-2 items-center mb-2">
-                        <span class="w-28 text-sm font-medium text-gray-700">Comic 4</span>
-                        <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="saveLineup(event)"
-                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                            💾 Save
+                <div class="flex gap-2 items-center">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupAudio1" onchange="uploadLineupAudio(1, event)" class="hidden"
+                            accept="audio/mpeg,audio/mp3,.mp3">
+                        <button type="button" onclick="document.getElementById('lineupAudio1').click()"
+                            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
+                            🎵 Upload MP3
                         </button>
-                    </div>
-                    <div class="flex gap-2 items-center mb-2">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupFile4" onchange="uploadLineupFile(4, event)" class="hidden"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <button type="button" onclick="document.getElementById('lineupFile4').click()"
-                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
-                                📎 Upload File
-                            </button>
-                            <span id="lineupFileName4" class="text-xs text-gray-600"></span>
-                        </label>
+                        <span id="lineupAudioName1" class="text-xs text-gray-600"></span>
+                    </label>
+                    <button type="button" id="lineupAudioDelete1" onclick="deleteLineupAudio(1)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
                         🗑️
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupAudio4" onchange="uploadLineupAudio(4, event)" class="hidden"
-                                accept="audio/mpeg,audio/mp3,.mp3">
-                            <button type="button" onclick="document.getElementById('lineupAudio4').click()"
-                                class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
-                                🎵 Upload MP3
-                            </button>
-                            <span id="lineupAudioName4" class="text-xs text-gray-600"></span>
-                        </label>
-                        </label>
-                        <button type="button" id="lineupAudioDelete4" onclick="deleteLineupAudio(4)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
-                        </button>
-                    </div>
+                    </button>
                 </div>
+            </div>
 
-                <div class="border rounded p-3 bg-gray-50">
-                    <div class="flex gap-2 items-center mb-2">
-                        <span class="w-28 text-sm font-medium text-gray-700">Comic 5</span>
-                        <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
-                        <button type="button" onclick="saveLineup(event)"
-                            class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
-                            💾 Save
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="flex gap-2 items-center mb-2">
+                    <span class="w-28 text-sm font-medium text-gray-700">Comic 2</span>
+                    <input type="text" id="lineup2" placeholder="Comic 2" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupFile2" onchange="uploadLineupFile(2, event)" class="hidden"
+                            accept="image/*,.pdf,.doc,.docx">
+                        <button type="button" onclick="document.getElementById('lineupFile2').click()"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                            📎 Upload File
                         </button>
-                    </div>
-                    <div class="flex gap-2 items-center mb-2">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupFile5" onchange="uploadLineupFile(5, event)" class="hidden"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <button type="button" onclick="document.getElementById('lineupFile5').click()"
-                                class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
-                                📎 Upload File
-                            </button>
-                            <span id="lineupFileName5" class="text-xs text-gray-600"></span>
-                        </label>
+                        <span id="lineupFileName2" class="text-xs text-gray-600"></span>
+                    </label>
+                    🗑️
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupAudio2" onchange="uploadLineupAudio(2, event)" class="hidden"
+                            accept="audio/mpeg,audio/mp3,.mp3">
+                        <button type="button" onclick="document.getElementById('lineupAudio2').click()"
+                            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
+                            🎵 Upload MP3
+                        </button>
+                        <span id="lineupAudioName2" class="text-xs text-gray-600"></span>
+                    </label>
+                    </label>
+                    <button type="button" id="lineupAudioDelete2" onclick="deleteLineupAudio(2)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
                         🗑️
+                    </button>
+                </div>
+            </div>
+
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="flex gap-2 items-center mb-2">
+                    <span class="w-28 text-sm font-medium text-gray-700">Comic 3</span>
+                    <input type="text" id="lineup3" placeholder="Comic 3" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupFile3" onchange="uploadLineupFile(3, event)" class="hidden"
+                            accept="image/*,.pdf,.doc,.docx">
+                        <button type="button" onclick="document.getElementById('lineupFile3').click()"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                            📎 Upload File
                         </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <label class="flex-1 flex items-center gap-2 cursor-pointer">
-                            <input type="file" id="lineupAudio5" onchange="uploadLineupAudio(5, event)" class="hidden"
-                                accept="audio/mpeg,audio/mp3,.mp3">
-                            <button type="button" onclick="document.getElementById('lineupAudio5').click()"
-                                class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
-                                🎵 Upload MP3
-                            </button>
-                            <span id="lineupAudioName5" class="text-xs text-gray-600"></span>
-                        </label>
-                        </label>
-                        <button type="button" id="lineupAudioDelete5" onclick="deleteLineupAudio(5)"
-                            class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
-                            🗑️
+                        <span id="lineupFileName3" class="text-xs text-gray-600"></span>
+                    </label>
+                    🗑️
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupAudio3" onchange="uploadLineupAudio(3, event)" class="hidden"
+                            accept="audio/mpeg,audio/mp3,.mp3">
+                        <button type="button" onclick="document.getElementById('lineupAudio3').click()"
+                            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
+                            🎵 Upload MP3
                         </button>
-                    </div>
+                        <span id="lineupAudioName3" class="text-xs text-gray-600"></span>
+                    </label>
+                    </label>
+                    <button type="button" id="lineupAudioDelete3" onclick="deleteLineupAudio(3)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="flex gap-2 items-center mb-2">
+                    <span class="w-28 text-sm font-medium text-gray-700">Comic 4</span>
+                    <input type="text" id="lineup4" placeholder="Comic 4" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupFile4" onchange="uploadLineupFile(4, event)" class="hidden"
+                            accept="image/*,.pdf,.doc,.docx">
+                        <button type="button" onclick="document.getElementById('lineupFile4').click()"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                            📎 Upload File
+                        </button>
+                        <span id="lineupFileName4" class="text-xs text-gray-600"></span>
+                    </label>
+                    🗑️
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupAudio4" onchange="uploadLineupAudio(4, event)" class="hidden"
+                            accept="audio/mpeg,audio/mp3,.mp3">
+                        <button type="button" onclick="document.getElementById('lineupAudio4').click()"
+                            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
+                            🎵 Upload MP3
+                        </button>
+                        <span id="lineupAudioName4" class="text-xs text-gray-600"></span>
+                    </label>
+                    </label>
+                    <button type="button" id="lineupAudioDelete4" onclick="deleteLineupAudio(4)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+
+            <div class="border rounded p-3 bg-gray-50">
+                <div class="flex gap-2 items-center mb-2">
+                    <span class="w-28 text-sm font-medium text-gray-700">Comic 5</span>
+                    <input type="text" id="lineup5" placeholder="Comic 5" class="flex-1 border rounded px-2 py-1">
+                    <button type="button" onclick="saveLineup(event)"
+                        class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm whitespace-nowrap">
+                        💾 Save
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center mb-2">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupFile5" onchange="uploadLineupFile(5, event)" class="hidden"
+                            accept="image/*,.pdf,.doc,.docx">
+                        <button type="button" onclick="document.getElementById('lineupFile5').click()"
+                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs whitespace-nowrap">
+                            📎 Upload File
+                        </button>
+                        <span id="lineupFileName5" class="text-xs text-gray-600"></span>
+                    </label>
+                    🗑️
+                    </button>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <label class="flex-1 flex items-center gap-2 cursor-pointer">
+                        <input type="file" id="lineupAudio5" onchange="uploadLineupAudio(5, event)" class="hidden"
+                            accept="audio/mpeg,audio/mp3,.mp3">
+                        <button type="button" onclick="document.getElementById('lineupAudio5').click()"
+                            class="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-xs whitespace-nowrap">
+                            🎵 Upload MP3
+                        </button>
+                        <span id="lineupAudioName5" class="text-xs text-gray-600"></span>
+                    </label>
+                    </label>
+                    <button type="button" id="lineupAudioDelete5" onclick="deleteLineupAudio(5)"
+                        class="hidden bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs">
+                        🗑️
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -1130,29 +1022,7 @@
             }
         }
 
-        // -------- Storage UI (now shows cloud state size) --------
-        async function updateStorageUI() {
-            try {
-                const infoEl = document.getElementById('storageInfo');
-                const badgeEl = document.getElementById('storagePersistBadge');
-
-                if (badgeEl) {
-                    badgeEl.textContent = '☁️ cloud-only';
-                    badgeEl.className = 'text-xs px-2 py-1 rounded bg-blue-100 text-blue-700';
-                }
-
-                // Calculate cloud state size
-                const stateSize = new Blob([JSON.stringify(data)]).size;
-                const stateMB = (stateSize / 1024 / 1024).toFixed(2);
-                const fileCount = Object.keys(data.cloudFiles || {}).length;
-
-                if (infoEl) {
-                    infoEl.textContent = `Universal cloud state: ${stateMB} MB (${fileCount} files tracked)`;
-                }
-            } catch (err) {
-                console.error('updateStorageUI error:', err);
-            }
-        }
+        // 🚫 Storage UI removed - not needed for cloud-only architecture
 
         // -------- Cloud Data Export Functions --------
         async function exportAllData() {
@@ -1223,16 +1093,9 @@
             }
         }
 
-        async function updateLocalStorageInfo() {
-            // Show Filestack cloud status only
-            const mini = document.getElementById('cloudStatusMini');
-            if (mini) mini.textContent = cloudStorageEnabled ? 'Enabled' : 'Disabled';
-        }
-
-        async function cleanupOldFiles() {
-            // 🚫 NO LOCAL STORAGE - All files on Filestack CDN
-            alert('🌐 All files are stored on Filestack CDN.\n\nNo local cleanup needed!');
-        }
+        // Storage UI helpers removed - cloud-only architecture
+        // updateLocalStorageInfo() and cleanupOldFiles() were intentionally removed
+        // to prevent any UI or code paths that suggest local persistence.
 
         async function handleFileDrop(event) {
             event.preventDefault();
@@ -1294,24 +1157,7 @@ Refresh the page to see latest updates from cloud.`);
 
         async function downloadSingleFile(fileId) { alert('Use View Cloud Files for downloads.'); }
 
-        async function requestPersistentStorage() {
-            try {
-                if (!(navigator.storage && navigator.storage.persist)) {
-                    alert('Persistent storage is not supported in this browser.');
-                    return;
-                }
-                const granted = await navigator.storage.persist();
-                if (granted) {
-                    alert('✅ Storage set to persistent! Your files are protected from automatic cleanup and you get larger quotas.');
-                } else {
-                    alert('ℹ️ Persistent storage not granted yet - this is normal!\n\nWhat this means:\n• Your files still work normally (1GB+ capacity)\n• Browser may eventually ask for permission after more usage\n• Files are safe for your current session\n\nNo action needed - file sync and storage work fine! 👍');
-                }
-                updateStorageUI();
-            } catch (err) {
-                console.error('requestPersistentStorage error:', err);
-                alert('Error requesting persistent storage. See console for details.');
-            }
-        }
+        // Notes: App is cloud-only; all data stored on Filestack CDN (no local persistence)
 
         // Tasks
         function renderTasks() {
@@ -2037,10 +1883,6 @@ Refresh the page to see latest updates from cloud.`);
             await loadStateFromCloudIfAvailable();
             await render();
 
-            // Initialize storage UI once DOM is ready
-            updateStorageUI();
-            updateLocalStorageInfo();
-
             // Show cloud status
             const status = document.getElementById('cloudStatus');
             if (status) {
@@ -2210,10 +2052,8 @@ Refresh the page to see latest updates from cloud.`);
             }
         }
 
-        // Initialize offline change tracking on page load
+        // Initialize on page load
         (async () => {
-            updateOfflineIndicator();
-            updateStorageUI();
             initCloudStorage(); // Initialize cloud storage UI
             await loadLocal();
             await render();
