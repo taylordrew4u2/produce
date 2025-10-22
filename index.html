@@ -872,7 +872,7 @@
                     throw new Error('Failed to initialize Filestack: ' + initError.message);
                 }
             }
-            
+
             if (!cloudStorageEnabled || !cloudStorageId) {
                 throw new Error('Cloud storage not properly configured');
             }
@@ -1351,7 +1351,13 @@ Refresh the page to see latest updates from cloud.`);
                 if (!filestackClient) {
                     try {
                         console.log('Auto-initializing Filestack for upload...');
+                        // Check if Filestack SDK is loaded
+                        if (typeof filestack === 'undefined') {
+                            throw new Error('Filestack SDK not loaded. Please refresh the page.');
+                        }
+                        console.log('Filestack API Key:', FILESTACK_API_KEY);
                         filestackClient = filestack.init(FILESTACK_API_KEY);
+                        console.log('Filestack client initialized successfully');
                     } catch (initError) {
                         console.error('Filestack initialization failed:', initError);
                         alert('⚠️ Failed to initialize Filestack uploader.\n\nPlease check:\n1. Internet connection\n2. API key is valid\n3. Try refreshing the page\n\nError: ' + initError.message);
@@ -1381,7 +1387,9 @@ Refresh the page to see latest updates from cloud.`);
                 updateLineupFileDisplay(position);
             } catch (err) {
                 console.error('Lineup file upload error:', err);
-                alert('Upload failed. Please try again.');
+                // Show detailed error to help debug
+                const errorMsg = err.message || err.toString();
+                alert(`Upload failed: ${errorMsg}\n\nPlease check:\n1. Internet connection\n2. File type is supported (images/PDFs)\n3. API key is valid\n\nCheck browser console for details.`);
             }
         };
 
