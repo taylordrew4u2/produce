@@ -1366,13 +1366,21 @@ Refresh the page to see latest updates from cloud.`);
                     }
                 }
                 showFileTransferStatus(`☁️ Uploading ${file.name} to Filestack...`);
+                
+                console.log('Starting Filestack upload...');
+                console.log('File:', file.name, 'Size:', file.size, 'Type:', file.type);
+                console.log('Filestack client:', filestackClient);
+                
                 const uploadResponse = await filestackClient.upload(file, {
                     onProgress: (evt) => {
                         const progress = Math.round(evt.totalPercent || 0);
                         showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
                     }
                 });
-                if (!uploadResponse || !uploadResponse.url) throw new Error('Upload failed');
+                
+                console.log('Upload response:', uploadResponse);
+                
+                if (!uploadResponse || !uploadResponse.url) throw new Error('Upload failed - no URL returned');
 
                 data.lineupFiles[position] = {
                     name: file.name,
@@ -1387,9 +1395,31 @@ Refresh the page to see latest updates from cloud.`);
                 updateLineupFileDisplay(position);
             } catch (err) {
                 console.error('Lineup file upload error:', err);
-                // Show detailed error to help debug
-                const errorMsg = err.message || err.toString();
-                alert(`Upload failed: ${errorMsg}\n\nPlease check:\n1. Internet connection\n2. File type is supported (images/PDFs)\n3. API key is valid\n\nCheck browser console for details.`);
+                console.error('Error details:', JSON.stringify(err, null, 2));
+                
+                // Extract meaningful error message
+                let errorMsg = 'Unknown error';
+                if (err.message) {
+                    errorMsg = err.message;
+                } else if (err.toString && err.toString() !== '[object Object]') {
+                    errorMsg = err.toString();
+                } else if (err.error) {
+                    errorMsg = err.error;
+                } else if (typeof err === 'string') {
+                    errorMsg = err;
+                }
+                
+                // Check for specific Filestack API errors
+                if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
+                    errorMsg = 'Invalid API key. Please get a valid Filestack API key from https://dev.filestack.com/';
+                } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+                    errorMsg = 'API key lacks permissions. Check your Filestack security settings.';
+                } else if (errorMsg.includes('429')) {
+                    errorMsg = 'Rate limit exceeded. Try again later or upgrade your Filestack plan.';
+                }
+                
+                alert(`❌ Upload failed: ${errorMsg}\n\nDebugging info logged to console (F12).\n\nTo fix:\n1. Get a FREE API key: https://dev.filestack.com/signup/free\n2. Click "Cloud Active - Configure Security" to enter it`);
+                event.target.value = ''; // Reset file input
             }
         };
 
