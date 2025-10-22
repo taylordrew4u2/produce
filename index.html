@@ -908,15 +908,21 @@
                 const file = new File([blob], fileName, { type: fileType });
 
                 // Upload to Filestack
-                const uploadResponse = await filestackClient.upload(file, {
-                    onProgress: (evt) => {
-                        const progress = Math.round((evt.totalPercent || 0));
-                        showFileTransferStatus(`☁️ Uploading ${fileName}: ${progress}%`);
-                    },
-                    accept: ['image/*', 'video/*', 'audio/*', 'application/*'], // Accept all file types
-                    maxSize: 100 * 1024 * 1024, // 100MB limit per file (can be increased)
-                    uploadInBackground: false
-                });
+                let uploadResponse;
+                try {
+                    uploadResponse = await filestackClient.upload(file, {
+                        onProgress: (evt) => {
+                            const progress = Math.round((evt.totalPercent || 0));
+                            showFileTransferStatus(`☁️ Uploading ${fileName}: ${progress}%`);
+                        },
+                        accept: ['image/*', 'video/*', 'audio/*', 'application/*'], // Accept all file types
+                        maxSize: 100 * 1024 * 1024, // 100MB limit per file (can be increased)
+                        uploadInBackground: false
+                    });
+                } catch (sdkErr) {
+                    console.warn('Filestack SDK upload failed, trying direct upload fallback...', sdkErr);
+                    uploadResponse = await filestackDirectUpload(file);
+                }
 
                 if (!uploadResponse) {
                     throw new Error('Filestack upload failed - empty response');
@@ -951,6 +957,26 @@
                 showFileTransferStatus(`❌ Filestack upload failed for ${fileName}`, 4000);
                 throw error;
             }
+        }
+
+        // Direct Filestack upload fallback (bypasses SDK) using legacy S3 store endpoint
+        async function filestackDirectUpload(file) {
+            if (!FILESTACK_API_KEY) throw new Error('Missing Filestack API key');
+            const endpoint = `https://upload.filestackapi.com/api/store/S3?key=${encodeURIComponent(FILESTACK_API_KEY)}`;
+            const form = new FormData();
+            form.append('file', file, file.name);
+            const res = await fetch(endpoint, { method: 'POST', body: form });
+            const json = await res.json().catch(() => null);
+            if (!res.ok) {
+                const msg = (json && (json.error || json.message)) || `${res.status} ${res.statusText}`;
+                throw new Error(`Direct upload failed: ${msg}`);
+            }
+            if (!json) throw new Error('Direct upload failed: no JSON');
+            // Expected JSON: { url, filename, type, size, key, container } or { handle }
+            return {
+                url: json.url || (json.handle ? `https://cdn.filestackcontent.com/${json.handle}` : ''),
+                handle: json.handle || undefined
+            };
         }
 
         // Download file from cloud storage (Filestack)
@@ -1392,14 +1418,20 @@ Refresh the page to see latest updates from cloud.`);
                 console.log('File:', file.name, 'Size:', file.size, 'Type:', file.type);
                 console.log('Filestack client:', filestackClient);
 
-                const uploadResponse = await filestackClient.upload(file, {
-                    onProgress: (evt) => {
-                        const progress = Math.round(evt.totalPercent || 0);
-                        showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
-                    },
-                    // Restrict to images and PDFs for lineup uploads
-                    accept: ['image/*', 'application/pdf']
-                });
+                let uploadResponse;
+                try {
+                    uploadResponse = await filestackClient.upload(file, {
+                        onProgress: (evt) => {
+                            const progress = Math.round(evt.totalPercent || 0);
+                            showFileTransferStatus(`☁️ Uploading ${file.name}: ${progress}%`);
+                        },
+                        // Restrict to images and PDFs for lineup uploads
+                        accept: ['image/*', 'application/pdf']
+                    });
+                } catch (sdkErr) {
+                    console.warn('Filestack SDK upload failed for lineup, trying direct upload fallback...', sdkErr);
+                    uploadResponse = await filestackDirectUpload(file);
+                }
 
                 console.log('Upload response:', uploadResponse);
 
