@@ -862,8 +862,19 @@
 
         // Upload file to cloud storage using Filestack
         async function uploadFileToCloud(fileId, fileData, fileName, fileType) {
-            if (!cloudStorageEnabled || !cloudStorageId || !filestackClient) {
-                throw new Error('Filestack cloud storage not enabled');
+            // Auto-initialize Filestack client if needed
+            if (!filestackClient) {
+                try {
+                    console.log('Auto-initializing Filestack for uploadFileToCloud...');
+                    filestackClient = filestack.init(FILESTACK_API_KEY);
+                } catch (initError) {
+                    console.error('Filestack initialization failed:', initError);
+                    throw new Error('Failed to initialize Filestack: ' + initError.message);
+                }
+            }
+            
+            if (!cloudStorageEnabled || !cloudStorageId) {
+                throw new Error('Cloud storage not properly configured');
             }
 
             try {
@@ -1336,10 +1347,17 @@ Refresh the page to see latest updates from cloud.`);
             }
 
             try {
+                // Auto-initialize Filestack client if needed
                 if (!filestackClient) {
-                    alert('⚠️ Filestack not initialized. Click "Cloud Active - Configure Security" to set up.');
-                    event.target.value = '';
-                    return;
+                    try {
+                        console.log('Auto-initializing Filestack for upload...');
+                        filestackClient = filestack.init(FILESTACK_API_KEY);
+                    } catch (initError) {
+                        console.error('Filestack initialization failed:', initError);
+                        alert('⚠️ Failed to initialize Filestack uploader.\n\nPlease check:\n1. Internet connection\n2. API key is valid\n3. Try refreshing the page\n\nError: ' + initError.message);
+                        event.target.value = '';
+                        return;
+                    }
                 }
                 showFileTransferStatus(`☁️ Uploading ${file.name} to Filestack...`);
                 const uploadResponse = await filestackClient.upload(file, {
