@@ -7,7 +7,7 @@
     <title>Producer Tasks - Instant Collaboration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <!-- Removed Filestack SDK: switching to Koofr (WebDAV) -->
+    <!-- Removed Filestack SDK: switching to Blomp (WebDAV) -->
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -154,7 +154,7 @@
                             <input type="file" id="socialFile" accept="image/*,video/*"
                                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                             <p class="text-xs text-gray-500 mt-1">Max: 100MB for videos, 20MB for images</p>
-                            <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Koofr (WebDAV)</p>
+                            <p class="text-xs text-green-600 mt-1">☁️ All files uploaded to Blomp (WebDAV)</p>
                         </div>
 
                         <div id="filePreview" class="mb-3"></div>
@@ -188,7 +188,7 @@
             <h2 class="text-xl font-semibold">☁️ Cloud Storage</h2>
             <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">100% Cloud Only</span>
         </div>
-        <p class="text-sm text-gray-600 mb-4">All data stored on Koofr via WebDAV. <strong>Access requires your Koofr
+        <p class="text-sm text-gray-600 mb-4">All data stored on Blomp via WebDAV. <strong>Access requires your Blomp
                 credentials.</strong></p>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -219,15 +219,15 @@
                 <h3 class="font-medium text-sm text-blue-800">☁️ Cloud File Storage (NEW!)</h3>
                 <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">No signup required</span>
             </div>
-            <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Koofr via WebDAV.
-                <strong>Important:</strong> Sign into <a href="https://koofr.com" target="_blank"
-                    class="underline">Koofr.com</a> in another tab first, then use this app.
+            <p class="text-xs text-blue-700 mb-3">🌐 Cloud-only mode: All files stored on Blomp via WebDAV.
+                <strong>Important:</strong> Sign into <a href="https://blomp.com" target="_blank"
+                    class="underline">Blomp.com</a> in another tab first, then use this app.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <button onclick="enableCloudStorage()" id="enableCloudBtn"
                     class="bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm">
-                    ✅ Koofr Active - Configure
+                    ✅ Blomp Active - Configure
                 </button>
                 <button onclick="viewCloudFiles()" id="viewCloudBtn"
                     class="bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 text-sm">
@@ -236,7 +236,7 @@
             </div>
 
             <div id="cloudStatus" class="mt-2 text-xs text-blue-600">
-                ⚠️ Enter your Koofr WebDAV credentials to enable uploads
+                ⚠️ Enter your Blomp WebDAV credentials to enable uploads
             </div>
             <div id="errorBanner" class="mt-2 hidden">
                 <div class="rounded-md bg-red-50 p-3 border border-red-200">
@@ -263,7 +263,7 @@
                     class="w-full bg-purple-600 text-white px-3 py-2 rounded hover:bg-purple-700 text-sm mb-2">
                     Download All Files as Zip
                 </button>
-                <p class="text-xs text-gray-500">📦 All files stored on Koofr</p>
+                <p class="text-xs text-gray-500">📦 All files stored on Blomp</p>
             </div>
 
             <div class="border rounded p-3">
@@ -293,7 +293,7 @@
             <div class="text-gray-500">
                 <span class="text-2xl">📎</span>
                 <p class="text-sm mt-2">Drag & drop files here to upload them to the cloud</p>
-                <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - uploaded to Koofr
+                <p class="text-xs text-gray-400 mt-1">Images, videos, PDFs, MP3s supported - uploaded to Blomp
                 </p>
             </div>
         </div>
@@ -510,31 +510,31 @@
 
     <script>
         // 🚫 NO LOCAL FILE STORAGE - 100% Cloud Only
-        // All files stored on Koofr via WebDAV
+        // All files stored on Blomp via WebDAV
         // IndexedDB removed, localStorage removed for data
         let db = null; // Deprecated - kept for compatibility only
 
         // Shared state - UNIVERSAL CLOUD STORAGE
-        // Everything stored in this single object, synced to Koofr
+        // Everything stored in this single object, synced to Blomp
         let data = {
             tasks: [],              // Producer tasks
             personalTasks: [],      // Taylor/Jay personal lists
             lineup: {},             // Show lineup (positions 1-5)
-            lineupFiles: {},        // Lineup files (images/PDFs) - Koofr URLs (WebDAV)
-            lineupAudio: {},        // Lineup audio (MP3s) - Koofr URLs (WebDAV)
+            lineupFiles: {},        // Lineup files (images/PDFs) - Blomp URLs (WebDAV)
+            lineupAudio: {},        // Lineup audio (MP3s) - Blomp URLs (WebDAV)
             staff: {},              // Staff assignments
-            socialPosts: [],        // Social media calendar - Koofr URLs
-            cloudFiles: {}          // All uploaded files registry - Koofr URLs
+            socialPosts: [],        // Social media calendar - Blomp URLs
+            cloudFiles: {}          // All uploaded files registry - Blomp URLs
         };
 
         // Load from PERMANENT CLOUD STORAGE ONLY - no local storage fallback
         async function loadLocal() {
             // This function is now a no-op - all loading happens via loadStateFromCloudIfAvailable
-            // ALL data comes from Koofr (WebDAV)
-            console.log('🌐 PERMANENT CLOUD MODE: No local data, loading from Koofr...');
+            // ALL data comes from Blomp (WebDAV)
+            console.log('🌐 PERMANENT CLOUD MODE: No local data, loading from Blomp...');
         }
 
-        // Save to PERMANENT CLOUD STORAGE ONLY - overwrites Koofr state.json
+        // Save to PERMANENT CLOUD STORAGE ONLY - overwrites Blomp state.json
         // NOTE: localStorage is NEVER used for data storage, only for config/pointers
         function saveLocal() {
             if (!cloudStorageEnabled) {
@@ -543,25 +543,25 @@
             }
 
             // Trigger permanent cloud save (debounced to avoid excessive uploads)
-            // Data is uploaded to Koofr via WebDAV
+            // Data is uploaded to Blomp via WebDAV
             debouncedSaveStateToCloud();
         }
 
-        // --- Universal Cloud Storage (Koofr) ---
-        // ALL data (tasks, files, audio, posts) stored in single `data` object, synced to Koofr via WebDAV
+        // --- Universal Cloud Storage (Blomp) ---
+        // ALL data (tasks, files, audio, posts) stored in single `data` object, synced to Blomp via WebDAV
         function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), wait); }; }
 
         async function saveStateToCloud() {
             try {
                 const json = JSON.stringify(data);
                 const blob = new Blob([json], { type: 'application/json' });
-                // Koofr: write to /produce/{cloudStorageId}/state.json
-                const dir = koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId);
-                const path = koofrJoinPath(dir, 'state.json');
-                await koofrEnsureDirs(dir);
-                const url = await koofrPut(path, blob, 'application/json');
+                // Blomp: write to /Apps/produce/{cloudStorageId}/state.json
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId);
+                const path = blompJoinPath(dir, 'state.json');
+                await blompEnsureDirs(dir);
+                const url = await blompPut(path, blob, 'application/json');
                 localStorage.setItem('stateCloudUrl', url);
-                console.log('☁️ Universal state stored in Koofr:', url);
+                console.log('☁️ Universal state stored in Blomp:', url);
             } catch (err) {
                 console.warn('Universal cloud state save skipped/failed:', err.message);
                 showGlobalError('Save failed', err.message);
@@ -571,9 +571,9 @@
 
         async function loadStateFromCloudIfAvailable() {
             try {
-                const dir = koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId);
-                const path = koofrJoinPath(dir, 'state.json');
-                const remote = await koofrGetJSON(path);
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId);
+                const path = blompJoinPath(dir, 'state.json');
+                const remote = await blompGetJSON(path);
                 if (remote && typeof remote === 'object') {
                     data = {
                         tasks: remote.tasks || [],
@@ -585,7 +585,7 @@
                         socialPosts: remote.socialPosts || [],
                         cloudFiles: remote.cloudFiles || {}
                     };
-                    console.log('✅ Loaded universal cloud state from Koofr');
+                    console.log('✅ Loaded universal cloud state from Blomp');
                 }
             } catch (e) {
                 console.warn('⚠️ No universal cloud state loaded:', e.message);
@@ -752,20 +752,24 @@
             }
         }
 
-        // -------- PERMANENT CLOUD STORAGE (Koofr WebDAV) --------
+        // -------- PERMANENT CLOUD STORAGE (Blomp WebDAV) --------
         // 
-        // CRITICAL: ALL data is stored PERMANENTLY on Koofr
-        // - Tasks, lineup, files, audio, posts → Koofr state.json via WebDAV
-        // - File assets → Koofr storage (WebDAV paths)
-        // - localStorage is ONLY used for config (credentials, URL pointers)
+        // CRITICAL: ALL data is stored PERMANENTLY on Filestack CDN
+        // - Tasks, lineup, files, audio, posts → Blomp state.json via WebDAV
+        // - File assets → Blomp storage (WebDAV paths)
+        // - localStorage is ONLY used for config (API keys, credentials, URL pointers)
         // - NO data is stored locally - everything in cloud
+        // - State URL: https://cdn.filestackcontent.com/{handle}
+        // - Permanent overwrite with policy/signature keeps same URL forever
         //
 
-        // Koofr configuration - stored in localStorage (config only)
-        let KOOFR_WEBDAV_URL = (localStorage.getItem('koofrWebdavUrl') || 'https://app.koofr.net/dav/Koofr').replace(/\/$/, '');
-        let KOOFR_USERNAME = localStorage.getItem('koofrUsername') || '';
-        let KOOFR_PASSWORD = localStorage.getItem('koofrPassword') || '';
-        let KOOFR_BASE_DIR = localStorage.getItem('koofrBaseDir') || '/produce';
+        // Blomp configuration - stored in localStorage (config only)
+        let BLOMP_WEBDAV_URL = (localStorage.getItem('blompWebdavUrl') || 'https://webdav.blomp.com').replace(/\/$/, '');
+        let BLOMP_USERNAME = localStorage.getItem('blompUsername') || '';
+        let BLOMP_PASSWORD = localStorage.getItem('blompPassword') || '';
+        let BLOMP_BASE_DIR = localStorage.getItem('blompBaseDir') || '/Apps/produce';
+        // Optional proxy for CORS/credentials. When set, all WebDAV requests are tunneled via proxy.
+        let BLOMP_PROXY_URL = (localStorage.getItem('blompProxyUrl') || '').trim();
 
         // Show a global error banner in the UI (no DevTools needed)
         function showGlobalError(title, message, details = '') {
@@ -786,13 +790,13 @@
             banner.classList.remove('hidden');
         }
 
-        function koofrAuthHeader() {
-            // Basic auth required for Koofr
-            if (!KOOFR_USERNAME || !KOOFR_PASSWORD) throw new Error('Koofr credentials not set');
-            return 'Basic ' + btoa(`${KOOFR_USERNAME}:${KOOFR_PASSWORD}`);
+        function blompAuthHeader() {
+            // Basic auth is optional. If not configured, omit header and rely on session cookies or proxy.
+            if (!BLOMP_USERNAME || !BLOMP_PASSWORD) return '';
+            return 'Basic ' + btoa(`${BLOMP_USERNAME}:${BLOMP_PASSWORD}`);
         }
 
-        function koofrJoinPath(...segments) {
+        function blompJoinPath(...segments) {
             const parts = segments
                 .map(s => String(s || '').trim())
                 .filter(Boolean)
@@ -800,23 +804,38 @@
             return '/' + parts.join('/');
         }
 
-        async function koofrMkcol(path) {
-            const url = KOOFR_WEBDAV_URL + path;
-            const headers = { 'Authorization': koofrAuthHeader() };
-            const res = await fetch(url, { method: 'MKCOL', headers });
+        async function blompMkcol(path) {
+            const url = BLOMP_WEBDAV_URL + path;
+            if (BLOMP_PROXY_URL) {
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'MKCOL', url })
+                });
+                if (!res.ok) throw new Error(`MKCOL via proxy failed ${res.status} ${res.statusText}`);
+                const okCodes = [200, 201, 405];
+                const payload = await res.json().catch(() => ({}));
+                const status = payload.status || 200;
+                if (!okCodes.includes(status)) throw new Error(`MKCOL via proxy failed ${status}`);
+                return;
+            }
+            const headers = {};
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { method: 'MKCOL', headers, credentials: 'include' });
             // 201 Created or 405 Method Not Allowed (already exists) are fine
             if (!(res.status === 201 || res.status === 405 || res.status === 200)) {
                 throw new Error(`MKCOL failed ${res.status} ${res.statusText}`);
             }
         }
 
-        async function koofrEnsureDirs(path) {
+        async function blompEnsureDirs(path) {
             const parts = path.split('/').filter(Boolean);
             let accum = '';
             for (let i = 0; i < parts.length; i++) {
                 accum += '/' + parts[i];
                 try {
-                    await koofrMkcol(accum);
+                    await blompMkcol(accum);
                 } catch (e) {
                     // ignore if it's a file (last segment has dot) or already exists
                     if (i < parts.length - 1) console.debug('MKCOL', accum, e.message);
@@ -824,10 +843,41 @@
             }
         }
 
-        async function koofrPut(path, data, contentType = 'application/octet-stream') {
-            const url = KOOFR_WEBDAV_URL + path;
-            const headers = { 'Content-Type': contentType, 'Authorization': koofrAuthHeader() };
-            const res = await fetch(url, { method: 'PUT', headers, body: data });
+        async function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result || '';
+                    const base64 = String(result).split(',')[1] || '';
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function blompPut(path, data, contentType = 'application/octet-stream') {
+            const url = BLOMP_WEBDAV_URL + path;
+            if (BLOMP_PROXY_URL) {
+                const bodyBase64 = await blobToBase64(data instanceof Blob ? data : new Blob([data], { type: contentType }));
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'PUT', url, contentType, bodyBase64 })
+                });
+                if (!res.ok) throw new Error(`PUT via proxy failed ${res.status} ${res.statusText}`);
+                const payload = await res.json().catch(() => ({}));
+                if (!(payload.ok || (payload.status && payload.status >= 200 && payload.status < 300))) {
+                    const status = payload.status || 'unknown';
+                    const text = payload.statusText || payload.error || '';
+                    throw new Error(`PUT via proxy failed: ${status} ${text}`);
+                }
+                return url;
+            }
+            const headers = { 'Content-Type': contentType };
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { method: 'PUT', headers, body: data, credentials: 'include' });
             if (!res.ok) {
                 let msg = `${res.status} ${res.statusText}`;
                 try { const t = await res.text(); if (t) msg += `: ${t}`; } catch { }
@@ -836,10 +886,26 @@
             return url; // returns the WebDAV URL
         }
 
-        async function koofrGetJSON(path) {
-            const url = KOOFR_WEBDAV_URL + path + `?cb=${Date.now()}`;
-            const headers = { 'Authorization': koofrAuthHeader() };
-            const res = await fetch(url, { headers });
+        async function blompGetJSON(path) {
+            const url = BLOMP_WEBDAV_URL + path + `?cb=${Date.now()}`;
+            if (BLOMP_PROXY_URL) {
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'GET', url, accept: 'application/json' })
+                });
+                if (!res.ok) throw new Error(`GET via proxy failed: ${res.status}`);
+                const payload = await res.json();
+                if (payload && payload.body) {
+                    // If proxy wrapped the JSON body
+                    try { return JSON.parse(payload.body); } catch { return payload; }
+                }
+                return payload;
+            }
+            const headers = {};
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { headers, credentials: 'include' });
             if (!res.ok) throw new Error(`GET failed: ${res.status}`);
             return await res.json();
         }
@@ -866,69 +932,70 @@
             }
         }
 
-        // Enable cloud storage - configure Koofr credentials
+        // Enable cloud storage - configure Blomp URL and optional proxy (no credential prompts by default)
         async function enableCloudStorage() {
             const btn = document.getElementById('enableCloudBtn');
             const status = document.getElementById('cloudStatus');
             const originalText = btn.innerHTML;
 
             try {
-                btn.innerHTML = '🔄 Configuring Koofr...';
+                btn.innerHTML = '🔄 Configuring Blomp...';
                 btn.disabled = true;
 
-                // Prompt for Koofr credentials
-                const user = prompt('Koofr username (email):', KOOFR_USERNAME || '');
-                const pass = user !== null ? prompt('Koofr app password:', KOOFR_PASSWORD || '') : null;
+                // Just confirm the WebDAV URL (session cookies handle auth)
+                const currentUrl = BLOMP_WEBDAV_URL;
+                const confirmed = confirm(`Use Blomp WebDAV at:\n${currentUrl}\n\n✅ Make sure you're signed into Blomp.com in another browser tab first!\n\nClick OK to continue.`);
 
-                if (user === null || pass === null) throw new Error('Configuration cancelled');
+                if (!confirmed) {
+                    throw new Error('Configuration cancelled');
+                }
 
-                KOOFR_USERNAME = user || '';
-                KOOFR_PASSWORD = pass || '';
-                localStorage.setItem('koofrUsername', KOOFR_USERNAME);
-                localStorage.setItem('koofrPassword', KOOFR_PASSWORD);
+                // Clear any proxy setting (not needed for direct session cookie mode)
+                BLOMP_PROXY_URL = '';
+                localStorage.removeItem('blompProxyUrl');
 
                 // Ensure storage ID is persisted
                 if (!localStorage.getItem('cloudStorageId')) {
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
 
-                status.innerHTML = `✅ Koofr configured for ${KOOFR_USERNAME}`;
-                btn.innerHTML = '✅ Koofr Active';
+                status.innerHTML = '✅ Blomp configured (using session cookies)';
+                btn.innerHTML = '✅ Blomp Active';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Koofr via WebDAV\n✅ Tasks, files, audio, posts - ONE system\n✅ Credentials stored locally (encrypted by browser)\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
+                alert(`🌐 Cloud storage ready!\n\n✅ Data stored on Blomp via WebDAV\n✅ Uses your Blomp session (no credentials stored here)\n✅ Tasks, files, audio, posts - ONE system\n\n⚠️ Remember: Sign into Blomp.com first if uploads fail!\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
 
             } catch (error) {
-                console.error('Koofr setup error:', error);
-                status.innerHTML = `❌ Failed to enable Koofr: ${error.message}`;
+                console.error('Blomp setup error:', error);
+                status.innerHTML = `❌ Failed to enable Blomp: ${error.message}`;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('❌ Koofr setup failed. Cannot save without cloud storage!');
+                alert('❌ Blomp setup failed. Cannot save without cloud storage!');
             }
         }
 
-        // Upload file to cloud storage using Koofr WebDAV
+        // Upload file to cloud storage using Blomp WebDAV
         async function uploadFileToCloud(fileId, fileData, fileName, fileType) {
             if (!cloudStorageEnabled || !cloudStorageId) {
                 throw new Error('Cloud storage not properly configured');
             }
 
             try {
-                showFileTransferStatus(`☁️ Uploading ${fileName} to Koofr...`);
+                showFileTransferStatus(`☁️ Uploading ${fileName} to Blomp...`);
 
                 // Convert data URL to blob for upload
                 const response = await fetch(fileData);
                 const blob = await response.blob();
                 const fileSizeMB = (blob.size / (1024 * 1024)).toFixed(2);
 
-                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to Koofr`);
+                console.log(`Uploading ${fileName} (${fileSizeMB}MB) to Blomp`);
 
                 // Compute remote path and ensure directories
-                const dir = koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId, 'files');
-                const remotePath = koofrJoinPath(dir, `${Date.now()}_${fileName}`);
-                await koofrEnsureDirs(dir);
-                const url = await koofrPut(remotePath, blob, fileType || 'application/octet-stream');
+                const dir = blompJoinPath(BLOMP_BASE_DIR, cloudStorageId, 'files');
+                const remotePath = blompJoinPath(dir, `${Date.now()}_${fileName}`);
+                await blompEnsureDirs(dir);
+                const url = await blompPut(remotePath, blob, fileType || 'application/octet-stream');
 
                 // Store file reference in universal cloud state
                 data.cloudFiles[fileId] = {
@@ -936,7 +1003,7 @@
                     type: fileType,
                     size: blob.size,
                     uploadUrl: url,
-                    service: 'koofr-webdav',
+                    service: 'blomp-webdav',
                     uploadedAt: new Date().toISOString(),
                     storageId: cloudStorageId
                 };
@@ -944,17 +1011,17 @@
                 // Save to cloud immediately
                 saveLocal();
 
-                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Koofr`);
-                showFileTransferStatus(`☁️ Uploaded ${fileName} to Koofr (${fileSizeMB}MB)`, 3000);
+                console.log(`☁️ Uploaded ${fileName} (${fileSizeMB}MB) to Blomp`);
+                showFileTransferStatus(`☁️ Uploaded ${fileName} to Blomp (${fileSizeMB}MB)`, 3000);
 
                 return true;
 
             } catch (error) {
-                console.error('Koofr upload error:', error);
+                console.error('Blomp upload error:', error);
                 const msg = (error && (error.message || error.toString())) || 'Unknown error';
                 const detail = (() => { try { return JSON.stringify(error, null, 2); } catch { return ''; } })();
                 showGlobalError('Upload failed', msg, detail);
-                showFileTransferStatus(`❌ Koofr upload failed for ${fileName}`, 4000);
+                showFileTransferStatus(`❌ Blomp upload failed for ${fileName}`, 4000);
                 throw error;
             }
         }
@@ -1045,13 +1112,13 @@
         function initCloudStorage() {
             try {
                 if (cloudStorageEnabled && cloudStorageId) {
-                    document.getElementById('enableCloudBtn').innerHTML = '✅ Koofr Active';
-                    document.getElementById('cloudStatus').innerHTML = KOOFR_USERNAME ? `✅ Koofr configured for ${KOOFR_USERNAME}` : 'ℹ️ Click "Koofr Active" to enter credentials';
+                    document.getElementById('enableCloudBtn').innerHTML = '✅ Blomp Active';
+                    document.getElementById('cloudStatus').innerHTML = '✅ Using Blomp session cookies (sign into Blomp.com first!)';
                     document.getElementById('viewCloudBtn').disabled = false;
                     document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
                 }
             } catch (e) {
-                console.warn('initCloudStorage: Koofr init failed', e);
+                console.warn('initCloudStorage: Blomp init failed', e);
             }
         }
 
@@ -1142,9 +1209,9 @@
                     const reader = new FileReader();
                     const dataUrl = await new Promise((resolve) => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
                     await uploadFileToCloud(`drop_${Date.now()}_${file.name}`, dataUrl, file.name, file.type);
-                    console.log(`☁️ Uploaded dropped file to Koofr: ${file.name}`);
+                    console.log(`☁️ Uploaded dropped file to Blomp: ${file.name}`);
                 }
-                alert(`✅ Uploaded ${files.length} file(s) to Koofr!`);
+                alert(`✅ Uploaded ${files.length} file(s) to Blomp!`);
 
             } catch (err) {
                 console.error('File drop error:', err);
@@ -1153,13 +1220,13 @@
         }
 
         async function exportAllFiles() {
-            alert('Use "📁 View Cloud Files" to see uploaded files. Download requires Koofr credentials.');
+            alert('Use "📁 View Cloud Files" to see uploaded files. Download requires Blomp credentials.');
         }
 
-        // 🚫 P2P FILE SYNC REMOVED - All files stored on Koofr
+        // 🚫 P2P FILE SYNC REMOVED - All files stored on Blomp
         // No local storage, no device-to-device transfer needed
         async function syncFilesWithTeam() {
-            alert('🌐 File sync not needed!\n\nAll files are stored on Koofr.\n\nJust refresh the page to see latest updates from other devices.');
+            alert('🌐 File sync not needed!\n\nAll files are stored on Blomp.\n\nJust refresh the page to see latest updates from other devices.');
         }
 
         async function debugFileSync() {
@@ -1168,10 +1235,10 @@
 
 Storage Mode: 100% Cloud Only
 Local Storage: DISABLED
-File Location: Koofr (WebDAV)
+File Location: Blomp (WebDAV)
 Cloud Files: ${fileCount}
 
-All files are stored on Koofr via WebDAV.
+All files are stored on Blomp via WebDAV.
 No local file storage or device-to-device sync needed.
 
 Refresh the page to see latest updates from cloud.`);
@@ -1366,7 +1433,7 @@ Refresh the page to see latest updates from cloud.`);
             }
 
             try {
-                showFileTransferStatus(`☁️ Uploading ${file.name} to Koofr...`);
+                showFileTransferStatus(`☁️ Uploading ${file.name} to Blomp...`);
 
                 // Upload using generic cloud uploader (to files folder)
                 const fileId = `lineup_${position}_${Date.now()}`;
@@ -1384,7 +1451,7 @@ Refresh the page to see latest updates from cloud.`);
                     size: file.size,
                     url: uploaded.uploadUrl
                 };
-                console.log(`☁️ Uploaded lineup file to Koofr:`, file.name);
+                console.log(`☁️ Uploaded lineup file to Blomp:`, file.name);
                 saveLocal();
                 broadcast();
                 updateLineupFileDisplay(position);
@@ -1406,15 +1473,15 @@ Refresh the page to see latest updates from cloud.`);
 
                 // Check for specific WebDAV/API errors
                 if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
-                    errorMsg = 'Unauthorized. Check Koofr username/password in Cloud Configure.';
+                    errorMsg = 'Unauthorized. Check Blomp username/password in Cloud Configure.';
                 } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
                     errorMsg = 'Forbidden. Your account may not allow WebDAV or the path is restricted.';
                 } else if (errorMsg.includes('CORS')) {
-                    errorMsg = 'CORS blocked by Koofr. Try another browser or configure a proxy.';
+                    errorMsg = 'CORS blocked by Blomp. Try another browser or configure a proxy.';
                 }
 
                 showGlobalError('Upload failed', errorMsg, (() => { try { return JSON.stringify(err, null, 2); } catch { return ''; } })());
-                alert(`❌ Upload failed: ${errorMsg}\n\nA detailed error banner is now visible near the Cloud section.\n\nTo fix:\n1. Click \"Koofr Active - Configure\" and verify credentials\n2. Ensure WebDAV is enabled for your Koofr account`);
+                alert(`❌ Upload failed: ${errorMsg}\n\nA detailed error banner is now visible near the Cloud section.\n\nTo fix:\n1. Click \"Blomp Active - Configure\" and verify credentials\n2. Ensure WebDAV is enabled for your Blomp account`);
                 event.target.value = ''; // Reset file input
             }
         };
@@ -1448,16 +1515,16 @@ Refresh the page to see latest updates from cloud.`);
                 return;
             }
 
-            // Upload to Koofr via WebDAV
+            // Upload to Blomp via WebDAV
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const url = e.target.result;
                 const fileId = `lineupAudio_${position}_${Date.now()}`;
 
-                // Upload to Koofr
+                // Upload to Blomp
                 try {
                     await uploadFileToCloud(fileId, url, file.name, file.type);
-                    console.log(`☁️ Audio uploaded to Koofr: ${file.name}`);
+                    console.log(`☁️ Audio uploaded to Blomp: ${file.name}`);
                     showFileTransferStatus(`☁️ Uploaded ${file.name} to cloud`, 3000);
                 } catch (error) {
                     console.error('Cloud upload failed:', error);
