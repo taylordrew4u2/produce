@@ -766,6 +766,8 @@
         let BLOMP_USERNAME = localStorage.getItem('blompUsername') || '';
         let BLOMP_PASSWORD = localStorage.getItem('blompPassword') || '';
         let BLOMP_BASE_DIR = localStorage.getItem('blompBaseDir') || '/Apps/produce';
+        // Optional proxy for CORS/credentials. When set, all WebDAV requests are tunneled via proxy.
+        let BLOMP_PROXY_URL = (localStorage.getItem('blompProxyUrl') || '').trim();
 
         // Show a global error banner in the UI (no DevTools needed)
         function showGlobalError(title, message, details = '') {
@@ -787,7 +789,8 @@
         }
 
         function blompAuthHeader() {
-            if (!BLOMP_USERNAME || !BLOMP_PASSWORD) throw new Error('Blomp credentials not set');
+            // Basic auth is optional. If not configured, omit header and rely on session cookies or proxy.
+            if (!BLOMP_USERNAME || !BLOMP_PASSWORD) return '';
             return 'Basic ' + btoa(`${BLOMP_USERNAME}:${BLOMP_PASSWORD}`);
         }
 
@@ -801,7 +804,23 @@
 
         async function blompMkcol(path) {
             const url = BLOMP_WEBDAV_URL + path;
-            const res = await fetch(url, { method: 'MKCOL', headers: { 'Authorization': blompAuthHeader() } });
+            if (BLOMP_PROXY_URL) {
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'MKCOL', url })
+                });
+                if (!res.ok) throw new Error(`MKCOL via proxy failed ${res.status} ${res.statusText}`);
+                const okCodes = [200, 201, 405];
+                const payload = await res.json().catch(() => ({}));
+                const status = payload.status || 200;
+                if (!okCodes.includes(status)) throw new Error(`MKCOL via proxy failed ${status}`);
+                return;
+            }
+            const headers = {};
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { method: 'MKCOL', headers, credentials: 'include' });
             // 201 Created or 405 Method Not Allowed (already exists) are fine
             if (!(res.status === 201 || res.status === 405 || res.status === 200)) {
                 throw new Error(`MKCOL failed ${res.status} ${res.statusText}`);
@@ -822,10 +841,41 @@
             }
         }
 
+        async function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result || '';
+                    const base64 = String(result).split(',')[1] || '';
+                    resolve(base64);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
         async function blompPut(path, data, contentType = 'application/octet-stream') {
             const url = BLOMP_WEBDAV_URL + path;
-            const headers = { 'Authorization': blompAuthHeader(), 'Content-Type': contentType };
-            const res = await fetch(url, { method: 'PUT', headers, body: data });
+            if (BLOMP_PROXY_URL) {
+                const bodyBase64 = await blobToBase64(data instanceof Blob ? data : new Blob([data], { type: contentType }));
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'PUT', url, contentType, bodyBase64 })
+                });
+                if (!res.ok) throw new Error(`PUT via proxy failed ${res.status} ${res.statusText}`);
+                const payload = await res.json().catch(() => ({}));
+                if (!(payload.ok || (payload.status && payload.status >= 200 && payload.status < 300))) {
+                    const status = payload.status || 'unknown';
+                    const text = payload.statusText || payload.error || '';
+                    throw new Error(`PUT via proxy failed: ${status} ${text}`);
+                }
+                return url;
+            }
+            const headers = { 'Content-Type': contentType };
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { method: 'PUT', headers, body: data, credentials: 'include' });
             if (!res.ok) {
                 let msg = `${res.status} ${res.statusText}`;
                 try { const t = await res.text(); if (t) msg += `: ${t}`; } catch { }
@@ -836,7 +886,24 @@
 
         async function blompGetJSON(path) {
             const url = BLOMP_WEBDAV_URL + path + `?cb=${Date.now()}`;
-            const res = await fetch(url, { headers: { 'Authorization': blompAuthHeader() } });
+            if (BLOMP_PROXY_URL) {
+                const res = await fetch(BLOMP_PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'GET', url, accept: 'application/json' })
+                });
+                if (!res.ok) throw new Error(`GET via proxy failed: ${res.status}`);
+                const payload = await res.json();
+                if (payload && payload.body) {
+                    // If proxy wrapped the JSON body
+                    try { return JSON.parse(payload.body); } catch { return payload; }
+                }
+                return payload;
+            }
+            const headers = {};
+            const auth = blompAuthHeader();
+            if (auth) headers['Authorization'] = auth;
+            const res = await fetch(url, { headers, credentials: 'include' });
             if (!res.ok) throw new Error(`GET failed: ${res.status}`);
             return await res.json();
         }
@@ -863,7 +930,7 @@
             }
         }
 
-        // Enable cloud storage - set Blomp credentials
+        // Enable cloud storage - configure Blomp URL and optional proxy (no credential prompts by default)
         async function enableCloudStorage() {
             const btn = document.getElementById('enableCloudBtn');
             const status = document.getElementById('cloudStatus');
@@ -873,31 +940,31 @@
                 btn.innerHTML = '🔄 Configuring Blomp...';
                 btn.disabled = true;
 
-                // Prompt for Blomp credentials
+                // Prompt for Blomp endpoint and optional proxy (avoid credential prompts)
                 const currentUrl = BLOMP_WEBDAV_URL;
                 const url = prompt('Blomp WebDAV URL:', currentUrl) || currentUrl;
-                const user = prompt('Blomp username (email):', BLOMP_USERNAME || '');
-                const pass = user !== null ? prompt('Blomp password (stored locally):', BLOMP_PASSWORD || '') : null;
-                if (user === null || pass === null) throw new Error('Cancelled');
+                const proxy = prompt('Optional: Proxy URL for Blomp (set if you hit CORS or auth issues). Leave blank for direct.', BLOMP_PROXY_URL || '') || '';
 
                 BLOMP_WEBDAV_URL = url.replace(/\/$/, '');
-                BLOMP_USERNAME = user || '';
-                BLOMP_PASSWORD = pass || '';
+                BLOMP_PROXY_URL = proxy.trim();
                 localStorage.setItem('blompWebdavUrl', BLOMP_WEBDAV_URL);
-                localStorage.setItem('blompUsername', BLOMP_USERNAME);
-                localStorage.setItem('blompPassword', BLOMP_PASSWORD);
+                if (BLOMP_PROXY_URL) {
+                    localStorage.setItem('blompProxyUrl', BLOMP_PROXY_URL);
+                } else {
+                    localStorage.removeItem('blompProxyUrl');
+                }
 
                 // Ensure storage ID is persisted
                 if (!localStorage.getItem('cloudStorageId')) {
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
 
-                status.innerHTML = `✅ Blomp WebDAV active for ${BLOMP_USERNAME}`;
-                btn.innerHTML = '✅ Blomp Active';
+                status.innerHTML = BLOMP_PROXY_URL ? `✅ Blomp configured (proxy enabled)` : (BLOMP_USERNAME ? `✅ Blomp configured for ${BLOMP_USERNAME}` : '✅ Blomp configured (direct mode)');
+                btn.innerHTML = '✅ Blomp Active - Configure';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Blomp via WebDAV\n✅ Tasks, files, audio, posts - ONE system\n⚠️ Requires your Blomp credentials to access\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
+                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Blomp via WebDAV\n✅ Tasks, files, audio, posts - ONE system\n${BLOMP_PROXY_URL ? '✅ Proxy enabled for CORS/auth' : 'ℹ️ Direct mode: ensure Blomp allows WebDAV from your browser or sign in to Blomp in this browser'}\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
 
             } catch (error) {
                 console.error('Blomp setup error:', error);
@@ -1045,8 +1112,8 @@
         function initCloudStorage() {
             try {
                 if (cloudStorageEnabled && cloudStorageId) {
-                    document.getElementById('enableCloudBtn').innerHTML = '✅ Blomp Active';
-                    document.getElementById('cloudStatus').innerHTML = BLOMP_USERNAME ? `✅ Blomp configured for ${BLOMP_USERNAME}` : '⚠️ Enter Blomp credentials to enable uploads';
+                    document.getElementById('enableCloudBtn').innerHTML = '✅ Blomp Active - Configure';
+                    document.getElementById('cloudStatus').innerHTML = BLOMP_PROXY_URL ? '✅ Blomp configured (proxy enabled)' : (BLOMP_USERNAME ? `✅ Blomp configured for ${BLOMP_USERNAME}` : 'ℹ️ Direct mode: set proxy if you hit CORS/auth issues');
                     document.getElementById('viewCloudBtn').disabled = false;
                     document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
                 }
