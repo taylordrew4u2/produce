@@ -860,15 +860,38 @@
 
         // Quick health check: create + delete a temp directory in base dir
         async function koofrHealthCheck() {
-            const testDir = koofrJoinPath(KOOFR_BASE_DIR, `health_${Date.now()}`);
+            const testDir = koofrJoinPath(KOOFR_BASE_DIR, `.health_${Date.now()}`);
             try {
+                console.log(`Health check: creating ${testDir}...`);
                 await koofrMkcol(testDir);
-                // Attempt to delete (best effort). WebDAV delete for directories might require empty dir.
+                console.log('✅ Health check: directory created');
+
+                // Attempt to delete (best effort)
                 const url = KOOFR_WEBDAV_URL + testDir;
-                await fetch(url, { method: 'DELETE', headers: { 'Authorization': koofrAuthHeader() } }).catch(() => { });
+                await fetch(url, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': koofrAuthHeader() },
+                    credentials: 'include'
+                }).catch(() => { });
+                console.log('✅ Health check: cleanup done');
+
                 return { ok: true };
             } catch (e) {
-                return { ok: false, error: e.message || String(e) };
+                console.error('❌ Health check failed:', e);
+                let errorMsg = e.message || String(e);
+
+                // Add helpful context for common errors
+                if (errorMsg.includes('401') || errorMsg.includes('Unauthorized')) {
+                    errorMsg = 'Authentication failed - check your app password';
+                } else if (errorMsg.includes('403') || errorMsg.includes('Forbidden')) {
+                    errorMsg = 'Access denied - check folder permissions';
+                } else if (errorMsg.includes('CORS')) {
+                    errorMsg = 'CORS blocked - Koofr might not allow browser WebDAV. Try using their API instead.';
+                } else if (errorMsg.includes('Network') || errorMsg.includes('Failed to fetch')) {
+                    errorMsg = 'Network error - check internet connection and WebDAV URL';
+                }
+
+                return { ok: false, error: errorMsg };
             }
         }
 
@@ -894,14 +917,18 @@
 
                 // Prompt for Koofr credentials
                 const user = prompt('Koofr username (email):', KOOFR_USERNAME || '');
-                const pass = user !== null ? prompt('Koofr app password:', KOOFR_PASSWORD || '') : null;
+                if (user === null) throw new Error('Configuration cancelled');
+
+                const pass = prompt('Koofr app password (NOT your login password):\n\nCreate at: koofr.eu → Account → Security → App passwords', KOOFR_PASSWORD || '');
+                if (pass === null) throw new Error('Configuration cancelled');
+                if (!pass.trim()) throw new Error('App password cannot be empty');
+
                 // Prompt for base folder within Koofr
-                const base = (pass !== null) ? (prompt('Base folder on Koofr (will be created if missing):', KOOFR_BASE_DIR || '/produce') || KOOFR_BASE_DIR || '/produce') : null;
+                const base = prompt('Base folder on Koofr (will be created if missing):', KOOFR_BASE_DIR || '/produce');
+                if (base === null) throw new Error('Configuration cancelled');
 
-                if (user === null || pass === null || base === null) throw new Error('Configuration cancelled');
-
-                KOOFR_USERNAME = user || '';
-                KOOFR_PASSWORD = pass || '';
+                KOOFR_USERNAME = user.trim();
+                KOOFR_PASSWORD = pass.trim();
                 KOOFR_BASE_DIR = base.startsWith('/') ? base : '/' + base;
                 localStorage.setItem('koofrUsername', KOOFR_USERNAME);
                 localStorage.setItem('koofrPassword', KOOFR_PASSWORD);
@@ -912,12 +939,16 @@
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
 
-                // Make sure base dir and app folder exists
-                await koofrEnsureDirs(koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId));
+                console.log('Testing Koofr connection...');
 
                 // Quick health check
                 const health = await koofrHealthCheck();
                 if (!health.ok) throw new Error(`Health check failed: ${health.error || 'unknown error'}`);
+
+                console.log('Creating base directories...');
+
+                // Make sure base dir and app folder exists
+                await koofrEnsureDirs(koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId));
 
                 status.innerHTML = `✅ Koofr: ${new URL(KOOFR_WEBDAV_URL).hostname}${KOOFR_BASE_DIR} — ${KOOFR_USERNAME}`;
                 btn.innerHTML = '✅ Koofr Active';
@@ -928,10 +959,21 @@
 
             } catch (error) {
                 console.error('Koofr setup error:', error);
-                status.innerHTML = `❌ Failed to enable Koofr: ${error.message}`;
+                const errorMsg = error.message || 'Unknown error';
+                status.innerHTML = `❌ Failed: ${errorMsg}`;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-                alert('❌ Koofr setup failed. Cannot save without cloud storage!');
+
+                let helpMsg = '❌ Koofr setup failed!\n\n';
+                helpMsg += `Error: ${errorMsg}\n\n`;
+                helpMsg += 'Common fixes:\n';
+                helpMsg += '1. Use an APP PASSWORD (not login password)\n';
+                helpMsg += '   Create at: koofr.eu → Account → Security\n';
+                helpMsg += '2. WebDAV URL should be: https://koofr.eu/dav/Koofr\n';
+                helpMsg += '3. Check browser console (F12) for CORS errors\n';
+                helpMsg += '4. Make sure you have internet connection';
+
+                alert(helpMsg);
             }
         }
 
