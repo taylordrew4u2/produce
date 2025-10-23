@@ -81,15 +81,29 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">Personal Tasks</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Taylor -->
                 <div class="border rounded p-4">
                     <h3 class="font-medium mb-3">Taylor</h3>
-                    <!-- Cloud File Management removed: UI handled in other areas (cloud-only mode) -->
-                    class="w-full border rounded px-2 py-1">
+                    <div class="flex gap-2 mb-3">
+                        <input id="taylorInput" type="text" placeholder="Add a task for Taylor"
+                            class="flex-1 w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button type="button" onclick="addPersonalTask('Taylor')"
+                            class="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Add</button>
+                    </div>
+                    <div id="taylorTasks" class="space-y-2"></div>
                 </div>
-                <button type="button" onclick="saveStaff(event)"
-                    class="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700 text-sm">
-                    💾 Save
-                </button>
+
+                <!-- Jay -->
+                <div class="border rounded p-4">
+                    <h3 class="font-medium mb-3">Jay</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input id="jayInput" type="text" placeholder="Add a task for Jay"
+                            class="flex-1 w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button type="button" onclick="addPersonalTask('Jay')"
+                            class="px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Add</button>
+                    </div>
+                    <div id="jayTasks" class="space-y-2"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -173,7 +187,7 @@
             <!-- Operations Notes Sidebar (Right) -->
             <div class="lg:col-span-1">
                 <div class="bg-gray-50 rounded-lg p-4 sticky top-4">
-                    <h3 class="font-semibold text-gray-800 mb-3">� Quick Notes</h3>
+                    <h3 class="font-semibold text-gray-800 mb-3">📝 Quick Notes</h3>
                     <div class="text-sm space-y-3">
                         <p class="text-gray-600">Use this space for show notes, reminders, or quick references.</p>
                     </div>
@@ -605,7 +619,7 @@
         let connections = [];
         const roomId = 'producer-tasks-room'; // Fixed room for all users
 
-        // 🚫 NO OFFLINE TRACKING - All changes saved directly to Filestack CDN
+        // 🚫 NO OFFLINE TRACKING - All changes saved directly to Koofr (WebDAV)
         // Cloud storage handles all persistence automatically
 
         peer.on('open', (id) => {
@@ -656,7 +670,7 @@
                     }, 1000); // Small delay to ensure connection is stable
                 }
 
-                // 🚫 P2P file sync DISABLED - all files stored permanently in Filestack CDN
+                // 🚫 P2P file sync DISABLED - all files stored permanently in Koofr (WebDAV)
                 // No local file storage, no need to sync files between devices
                 // All devices load from same cloud state
             });
@@ -673,7 +687,7 @@
                     saveLocal();
                     await render();
                 }
-                // 🚫 File sync messages DISABLED - all files on Filestack CDN
+                // 🚫 File sync messages DISABLED - all files on Koofr (WebDAV)
                 // No P2P file transfer needed, everything loads from cloud
             });
 
@@ -718,9 +732,9 @@
         }
 
         // -------- P2P File Sync REMOVED --------
-        // � NO LOCAL FILE STORAGE - All files on Filestack CDN
+        // 🚫 NO LOCAL FILE STORAGE - All files on Koofr (WebDAV)
         // P2P file transfer is unnecessary - all devices load from same cloud state
-        // Files are permanently stored on Filestack and referenced by URL in state.json
+        // Files are permanently stored on Koofr and referenced by URL in state.json
 
         // Show file transfer status
         function showFileTransferStatus(message, autoClear = 0) {
@@ -844,27 +858,23 @@
             return await res.json();
         }
 
+        // Quick health check: create + delete a temp directory in base dir
+        async function koofrHealthCheck() {
+            const testDir = koofrJoinPath(KOOFR_BASE_DIR, `health_${Date.now()}`);
+            try {
+                await koofrMkcol(testDir);
+                // Attempt to delete (best effort). WebDAV delete for directories might require empty dir.
+                const url = KOOFR_WEBDAV_URL + testDir;
+                await fetch(url, { method: 'DELETE', headers: { 'Authorization': koofrAuthHeader() } }).catch(() => { });
+                return { ok: true };
+            } catch (e) {
+                return { ok: false, error: e.message || String(e) };
+            }
+        }
+
         // Cloud storage is ALWAYS enabled - no local-only mode
         let cloudStorageEnabled = true; // Always on - permanent cloud storage required
         let cloudStorageId = localStorage.getItem('cloudStorageId') || `prod_${Math.random().toString(36).substr(2, 12)}_${Date.now()}`;
-
-        // Helper to set/change Filestack API key
-        function setFilestackApiKey() {
-            const current = localStorage.getItem('filestackApiKey') || '';
-            const entered = prompt('Enter your Filestack API key (leave blank to use demo key):', current);
-            if (entered === null) return; // cancelled
-            if (entered.trim()) {
-                localStorage.setItem('filestackApiKey', entered.trim());
-                FILESTACK_API_KEY = entered.trim();
-                filestackClient = null; // force re-init
-                alert('✅ Filestack API key saved.');
-            } else {
-                localStorage.removeItem('filestackApiKey');
-                FILESTACK_API_KEY = 'AzKRRFVGmS8CIpDqn6r8Bz';
-                filestackClient = null; // force re-init
-                alert('Using demo API key. For production, set your own key.');
-            }
-        }
 
         // Enable cloud storage - configure Koofr credentials
         async function enableCloudStorage() {
@@ -885,25 +895,36 @@
                 // Prompt for Koofr credentials
                 const user = prompt('Koofr username (email):', KOOFR_USERNAME || '');
                 const pass = user !== null ? prompt('Koofr app password:', KOOFR_PASSWORD || '') : null;
+                // Prompt for base folder within Koofr
+                const base = (pass !== null) ? (prompt('Base folder on Koofr (will be created if missing):', KOOFR_BASE_DIR || '/produce') || KOOFR_BASE_DIR || '/produce') : null;
 
-                if (user === null || pass === null) throw new Error('Configuration cancelled');
+                if (user === null || pass === null || base === null) throw new Error('Configuration cancelled');
 
                 KOOFR_USERNAME = user || '';
                 KOOFR_PASSWORD = pass || '';
+                KOOFR_BASE_DIR = base.startsWith('/') ? base : '/' + base;
                 localStorage.setItem('koofrUsername', KOOFR_USERNAME);
                 localStorage.setItem('koofrPassword', KOOFR_PASSWORD);
+                localStorage.setItem('koofrBaseDir', KOOFR_BASE_DIR);
 
                 // Ensure storage ID is persisted
                 if (!localStorage.getItem('cloudStorageId')) {
                     localStorage.setItem('cloudStorageId', cloudStorageId);
                 }
 
-                status.innerHTML = `✅ Koofr configured for ${KOOFR_USERNAME} (${new URL(KOOFR_WEBDAV_URL).hostname})`;
+                // Make sure base dir and app folder exists
+                await koofrEnsureDirs(koofrJoinPath(KOOFR_BASE_DIR, cloudStorageId));
+
+                // Quick health check
+                const health = await koofrHealthCheck();
+                if (!health.ok) throw new Error(`Health check failed: ${health.error || 'unknown error'}`);
+
+                status.innerHTML = `✅ Koofr: ${new URL(KOOFR_WEBDAV_URL).hostname}${KOOFR_BASE_DIR} — ${KOOFR_USERNAME}`;
                 btn.innerHTML = '✅ Koofr Active';
                 document.getElementById('viewCloudBtn').disabled = false;
                 document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
 
-                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Koofr via WebDAV\n✅ Tasks, files, audio, posts - ONE system\n✅ Credentials stored locally (encrypted by browser)\n\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
+                alert(`🌐 Cloud storage configured!\n\n✅ Data stored on Koofr via WebDAV\n✅ Tasks, files, audio, posts — ONE system\n✅ Credentials stored locally (browser)\n\nHost: ${new URL(KOOFR_WEBDAV_URL).hostname}\nBase: ${KOOFR_BASE_DIR}\nStorage ID: ${cloudStorageId.slice(0, 16)}...`);
 
             } catch (error) {
                 console.error('Koofr setup error:', error);
@@ -965,7 +986,7 @@
             }
         }
 
-        // Download file from cloud storage (Filestack)
+        // Download file from cloud storage (Koofr WebDAV)
         async function downloadFileFromCloud(fileId) {
             if (!cloudStorageEnabled || !cloudStorageId) {
                 return null;
@@ -974,41 +995,35 @@
             try {
                 const fileInfo = data.cloudFiles[fileId];
                 if (!fileInfo) {
-                    console.log(`File ${fileId} not found in Filestack storage`);
+                    console.log(`File ${fileId} not found in cloud storage`);
                     return null;
                 }
 
-                console.log(`Downloading ${fileInfo.fileName} from Filestack`);
+                console.log(`Downloading ${fileInfo.fileName} from cloud (${fileInfo.service || 'unknown'})`);
 
-                if (fileInfo.service === 'filestack') {
-                    // Download from Filestack CDN URL
-                    const response = await fetch(fileInfo.uploadUrl);
-                    if (!response.ok) {
-                        throw new Error(`Filestack download failed: ${response.status}`);
-                    }
-
+                // Koofr WebDAV files require Authorization header
+                if (fileInfo.service === 'koofr-webdav') {
+                    const response = await fetch(fileInfo.uploadUrl, { headers: { 'Authorization': koofrAuthHeader() } });
+                    if (!response.ok) throw new Error(`Koofr download failed: ${response.status}`);
                     const blob = await response.blob();
                     const reader = new FileReader();
-
                     return new Promise((resolve, reject) => {
-                        reader.onload = () => {
-                            resolve({
-                                data: reader.result,
-                                fileName: fileInfo.fileName,
-                                type: fileInfo.type
-                            });
-                        };
+                        reader.onload = () => resolve({ data: reader.result, fileName: fileInfo.fileName, type: fileInfo.type });
                         reader.onerror = reject;
                         reader.readAsDataURL(blob);
                     });
-                } else {
-                    // Fallback for legacy files
-                    return {
-                        data: fileInfo.uploadUrl,
-                        fileName: fileInfo.fileName,
-                        type: fileInfo.type
-                    };
                 }
+
+                // Legacy or public URLs (e.g., Filestack)
+                const response = await fetch(fileInfo.uploadUrl);
+                if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+                const blob = await response.blob();
+                const reader = new FileReader();
+                return new Promise((resolve, reject) => {
+                    reader.onload = () => resolve({ data: reader.result, fileName: fileInfo.fileName, type: fileInfo.type });
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
 
             } catch (error) {
                 console.error('Download error:', error);
@@ -1052,7 +1067,10 @@
             try {
                 if (cloudStorageEnabled && cloudStorageId) {
                     document.getElementById('enableCloudBtn').innerHTML = '✅ Koofr Active';
-                    document.getElementById('cloudStatus').innerHTML = KOOFR_USERNAME ? `✅ Koofr configured for ${KOOFR_USERNAME}` : 'ℹ️ Click "Koofr Active" to enter credentials';
+                    const host = (() => { try { return new URL(KOOFR_WEBDAV_URL).hostname; } catch { return 'koofr'; } })();
+                    document.getElementById('cloudStatus').innerHTML = KOOFR_USERNAME
+                        ? `✅ Koofr: ${host}${KOOFR_BASE_DIR} — ${KOOFR_USERNAME}`
+                        : 'ℹ️ Click "Koofr Active" to enter credentials';
                     document.getElementById('viewCloudBtn').disabled = false;
                     document.getElementById('viewCloudBtn').className = 'bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 text-sm';
                 }
@@ -1070,9 +1088,9 @@
                 const exportData = {
                     version: '2.0',
                     timestamp: new Date().toISOString(),
-                    storageMode: 'Filestack CDN (100% Cloud)',
+                    storageMode: 'Koofr WebDAV (100% Cloud)',
                     ...data, // All data from universal cloud state
-                    note: 'All files are stored on Filestack CDN. File URLs are included in this export.'
+                    note: 'All files are stored on Koofr via WebDAV. File URLs are included in this export.'
                 };
 
                 // Create downloadable file
@@ -1919,37 +1937,7 @@ Refresh the page to see latest updates from cloud.`);
             }
         };
 
-        // Initialize - PERMANENT CLOUD STORAGE MODE
-        (async () => {
-            console.log('🌐 PERMANENT CLOUD STORAGE MODE');
-            console.log('📦 ALL data stored on Filestack CDN (https://cdn.filestackcontent.com/)');
-            console.log('🚫 NO local data storage - cloud only');
-            console.log('🔒 localStorage used ONLY for config (API keys, credentials, pointers)');
-
-            // Initialize Filestack client for permanent cloud storage
-            if (!filestackClient) {
-                try {
-                    filestackClient = filestack.init(FILESTACK_API_KEY);
-                    console.log('✅ Filestack CDN client initialized - ready for permanent storage');
-                } catch (err) {
-                    console.error('❌ Filestack CDN init failed:', err);
-                    alert('⚠️ PERMANENT CLOUD STORAGE initialization failed!\n\nThe app requires Filestack CDN for all data storage.\n\nError: ' + err.message);
-                }
-            }
-
-            // Load everything from permanent cloud storage (Filestack CDN)
-            await loadStateFromCloudIfAvailable();
-            await render();
-
-            // Show cloud status
-            const status = document.getElementById('cloudStatus');
-            if (status) {
-                const hasCredentials = localStorage.getItem('filestackPolicy') && localStorage.getItem('filestackSignature');
-                status.innerHTML = hasCredentials
-                    ? '✅ Cloud active (permanent URLs)'
-                    : '⚠️ Cloud active (rotating URLs - add policy/signature for permanent)';
-            }
-        })();
+        // (Removed old Filestack initialization block)
 
         // -------- Google Drive (Client-side PKCE) helpers --------
         // Minimal PKCE implementation and upload helper. This is optional; you must
@@ -2113,7 +2101,8 @@ Refresh the page to see latest updates from cloud.`);
         // Initialize on page load
         (async () => {
             initCloudStorage(); // Initialize cloud storage UI
-            await loadLocal();
+            await loadLocal(); // no-op in cloud-only mode
+            await loadStateFromCloudIfAvailable(); // fetch state.json from Koofr if present
             await render();
         })();
     </script>
